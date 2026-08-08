@@ -30,6 +30,7 @@
 #include "serialcl.h"
 #include "dregcl.h"
 #include "port_hwcl.h"
+#include "interruptcl.h"
 
 
 cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
@@ -94,6 +95,47 @@ cl_uc_stc12::mk_hw_elements(void)
   p2->init();
   add_hw(p3= new cl_port(this, 3));
   p3->init();
+
+  /* Port display data */
+  class cl_port_data pd;
+  pd.init();
+  pd.cell_dir= NULL;
+
+  pd.set_name("P0");
+  pd.cell_p  = p0->cell_p;
+  pd.cell_in = p0->cell_in;
+  pd.keyset  = keysets[0];
+  pd.basx    = 1;
+  pd.basy    = 5;
+  d->add_port(&pd, 0);
+
+  pd.set_name("P1");
+  pd.cell_p  = p1->cell_p;
+  pd.cell_in = p1->cell_in;
+  pd.keyset  = keysets[1];
+  pd.basx    = 20;
+  pd.basy    = 5;
+  d->add_port(&pd, 1);
+
+  pd.set_name("P2");
+  pd.cell_p  = p2->cell_p;
+  pd.cell_in = p2->cell_in;
+  pd.keyset  = keysets[2];
+  pd.basx    = 40;
+  pd.basy    = 5;
+  d->add_port(&pd, 2);
+
+  pd.set_name("P3");
+  pd.cell_p  = p3->cell_p;
+  pd.cell_in = p3->cell_in;
+  pd.keyset  = keysets[3];
+  pd.basx    = 60;
+  pd.basy    = 5;
+  d->add_port(&pd, 3);
+
+  /* Interrupt system */
+  add_hw(interrupt= new cl_interrupt(this));
+  interrupt->init();
 
   /* STC12-specific port mode registers for P0-P5 */
   for (int i= 0; i < 6; i++)
