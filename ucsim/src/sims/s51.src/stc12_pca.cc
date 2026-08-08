@@ -75,22 +75,27 @@ void
 cl_pca_stc12::do_pca_counter(int cycles)
 {
   /* STC12 has 2 PCA modules, STC15 has 3. The base 8052 has 5.
-     Only fire do_pca_module for the modules that exist. */
+     Only fire do_pca_module for the modules that exist.
+     PWM comparator runs on every CL tick, not just on overflow
+     (STC12-PERIPHERAL-MODEL.md §5.3). */
   while (cycles--)
     {
       if (cell_cl->set(cell_cl->get() + 1) == 0)
 	{
+	  /* CL wrapped: reload CCAPnL from CCAPnH for PWM modules */
 	  for (int i= 0; i < n_modules; i++)
 	    if (ccapm[i] & bmPWM)
 	      cell_ccapl[i]->set(cell_ccaph[i]->get());
 
 	  if (cell_ch->set(cell_ch->get() + 1) == 0)
 	    {
+	      /* Full CH:CL overflow */
 	      cell_ccon->set(cell_ccon->get() | bmCF);
-	      for (int i= 0; i < n_modules; i++)
-		do_pca_module(i);
 	    }
 	}
+      /* Run module logic on every PCA clock tick */
+      for (int i= 0; i < n_modules; i++)
+	do_pca_module(i);
     }
 }
 
