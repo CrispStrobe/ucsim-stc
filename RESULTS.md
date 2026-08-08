@@ -141,6 +141,32 @@ Runs both emulators and reports PASS/FAIL.  Requires `emu_trace` at
 | `01-blink` | `/mnt/volume1/code/stc/src/01-blink` | Timer 0 mode 1 polled overflow, port mode push-pull, LED toggle |
 | `02-adc` | `/mnt/volume1/code/stc/src/02-adc` | ADC power/start/flag/result, P1ASF, input-only port mode |
 | `scheduled_gen` | `sb3-creator` `generateC()` SCHEDULED fixture | Timer 0 ISR, cooperative Duff's-device scheduler, 2 WHEN scripts, ADC read, custom block, port toggle |
+| `periph_test` | hand-written edge-case test | Timer 0 12T→1T switch mid-run, Timer 1 at 1T simultaneously, both TF0 events, port mode changes, ADC full cycle, PCA start |
 
 All compiled with `sdcc -mmcs51 --model-small` (SDCC 4.2.0) or the
 hosted compiler.
+
+## Which peripherals are covered
+
+The peripheral model has five subsystems.  This table shows what each
+test image exercises and whether it is covered by the differential
+comparison.
+
+| Peripheral | Tested by | Covered in diff? |
+|------------|-----------|------------------|
+| Timer 0 at FOSC/12 (AUXR.7=0) | blink, adc, scheduler, periph | **Yes** — TF0 rising edge + TCON transitions |
+| Timer 0 at FOSC (AUXR.7=1) | periph | **Yes** — 1T overflow timing |
+| Timer 1 at FOSC (AUXR.6=1) | periph | **Yes** — TR1 in TCON watched |
+| AUXR mid-run switching | periph | **Yes** — AUXR value transitions (0x00→0x40→0xC0) |
+| Port modes (PxM1/PxM0) | all four | **Yes** — P1M1, P1M0 writes watched |
+| Port data (P0–P4) | all four | **Yes** — P1 value transitions watched |
+| ADC power/start/flag/clear | adc, scheduler, periph | **Yes** — ADC_CONTR transitions watched |
+| ADC result values | — | **No** — synthetic (ucsim 512, emu8051 0); excluded from comparison |
+| PCA counter start | periph | **Partial** — CCON watched; CL/CH values not traced |
+| PCA module outputs (PWM, compare) | — | **No** — not exercised by any test image |
+| Timer 0 ISR (interrupt-driven TF0) | scheduler | **Yes** — tick_hw hook catches transient TF0 |
+| Cooperative scheduler (Duff's device) | scheduler | **Yes** — full bw_tick/bw_task cycle |
+
+**Not covered:** PCA PWM output, Timer 2 (STC12 doesn't have it),
+serial port, watchdog, EEPROM/IAP, power modes, SPI.  These are out
+of scope per the peripheral model spec §8.
