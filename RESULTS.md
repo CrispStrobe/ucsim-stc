@@ -219,7 +219,7 @@ here for reproducibility; image contents are never committed or pushed.
 |------|-------------|--------|
 | 1 | capabilities/state | API implemented in cl_uc_stc12 |
 | 2 | Level 1 position | debug_read_bw_ms/task_state/task_until from IRAM |
-| 3 | step(insn) PC sequence (interrupts masked) | **PASS** — 500/500 PCs identical from reset (blink.ihx) |
+| 3 | step(insn) PC sequence (interrupts masked) | **PASS** — 1000/1000 PCs identical from reset (blink.ihx) |
 | 4 | Code breakpoint at correct PC | **PASS** — halts at bw_task0 entry (0x011D) |
 | 5 | Yield breakpoint at correct (task, state) | **PASS** — halts at case-label, task0_state=3 |
 | 6 | Write while halted affects execution | **PASS** — task0_state=0xFFFF stays ended after resume |
@@ -236,3 +236,23 @@ here for reproducibility; image contents are never committed or pushed.
   write; emu8051 cleared it at conversion completion (matching the
   datasheet). Found by scheduler image differential. Fixed, and
   resolution recorded in spec-updates/001-adc-start-clear-timing.md.
+
+- **emu8051 cycle count convention** (rung 3): emu8051's 2-cycle opcodes
+  return 2 (= 3 ticks in their convention) instead of 1 (= 2 ticks).
+  Documented in spec-updates/005-emu8051-cycle-count-bug.md. Source:
+  Intel MCS-51 User's Manual Table A-2, not derived from making the
+  diff agree.
+
+## STC15 support
+
+`-t STC15` or `-t STC15F2K60S2` selects the STC15F2K60S2 model.
+Implemented as a delta on the STC12 base per STC15-PERIPHERAL-MODEL.md:
+
+| Delta | STC12 | STC15 |
+|-------|-------|-------|
+| ADRJ location | AUXR1.2 (0xA2 bit 2) | CLK_DIV.5 (0x97 bit 5) |
+| PCA modules | 2 (CCAPM0/1) | 3 (CCAPM0/1/2) |
+| AUXR lower bits | BRT | Timer 2 (noted, not yet behavioral) |
+
+Verified: STC15 ADRJ works at CLK_DIV.5 and does NOT respond to
+the old AUXR1.2 location (the trap from STC15-PERIPHERAL-MODEL §2.1).
