@@ -1,5 +1,17 @@
 # PLAN — STC12C5A60S2 model for ucsim
 
+## Status (2026-08-08)
+
+**Phases 0-5 implemented and committed.** The STC12 model builds, runs, and
+passes smoke tests:
+- `-t STC12` or `-t STC12C5A60S2` selects the model
+- Timer 0 in 12T mode: 922 counts = 11064 osc clocks → TF0 set (correct)
+- Timer 0 in 1T mode: 12x faster (12 counts per 12 osc clocks)
+- 01-blink compiled image runs: board_init sets P1M0=0x03 (push-pull),
+  delay_init configures Timer 0 mode 1, LED pattern toggles on P1
+
+**Remaining:** Phase 6 (PCA/PWM detailed testing), Phase 7 (integration).
+
 ## Phase 0: Baseline
 1. Fetch SDCC 4.5.0 orig tarball from Debian (SourceForge is 403 here).
 2. Unpack **only** `sim/ucsim/` into this repo.
