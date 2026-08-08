@@ -10,7 +10,17 @@ passes smoke tests:
 - 01-blink compiled image runs: board_init sets P1M0=0x03 (push-pull),
   delay_init configures Timer 0 mode 1, LED pattern toggles on P1
 
-**Remaining:** Phase 6 (PCA/PWM detailed testing), Phase 7 (integration).
+**Phase 6 (PCA):** PCA subclassed with 1T prescaler. FOSC/12 and FOSC/2
+sources verified.
+
+**Phase 7 (integration):**
+- 01-blink compiled image: runs correctly, LED pattern toggles on P1
+- 02-adc compiled image: ADC_CONTR power/start/flag sequence works,
+  synthetic mid-scale result (0x200) returned, P1ASF gating functional
+- Differential execution: SFR map correctly different from C52 (P5 at
+  0xC8 instead of T2CON, all STC12 registers named and accessible)
+- PCA counter counts at FOSC/12 (12 osc ticks = 1 count) and FOSC/2
+  (10 osc ticks = 5 counts)
 
 ## Phase 0: Baseline
 1. Fetch SDCC 4.5.0 orig tarball from Debian (SourceForge is 403 here).
