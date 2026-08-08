@@ -101,11 +101,16 @@ cl_pca_stc12::do_pca_counter(int cycles)
 	    t_mem p1_old= s->get(0x90);
 	    t_mem p1_new= p1_old;
 	    static const u8_t cex_mask[] = {0x08, 0x10, 0x20, 0x40, 0x80};
+	    /* PCA_PWMn addresses for the 9th bit (EPCnL) */
+	    static const t_addr pwm_addrs[] = {0xF2, 0xF3, 0xF4};
 	    for (int i= 0; i < n_modules; i++)
 	      {
 		if ((ccapm[i] & bmECOM) && (ccapm[i] & bmPWM))
 		  {
-		    if (cl_val < cell_ccapl[i]->get())
+		    /* 9-bit compare: {EPCnL,CCAPnL} vs {0,CL} (§5.3) */
+		    t_mem epcl= (i < 3) ? (s->get(pwm_addrs[i]) & 0x01) : 0;
+		    unsigned compare= (epcl << 8) | cell_ccapl[i]->get();
+		    if ((unsigned)cl_val < compare)
 		      p1_new &= ~cex_mask[i]; /* LOW */
 		    else
 		      p1_new |= cex_mask[i];  /* HIGH */
