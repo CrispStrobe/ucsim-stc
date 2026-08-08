@@ -29,9 +29,45 @@
 #include "interruptcl.h"
 
 
+/* SFR watch list matching the trace format spec */
+static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
+  0x80, /* P0 */
+  0x88, /* TCON */
+  0x89, /* TMOD */
+  0x8E, /* AUXR */
+  0x90, /* P1 */
+  0x91, /* P1M1 */
+  0x92, /* P1M0 */
+  0x93, /* P0M1 */
+  0x94, /* P0M0 */
+  0x95, /* P2M1 */
+  0x96, /* P2M0 */
+  0xA0, /* P2 */
+  0xB0, /* P3 */
+  0xB1, /* P3M1 */
+  0xB2, /* P3M0 */
+  0xBC, /* ADC_CONTR */
+  0xC0, /* P4 */
+  0xD8, /* CCON */
+  0xD9, /* CMOD */
+  0xDA, /* CCAPM0 */
+  0xDB, /* CCAPM1 */
+};
+
+
 cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   cl_uc52(Itype, asim)
 {
+  trace_file= NULL;
+  trace_osc_clocks= 0;
+  trace_until_ns= 0;
+  trace_fosc= 11059200;
+  trace_last_pc= 0xFFFF;
+  for (int i= 0; i < STC12_TRACE_NWATCH; i++)
+    {
+      trace_sfr_addrs[i]= stc12_watch_addrs[i];
+      trace_sfr_shadow[i]= 0;
+    }
 }
 
 int
@@ -218,6 +254,113 @@ cl_uc_stc12::clear_sfr(void)
   sfr->write(CCAP1H, 0x00);
   sfr->write(STC12_PCA_PWM0, 0x00);
   sfr->write(STC12_PCA_PWM1, 0x00);
+}
+
+
+/*
+ * Differential execution trace.
+ *
+ * When enabled via trace_start(), do_inst() snapshots watched SFRs before
+ * and after each instruction (including ISR entry/exit and all hw ticks).
+ * This catches transient SFR states like TF0 that an ISR clears within
+ * the same instruction context.
+ */
+
+void
+cl_uc_stc12::trace_start(FILE *f, unsigned long fosc, unsigned long long until_ns)
+{
+  trace_file= f;
+  trace_fosc= fosc;
+  trace_until_ns= until_ns;
+  trace_osc_clocks= 0;
+  trace_last_pc= 0xFFFF;
+
+  /* Snapshot initial SFR state */
+  for (int i= 0; i < STC12_TRACE_NWATCH; i++)
+    trace_sfr_shadow[i]= sfr->get(trace_sfr_addrs[i]);
+}
+
+void
+cl_uc_stc12::trace_check_sfr(void)
+{
+  if (!trace_file)
+    return;
+
+  unsigned long long t_ns= trace_osc_clocks * 1000000000ULL / trace_fosc;
+
+  for (int i= 0; i < STC12_TRACE_NWATCH; i++)
+    {
+      t_mem val= sfr->get(trace_sfr_addrs[i]);
+      if (val != trace_sfr_shadow[i])
+	{
+	  fprintf(trace_file, "%llu\tSFR\t%02X %02X\n",
+		  (unsigned long long)t_ns,
+		  (unsigned)trace_sfr_addrs[i], (unsigned)val);
+
+	  /* TF events: detect rising edge of TF0 (bit 5) or TF1 (bit 7) */
+	  if (trace_sfr_addrs[i] == 0x88)
+	    {
+	      t_mem old= trace_sfr_shadow[i];
+	      if ((val & 0x20) && !(old & 0x20))
+		fprintf(trace_file, "%llu\tTF\t0\n", (unsigned long long)t_ns);
+	      if ((val & 0x80) && !(old & 0x80))
+		fprintf(trace_file, "%llu\tTF\t1\n", (unsigned long long)t_ns);
+	    }
+
+	  /* ADC completion */
+	  if (trace_sfr_addrs[i] == 0xBC)
+	    {
+	      t_mem old= trace_sfr_shadow[i];
+	      if ((val & 0x10) && !(old & 0x10))
+		{
+		  /* Read the 10-bit result */
+		  t_mem adc_res= sfr->get(STC12_ADC_RES);
+		  t_mem adc_resl= sfr->get(STC12_ADC_RESL);
+		  t_mem auxr1= sfr->get(AUXR1);
+		  unsigned result;
+		  if (auxr1 & 0x04)
+		    result= ((unsigned)(adc_res & 0x03) << 8) | adc_resl;
+		  else
+		    result= ((unsigned)adc_res << 2) | (adc_resl & 0x03);
+		  fprintf(trace_file, "%llu\tADC\t%d %u\n",
+			  (unsigned long long)t_ns,
+			  (int)(val & 0x07), result);
+		}
+	    }
+
+	  trace_sfr_shadow[i]= val;
+	}
+    }
+}
+
+int
+cl_uc_stc12::do_inst(void)
+{
+  if (!trace_file)
+    return cl_51core::do_inst();
+
+  unsigned long long t_ns= trace_osc_clocks * 1000000000ULL / trace_fosc;
+  if (t_ns > trace_until_ns)
+    return resGO;
+
+  /* Emit PC event */
+  if (PC != trace_last_pc)
+    {
+      fprintf(trace_file, "%llu\tPC\t%04X\n",
+	      (unsigned long long)t_ns, (unsigned)PC);
+      trace_last_pc= PC;
+    }
+
+  /* Run the instruction (this calls tick_hw, may enter ISR, etc.) */
+  int result= cl_51core::do_inst();
+
+  /* Count elapsed osc clocks (inst_ticks was set by post_inst) */
+  trace_osc_clocks += inst_ticks;
+
+  /* Check for SFR changes AFTER the full instruction + ISR */
+  trace_check_sfr();
+
+  return result;
 }
 
 

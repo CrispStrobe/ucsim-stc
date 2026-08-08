@@ -27,10 +27,25 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef UCSTC12CL_HEADER
 #define UCSTC12CL_HEADER
 
+#include <stdio.h>
+
 #include "uc52cl.h"
+
+/* SFR watch list for differential trace (matches spec) */
+#define STC12_TRACE_NWATCH 21
 
 class cl_uc_stc12: public cl_uc52
 {
+protected:
+  /* Trace state */
+  FILE *trace_file;
+  unsigned long long trace_osc_clocks;
+  unsigned long long trace_until_ns;
+  unsigned long trace_fosc;
+  t_mem trace_sfr_shadow[STC12_TRACE_NWATCH];
+  t_addr trace_sfr_addrs[STC12_TRACE_NWATCH];
+  t_addr trace_last_pc;
+  void trace_check_sfr(void);
 public:
   cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim);
   virtual int init(void);
@@ -42,6 +57,10 @@ public:
   virtual void decode_sfr(void);
   virtual void make_vars(void);
   virtual void clear_sfr(void);
+  virtual int do_inst(void);
+
+  /* Trace API: call before running to enable trace output */
+  void trace_start(FILE *f, unsigned long fosc, unsigned long long until_ns);
 };
 
 
