@@ -162,12 +162,12 @@ comparison.
 | Port data (P0–P4) | all four | **Yes** — P1 value transitions watched |
 | ADC power/start/flag/clear | adc, scheduler, periph | **Yes** — ADC_CONTR transitions watched |
 | ADC result values | — | **No** — synthetic (ucsim 512, emu8051 0); excluded from comparison |
-| PCA counter start | periph | **Partial** — CCON watched; CL/CH values not traced |
-| PCA module outputs (PWM, compare) | — | **No** — not exercised by any test image |
+| PCA counter (8 clock sources) | periph | **Yes** — CCON watched, all 8 CPS sources implemented |
+| PCA PWM (9-bit, correct polarity) | — | Implemented per §5.3; not yet exercised in differential |
 | Timer 0 ISR (interrupt-driven TF0) | scheduler | **Yes** — tick_hw hook catches transient TF0 |
 | Cooperative scheduler (Duff's device) | scheduler | **Yes** — full bw_tick/bw_task cycle |
 
-**Not covered:** PCA PWM output, Timer 2 (STC12 doesn't have it),
+**Not covered:** Timer 2 (STC12 doesn't have it; STC15 deferred),
 serial port, watchdog, EEPROM/IAP, power modes, SPI.  These are out
 of scope per the peripheral model spec §8.
 
