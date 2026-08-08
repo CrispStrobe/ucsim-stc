@@ -180,6 +180,33 @@ static i8_t stc12_cycle_tab[256] = {
   /* 0xF8-0xFF MOV Rn,A */ 1,1,1,1,1,1,1,1,
 };
 
+/* STC12C5A60S2 defined SFR addresses.
+ * Any SFR write outside this set is an unmodelled register access. */
+static bool stc12_sfr_defined[128]; /* indexed by addr - 0x80 */
+static bool stc12_sfr_defined_init = false;
+static void init_sfr_defined(void)
+{
+  if (stc12_sfr_defined_init) return;
+  memset(stc12_sfr_defined, 0, sizeof(stc12_sfr_defined));
+  static const t_addr defined[] = {
+    0x80, 0x81, 0x82, 0x83, 0x87,          /* P0, SP, DPL, DPH, PCON */
+    0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D,    /* TCON, TMOD, TL0, TL1, TH0, TH1 */
+    0x8E,                                    /* AUXR */
+    0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, /* P1, PxM, CLK_DIV */
+    0x98, 0x99, 0x9D,                        /* SCON, SBUF, P1ASF */
+    0xA0, 0xA2, 0xA8,                        /* P2, AUXR1, IE */
+    0xB0, 0xB1, 0xB2, 0xB3, 0xB4,          /* P3, P3M1, P3M0, P4M1, P4M0 */
+    0xB8, 0xBB, 0xBC, 0xBD, 0xBE,          /* IP, P4SW, ADC_CONTR/RES/RESL */
+    0xC0, 0xC8, 0xC9, 0xCA,                /* P4, P5, P5M1, P5M0 */
+    0xD0, 0xD8, 0xD9, 0xDA, 0xDB,          /* PSW, CCON, CMOD, CCAPM0, CCAPM1 */
+    0xE0, 0xE9,                              /* ACC, CL */
+    0xF0, 0xF2, 0xF3, 0xF9, 0xFA, 0xFB,   /* B, PCA_PWM0/1, CH, CCAP0H, CCAP1H */
+  };
+  for (unsigned i= 0; i < sizeof(defined)/sizeof(defined[0]); i++)
+    stc12_sfr_defined[defined[i] - 0x80]= true;
+  stc12_sfr_defined_init= true;
+}
+
 /* SFR watch list matching the trace format spec */
 static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
   0x80, /* P0 */
@@ -209,6 +236,9 @@ static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
 cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   cl_uc52(Itype, asim)
 {
+  init_sfr_defined();
+  memset(trace_full_sfr_shadow, 0, sizeof(trace_full_sfr_shadow));
+  memset(trace_unmodelled_reported, 0, sizeof(trace_unmodelled_reported));
   trace_file= NULL;
   trace_osc_clocks= 0;
   trace_until_ns= 0;
@@ -438,6 +468,11 @@ cl_uc_stc12::trace_start(FILE *f, unsigned long fosc, unsigned long long until_n
   /* Snapshot initial SFR state */
   for (int i= 0; i < STC12_TRACE_NWATCH; i++)
     trace_sfr_shadow[i]= sfr->get(trace_sfr_addrs[i]);
+
+  /* Snapshot full SFR range for unmodelled-register detection */
+  for (int i= 0; i < 128; i++)
+    trace_full_sfr_shadow[i]= sfr->get(0x80 + i);
+  memset(trace_unmodelled_reported, 0, sizeof(trace_unmodelled_reported));
 }
 
 void
@@ -489,6 +524,23 @@ cl_uc_stc12::trace_check_sfr(void)
 	    }
 
 	  trace_sfr_shadow[i]= val;
+	}
+    }
+
+  /* Scan full SFR range for writes to unmodelled registers */
+  for (int i= 0; i < 128; i++)
+    {
+      t_mem val= sfr->get(0x80 + i);
+      if (val != trace_full_sfr_shadow[i])
+	{
+	  trace_full_sfr_shadow[i]= val;
+	  if (!stc12_sfr_defined[i] && !trace_unmodelled_reported[i])
+	    {
+	      unsigned long long t_ns= trace_osc_clocks * 1000000000ULL / trace_fosc;
+	      fprintf(trace_file, "%llu\tUNMODELLED\t%02X %02X\n",
+		      (unsigned long long)t_ns, (unsigned)(0x80 + i), (unsigned)val);
+	      trace_unmodelled_reported[i]= true;
+	    }
 	}
     }
 }

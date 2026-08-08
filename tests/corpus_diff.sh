@@ -21,7 +21,7 @@ if [ ! -x "$EMU_TRACE" ]; then echo "FAIL: emu_trace not found" >&2; exit 1; fi
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-TOTAL=0; PASS=0; FAIL=0; ERROR=0; EMPTY=0
+TOTAL=0; PASS=0; FAIL=0; ERROR=0; EMPTY=0; WRONG_TARGET=0
 DIVERGE_LOG="$TMP/divergences.txt"
 > "$DIVERGE_LOG"
 
@@ -48,8 +48,17 @@ for img in "$HEXDIR"/*.hex "$HEXDIR"/*.ihx; do
     fi
 
     MIN=$((EN < UN ? EN : UN))
+    # Check for unmodelled register access (wrong target)
+    timeout $TIMEOUT "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$img" \
+        2>/dev/null | grep "UNMODELLED" > "$TMP/unmod.events" 2>/dev/null || true
+    HAS_UNMOD=$(wc -l < "$TMP/unmod.events")
+
     if diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") > /dev/null 2>&1; then
         PASS=$((PASS + 1))
+    elif [ "$HAS_UNMOD" -gt 0 ]; then
+        WRONG_TARGET=$((WRONG_TARGET + 1))
+        FIRST_UNMOD=$(head -1 "$TMP/unmod.events" | awk '{print $3}')
+        echo "WRONG-TARGET $NAME: unmodelled SFR $FIRST_UNMOD (emu=$EN ucsim=$UN)" >> "$DIVERGE_LOG"
     else
         FAIL=$((FAIL + 1))
         FIRST_DIFF=$(diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") | head -3 | tail -1)
@@ -67,6 +76,7 @@ echo "=== Corpus differential results (${UNTIL_NS} ns) ==="
 echo "Total:    $TOTAL images"
 echo "Pass:     $PASS (SFR+TF events identical)"
 echo "Diverge:  $FAIL"
+echo "Wrong-target: $WRONG_TARGET (touches unmodelled SFRs)"
 echo "Empty:    $EMPTY (no events in either trace)"
 echo "Error:    $ERROR (one side produced no output)"
 echo ""

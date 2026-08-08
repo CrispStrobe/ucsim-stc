@@ -63,6 +63,8 @@ protected:
   t_mem trace_sfr_shadow[STC12_TRACE_NWATCH];
   t_addr trace_sfr_addrs[STC12_TRACE_NWATCH];
   t_addr trace_last_pc;
+  t_mem trace_full_sfr_shadow[128]; /* full SFR range for unmodelled detection */
+  bool trace_unmodelled_reported[128]; /* report each unmodelled addr once */
   void trace_check_sfr(void);
 
   /* Debug target state */
