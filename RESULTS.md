@@ -218,7 +218,7 @@ here for reproducibility; image contents are never committed or pushed.
 |------|-------------|--------|
 | 1 | capabilities/state | API implemented in cl_uc_stc12 |
 | 2 | Level 1 position | debug_read_bw_ms/task_state/task_until from IRAM |
-| 3 | step(insn) PC sequence (interrupts masked) | **Blocked** — waiting on emu8051 `-step-pcs` (COORD-FROM-UCSIM.md) |
+| 3 | step(insn) PC sequence (interrupts masked) | **PASS** — 500/500 PCs identical from reset (blink.ihx) |
 | 4 | Code breakpoint at correct PC | **PASS** — halts at bw_task0 entry (0x011D) |
 | 5 | Yield breakpoint at correct (task, state) | **PASS** — halts at case-label, task0_state=3 |
 | 6 | Write while halted affects execution | **PASS** — task0_state=0xFFFF stays ended after resume |
