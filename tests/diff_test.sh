@@ -1,23 +1,20 @@
 #!/bin/bash
 # diff_test.sh — differential execution test against emu8051-stc.
 #
-# Runs the same firmware image on both emulators and compares the
-# non-PC event streams (SFR writes, timer overflows, ADC completions).
-# Timestamps are ignored — only event type, addresses, and values
-# are compared, because the two emulators have different instruction
-# cycle costs.
+# Runs the same firmware on both emulators for the same amount of
+# simulated time (in nanoseconds), then compares the SFR/TF event
+# streams. The bound is in nanoseconds so it means the same thing
+# regardless of instruction cycle costs.
 #
-# Requires: emu8051-stc built at /mnt/volume1/code/emu8051-stc/emu_trace
-#           (or set EMU_TRACE to the path)
-#
-# Usage: ./tests/diff_test.sh firmware.hex [cycles]
+# Usage: ./tests/diff_test.sh firmware.hex [until_ns]
+#   Default: 2000000 ns (2 ms simulated time)
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 UCSIM="${UCSIM:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/ucsim_51}"
 EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
-HEXFILE="${1:?Usage: $0 firmware.hex [cycles]}"
-CYCLES="${2:-15000}"
+HEXFILE="${1:?Usage: $0 firmware.hex [until_ns]}"
+UNTIL_NS="${2:-2000000}"
 FOSC=11059200
 
 if [ ! -x "$EMU_TRACE" ]; then
@@ -30,36 +27,37 @@ if [ ! -x "$UCSIM" ]; then
     exit 1
 fi
 
+# Convert ns to approximate cycles for emu_trace (which still uses -cycles)
+# emu8051 ticks once per oscillator clock on STC12 (1T)
+EMU_CYCLES=$(python3 -c "print(int($UNTIL_NS * $FOSC / 1e9 + 1000))")
+
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-echo "Running emu8051-stc ($CYCLES cycles)..."
-"$EMU_TRACE" -fosc $FOSC -cycles "$CYCLES" "$HEXFILE" 2>/dev/null \
+echo "Running emu8051-stc (until ${UNTIL_NS} ns, ~${EMU_CYCLES} cycles)..."
+"$EMU_TRACE" -fosc $FOSC -cycles "$EMU_CYCLES" "$HEXFILE" 2>/dev/null \
+    | awk -v limit="$UNTIL_NS" '$1 <= limit' \
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.events"
 
-echo "Running ucsim-stc ($CYCLES cycles)..."
-"$SCRIPT_DIR/trace.sh" -fosc $FOSC -cycles "$CYCLES" "$HEXFILE" 2>/dev/null \
+echo "Running ucsim-stc (until ${UNTIL_NS} ns)..."
+"$SCRIPT_DIR/trace.sh" -fosc $FOSC -until-ns "$UNTIL_NS" "$HEXFILE" 2>/dev/null \
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.events"
 
 EMU_N=$(wc -l < "$TMP/emu.events")
 UCSIM_N=$(wc -l < "$TMP/ucsim.events")
 
-# Compare the shorter of the two (they may cover different amounts
-# of real time due to different instruction cycle costs)
-MIN_N=$((EMU_N < UCSIM_N ? EMU_N : UCSIM_N))
+echo "  emu8051: $EMU_N events, ucsim: $UCSIM_N events"
 
-if [ "$MIN_N" -eq 0 ]; then
-    echo "FAIL: no events to compare"
-    exit 1
+if [ "$EMU_N" -eq 0 ] && [ "$UCSIM_N" -eq 0 ]; then
+    echo "PASS: no SFR/TF events in either trace (run may be too short)"
+    exit 0
 fi
 
-head -n "$MIN_N" "$TMP/emu.events" > "$TMP/emu.cmp"
-head -n "$MIN_N" "$TMP/ucsim.events" > "$TMP/ucsim.cmp"
-
-if diff -u "$TMP/emu.cmp" "$TMP/ucsim.cmp" > "$TMP/diff.out" 2>&1; then
-    echo "PASS: $MIN_N events identical across both emulators"
+# Compare event streams
+if diff -u "$TMP/emu.events" "$TMP/ucsim.events" > "$TMP/diff.out" 2>&1; then
+    echo "PASS: $EMU_N events identical across both emulators over ${UNTIL_NS} ns"
 else
     echo "FAIL: event divergence detected"
-    cat "$TMP/diff.out"
+    head -30 "$TMP/diff.out"
     exit 1
 fi

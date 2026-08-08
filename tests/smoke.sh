@@ -41,8 +41,10 @@ TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1
 
 # 5. Timer overflow at correct tick count
 echo "[5] Timer overflow (FOSC=11059200, 1ms)"
-OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\nset mem sfr 0x8a 0x66\nset mem sfr 0x8c 0xFC\ntick 11064\ndump sfr 0x88 0x88\nquit\n' | $UCSIM -t STC12 2>&1)
-echo "$OUT" | grep "TCON:" | tail -1 | grep -q "0x30" && pass "TF0 set after 11064 ticks" || fail "TF0 not set"
+# T0_RELOAD = 65536 - 11059200/12/1000 = 65536 - 921 = 64615 = 0xFC67
+# Timer counts 921 times to overflow, at 12T that's 921*12 = 11052 osc clocks
+OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\nset mem sfr 0x8a 0x67\nset mem sfr 0x8c 0xFC\ntick 11052\ndump sfr 0x88 0x88\nquit\n' | $UCSIM -t STC12 2>&1)
+echo "$OUT" | grep "TCON:" | tail -1 | grep -q "0x30" && pass "TF0 set after 11052 ticks" || fail "TF0 not set"
 
 # 6. ADC register sequence
 echo "[6] ADC conversion"
