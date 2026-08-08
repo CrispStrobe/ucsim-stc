@@ -43,8 +43,9 @@ echo "Rung 3: step('insn') x $STEPS, interrupts masked"
 
 # emu8051: one hex PC per line, normalize to 4-digit uppercase
 # Skip the first line (reset PC before any step executes)
+# Filter out any non-PC trace lines (PIN/SFR events may leak through)
 "$EMU_TRACE" -fosc $FOSC -step-pcs $((STEPS + 1)) "$HEXFILE" 2>/dev/null \
-    | tail -n +2 | head -$STEPS \
+    | grep -v '	' | tail -n +2 | head -$STEPS \
     | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_pcs.txt"
 
 # ucsim: step one at a time, extract PC, normalize to 4-digit uppercase
