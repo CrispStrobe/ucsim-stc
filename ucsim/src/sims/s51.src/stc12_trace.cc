@@ -106,6 +106,10 @@ main(int argc, char *argv[])
 	fprintf(stderr, "Failed to load %s\n", fname);
     }
 
+  /* Disable stop-on-selfjump — cooperative schedulers loop
+     repeatedly without PC changing. */
+  uc->stop_selfjump= false;
+
   /* Enable trace to stdout */
   uc->trace_start(stdout, fosc, until_ns);
 
@@ -113,7 +117,9 @@ main(int argc, char *argv[])
   for (;;)
     {
       int res= uc->do_inst();
-      if (res != resGO)
+      /* resSTOP from our do_inst override means time limit reached.
+	 Everything else (resGO, resSELFJUMP, etc.) means keep going. */
+      if (res == resSTOP)
 	break;
     }
 

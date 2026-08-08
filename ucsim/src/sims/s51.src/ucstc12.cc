@@ -371,6 +371,12 @@ cl_uc_stc12::do_inst(void)
      and check SFRs per-tick, catching transient TF0). */
   int result= cl_51core::do_inst();
 
+  /* Check again after the full instruction + ISR handling.
+     tick_hw catches TF0 being SET, but the ISR may clear it
+     and restore TCON before we return. This second check
+     catches the post-ISR state. */
+  trace_check_sfr();
+
   return result;
 }
 
