@@ -300,11 +300,14 @@ cl_pca::do_pca_module(int nr)
 	}
       if (ccapm[nr] & bmPWM)
 	{
-	  // PWM
+	  /* PWM: (0,CL) < {EPCnL,CCAPnL} -> output LOW
+	     (0,CL) >= {EPCnL,CCAPnL} -> output HIGH
+	     Per STC12-PERIPHERAL-MODEL.md §5.3.
+	     NOTE: 9th bit (EPCnL from PCA_PWMn) not yet modelled. */
 	  if (cell_cl->get() < cell_ccapl[nr]->get())
-	    sfr->set(P1, sfr->get(P1) | bmCEX[nr]);
+	    sfr->set(P1, sfr->get(P1) & ~bmCEX[nr]); /* LOW */
 	  else
-	    sfr->set(P1, sfr->get(P1) | bmCEX[nr]);
+	    sfr->set(P1, sfr->get(P1) | bmCEX[nr]);  /* HIGH */
 	}
     }
 }

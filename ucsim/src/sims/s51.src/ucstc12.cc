@@ -199,7 +199,7 @@ static void init_sfr_defined(void)
     0xB8, 0xBB, 0xBC, 0xBD, 0xBE,          /* IP, P4SW, ADC_CONTR/RES/RESL */
     0xC0, 0xC8, 0xC9, 0xCA,                /* P4, P5, P5M1, P5M0 */
     0xD0, 0xD8, 0xD9, 0xDA, 0xDB,          /* PSW, CCON, CMOD, CCAPM0, CCAPM1 */
-    0xE0, 0xE9,                              /* ACC, CL */
+    0xE0, 0xE9, 0xEA, 0xEB,                  /* ACC, CL, CCAP0L, CCAP1L */
     0xF0, 0xF2, 0xF3, 0xF9, 0xFA, 0xFB,   /* B, PCA_PWM0/1, CH, CCAP0H, CCAP1H */
   };
   for (unsigned i= 0; i < sizeof(defined)/sizeof(defined[0]); i++)

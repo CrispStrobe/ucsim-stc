@@ -353,7 +353,18 @@ static struct name_entry sfr_tab51[]=
   {CPU_STC12, 0xf3, "PCA_PWM1"},
   {CPU_STC12, 0xf9, "CH"},
   {CPU_STC12, 0xfa, "CCAP0H"},
+  {CPU_STC12, 0xea, "CCAP0L"},
+  {CPU_STC12, 0xeb, "CCAP1L"},
   {CPU_STC12, 0xfb, "CCAP1H"},
+
+  /* STC15-specific SFRs (use CPU_STC12 since both share the type) */
+  {CPU_STC12, 0x8f, "INT_CLKO"},
+  {CPU_STC12, 0xd6, "T2H"},
+  {CPU_STC12, 0xd7, "T2L"},
+  {CPU_STC12, 0xdc, "CCAPM2"},
+  {CPU_STC12, 0xec, "CCAP2L"},
+  {CPU_STC12, 0xf4, "PCA_PWM2"},
+  {CPU_STC12, 0xfc, "CCAP2H"},
 
   {0, 0, NULL}
 };
