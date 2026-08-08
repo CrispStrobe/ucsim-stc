@@ -237,6 +237,7 @@ cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   cl_uc52(Itype, asim)
 {
   init_sfr_defined();
+  stc_part= (Itype->subtype & 0x10) ? STC_PART_STC15 : STC_PART_STC12;
   memset(trace_full_sfr_shadow, 0, sizeof(trace_full_sfr_shadow));
   memset(trace_unmodelled_reported, 0, sizeof(trace_unmodelled_reported));
   trace_file= NULL;
@@ -270,7 +271,7 @@ cl_uc_stc12::tick_tab(t_mem code)
 const char *
 cl_uc_stc12::id_string(void)
 {
-  return "STC12C5A60S2";
+  return (stc_part == STC_PART_STC15) ? "STC15F2K60S2" : "STC12C5A60S2";
 }
 
 void
@@ -368,12 +369,13 @@ cl_uc_stc12::mk_hw_elements(void)
     }
 
   /* ADC */
-  h= new cl_stc12_adc(this);
+  h= new cl_stc12_adc(this, stc_part);
   h->init();
   add_hw(h);
 
-  /* PCA with 2 modules and correct 1T clock prescaling */
-  h= new cl_pca_stc12(this, 0);
+  /* PCA with correct module count and 1T clock prescaling */
+  int pca_modules= (stc_part == STC_PART_STC15) ? 3 : 2;
+  h= new cl_pca_stc12(this, 0, pca_modules);
   h->init();
   add_hw(h);
 }

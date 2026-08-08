@@ -31,6 +31,10 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "uc52cl.h"
 
+/* Part identity: STC12 base, STC15 delta */
+#define STC_PART_STC12  0
+#define STC_PART_STC15  1
+
 /* SFR watch list for differential trace (matches spec) */
 #define STC12_TRACE_NWATCH 21
 
@@ -66,6 +70,9 @@ protected:
   t_mem trace_full_sfr_shadow[128]; /* full SFR range for unmodelled detection */
   bool trace_unmodelled_reported[128]; /* report each unmodelled addr once */
   void trace_check_sfr(void);
+
+  /* Part identity */
+  int stc_part;  /* STC_PART_STC12 or STC_PART_STC15 */
 
   /* Debug target state */
   t_addr bw_ms_addr;          /* IRAM address of bw_ms (0 = not set) */

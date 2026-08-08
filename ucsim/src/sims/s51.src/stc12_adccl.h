@@ -22,11 +22,13 @@ protected:
   class cl_memory_cell *cell_adc_resl;
   class cl_memory_cell *cell_p1asf;
   class cl_memory_cell *cell_auxr1;
+  class cl_memory_cell *cell_clk_div; /* STC15: ADRJ is here, not in AUXR1 */
   int conversion_delay;  /* ticks remaining until conversion complete */
   int adc_channel;
   bool adc_powered;
+  int stc_part; /* STC_PART_STC12 or STC_PART_STC15 */
 public:
-  cl_stc12_adc(class cl_uc *auc);
+  cl_stc12_adc(class cl_uc *auc, int part);
   virtual int init(void);
   virtual void write(class cl_memory_cell *cell, t_mem *val);
   virtual int tick(int cycles);

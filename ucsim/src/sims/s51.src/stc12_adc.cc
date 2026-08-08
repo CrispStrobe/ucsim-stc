@@ -24,12 +24,14 @@
 #include "regs51.h"
 
 
-cl_stc12_adc::cl_stc12_adc(class cl_uc *auc):
+cl_stc12_adc::cl_stc12_adc(class cl_uc *auc, int part):
   cl_hw(auc, HW_TIMER /* reuse category */, 10, "stc12_adc")
 {
   conversion_delay= 0;
   adc_channel= 0;
   adc_powered= false;
+  stc_part= part;
+  cell_clk_div= NULL;
 }
 
 int
@@ -45,6 +47,7 @@ cl_stc12_adc::init(void)
       cell_adc_resl = sfr->get_cell(STC12_ADC_RESL);
       cell_p1asf    = sfr->get_cell(STC12_P1ASF);
       cell_auxr1    = sfr->get_cell(AUXR1);
+      cell_clk_div  = sfr->get_cell(STC12_CLK_DIV);
     }
   return 0;
 }
@@ -100,11 +103,14 @@ cl_stc12_adc::tick(int cycles)
 	      result= 0;
 	    }
 
-	  /* AUXR1.ADRJ (bit 2) controls result alignment.
-	     Same logic as emu8051-stc/stc12.c, per STC12-PERIPHERAL-MODEL.md §4.
-	     ADRJ=0: ADC_RES = high 8, ADC_RESL[1:0] = low 2
-	     ADRJ=1: ADC_RES[1:0] = high 2, ADC_RESL = low 8 */
-	  bool adrj= cell_auxr1 && (cell_auxr1->get() & 0x04);
+	  /* ADRJ controls result alignment.
+	     STC12: AUXR1 (0xA2) bit 2.  STC15: CLK_DIV (0x97) bit 5.
+	     Per STC12-PERIPHERAL-MODEL.md §4 / STC15-PERIPHERAL-MODEL.md §2.1 */
+	  bool adrj;
+	  if (stc_part == 1 /* STC_PART_STC15 */)
+	    adrj= cell_clk_div && (cell_clk_div->get() & 0x20);
+	  else
+	    adrj= cell_auxr1 && (cell_auxr1->get() & 0x04);
 	  if (adrj)
 	    {
 	      cell_adc_resl->set(result & 0xFF);

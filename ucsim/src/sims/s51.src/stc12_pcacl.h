@@ -25,8 +25,9 @@ class cl_pca_stc12: public cl_pca
 {
 protected:
   int pca_prescaler; /* accumulates ticks for FOSC/12 source */
+  int n_modules;     /* 2 for STC12, 3 for STC15 */
 public:
-  cl_pca_stc12(class cl_uc *auc, int aid);
+  cl_pca_stc12(class cl_uc *auc, int aid, int modules);
   virtual int tick(int cycles);
   virtual void do_pca_counter(int cycles);
 };
