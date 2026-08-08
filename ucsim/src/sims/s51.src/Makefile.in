@@ -30,4 +30,10 @@ local_uninstall:
 	rm -f $(DESTDIR)$(bindir)/s51$(EXEEXT)
 
 
+# STC12 differential trace binary (not part of the standard ucsim build)
+TRACE_OBJS = stc12_trace.o $(filter-out s51.o,$(OBJECTS))
+
+stc12_trace: $(TRACE_OBJS) $(UCSIM_LIB_PREREQUES)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TRACE_OBJS) -L$(top_builddir) $(UCSIM_LIBS) -o $@
+
 # End of simulator Makefile

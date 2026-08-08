@@ -334,6 +334,22 @@ cl_uc_stc12::trace_check_sfr(void)
 }
 
 int
+cl_uc_stc12::tick_hw(int cycles)
+{
+  int ret= cl_uc::tick_hw(cycles);
+
+  /* Check SFRs after each hw tick — catches TF0 set by timer
+     before the ISR has a chance to clear it. */
+  if (trace_file)
+    {
+      trace_osc_clocks += cycles;
+      trace_check_sfr();
+    }
+
+  return ret;
+}
+
+int
 cl_uc_stc12::do_inst(void)
 {
   if (!trace_file)
@@ -341,7 +357,7 @@ cl_uc_stc12::do_inst(void)
 
   unsigned long long t_ns= trace_osc_clocks * 1000000000ULL / trace_fosc;
   if (t_ns > trace_until_ns)
-    return resGO;
+    return resSTOP;
 
   /* Emit PC event */
   if (PC != trace_last_pc)
@@ -351,14 +367,9 @@ cl_uc_stc12::do_inst(void)
       trace_last_pc= PC;
     }
 
-  /* Run the instruction (this calls tick_hw, may enter ISR, etc.) */
+  /* Run the instruction (tick_hw will update trace_osc_clocks
+     and check SFRs per-tick, catching transient TF0). */
   int result= cl_51core::do_inst();
-
-  /* Count elapsed osc clocks (inst_ticks was set by post_inst) */
-  trace_osc_clocks += inst_ticks;
-
-  /* Check for SFR changes AFTER the full instruction + ISR */
-  trace_check_sfr();
 
   return result;
 }

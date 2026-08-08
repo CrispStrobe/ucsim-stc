@@ -58,6 +58,7 @@ public:
   virtual void make_vars(void);
   virtual void clear_sfr(void);
   virtual int do_inst(void);
+  virtual int tick_hw(int cycles);
 
   /* Trace API: call before running to enable trace output */
   void trace_start(FILE *f, unsigned long fosc, unsigned long long until_ns);
