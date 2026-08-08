@@ -34,37 +34,48 @@ cl_pca_stc12::tick(int cycles)
   if (uc->state == stIDLE && bit_CIDL)
     return(resGO);
 
-  switch (clk_source)
+  /* Read all 3 CPS bits from CMOD (§5.2).
+     The base class only tracks CPS1:CPS0; we need CPS2 too. */
+  t_mem cmod_val= cell_cmod ? cell_cmod->get() : 0;
+  int cps= (cmod_val >> 1) & 0x07; /* CPS2:CPS1:CPS0 */
+
+  switch (cps)
     {
-    case 0:
-      /* FOSC/12: on 1T CPU, divide ticks by 12 */
+    case 0: /* SYSclk/12 */
       pca_prescaler += cycles;
-      {
-	int eff= pca_prescaler / 12;
-	pca_prescaler %= 12;
-	if (eff > 0)
-	  do_pca_counter(eff);
-      }
+      { int eff= pca_prescaler / 12; pca_prescaler %= 12;
+	if (eff > 0) do_pca_counter(eff); }
       break;
-    case bmCPS0:
-      /* FOSC/2: on 1T CPU, divide ticks by 2 */
+    case 1: /* SYSclk/2 */
       pca_prescaler += cycles;
-      {
-	int eff= pca_prescaler / 2;
-	pca_prescaler %= 2;
-	if (eff > 0)
-	  do_pca_counter(eff);
-      }
+      { int eff= pca_prescaler / 2; pca_prescaler %= 2;
+	if (eff > 0) do_pca_counter(eff); }
       break;
-    case bmCPS1:
-      /* Timer 0 overflow: event-driven, same as base */
+    case 2: /* Timer 0 overflow */
       do_pca_counter(t0_overflows);
       t0_overflows= 0;
       break;
-    case (bmCPS0|bmCPS1):
-      /* ECI pin: event-driven, same as base */
+    case 3: /* ECI pin */
       do_pca_counter(ECI_edge);
       ECI_edge= 0;
+      break;
+    case 4: /* SYSclk (1:1, no prescaler) */
+      do_pca_counter(cycles);
+      break;
+    case 5: /* SYSclk/4 */
+      pca_prescaler += cycles;
+      { int eff= pca_prescaler / 4; pca_prescaler %= 4;
+	if (eff > 0) do_pca_counter(eff); }
+      break;
+    case 6: /* SYSclk/6 */
+      pca_prescaler += cycles;
+      { int eff= pca_prescaler / 6; pca_prescaler %= 6;
+	if (eff > 0) do_pca_counter(eff); }
+      break;
+    case 7: /* SYSclk/8 */
+      pca_prescaler += cycles;
+      { int eff= pca_prescaler / 8; pca_prescaler %= 8;
+	if (eff > 0) do_pca_counter(eff); }
       break;
     }
   return(resGO);
