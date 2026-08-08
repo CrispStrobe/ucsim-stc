@@ -21,6 +21,9 @@ sources verified.
   0xC8 instead of T2CON, all STC12 registers named and accessible)
 - PCA counter counts at FOSC/12 (12 osc ticks = 1 count) and FOSC/2
   (10 osc ticks = 5 counts)
+- Cooperative-scheduler test (Timer 0 ISR + bw_ms counter): interrupt
+  vector works, ISR fires and returns correctly, volatile ms counter
+  increments. This is the same pattern generateC emits.
 
 ## Phase 0: Baseline
 1. Fetch SDCC 4.5.0 orig tarball from Debian (SourceForge is 403 here).
