@@ -41,11 +41,13 @@ trap "rm -rf $TMP" EXIT
 
 echo "Rung 3: step('insn') x $STEPS, interrupts masked"
 
-# emu8051: one hex PC per line
-"$EMU_TRACE" -fosc $FOSC -step-pcs $STEPS "$HEXFILE" 2>/dev/null \
-    | tr 'a-f' 'A-F' > "$TMP/emu_pcs.txt"
+# emu8051: one hex PC per line, normalize to 4-digit uppercase
+# Skip the first line (reset PC before any step executes)
+"$EMU_TRACE" -fosc $FOSC -step-pcs $((STEPS + 1)) "$HEXFILE" 2>/dev/null \
+    | tail -n +2 | head -$STEPS \
+    | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_pcs.txt"
 
-# ucsim: step one at a time, extract PC from "Stop at 0xADDR" output
+# ucsim: step one at a time, extract PC, normalize to 4-digit uppercase
 python3 -c "
 for i in range($STEPS):
     print('step')
@@ -53,7 +55,7 @@ print('quit')
 " | $UCSIM -t STC12 "$HEXFILE" 2>/dev/null \
     | grep 'Stop at 0x' \
     | sed 's/.*Stop at 0x\([0-9a-fA-F]*\).*/\1/' \
-    | tr 'a-f' 'A-F' \
+    | awk '{printf "%04X\n", strtonum("0x" $0)}' \
     | head -$STEPS > "$TMP/ucsim_pcs.txt"
 
 EN=$(wc -l < "$TMP/emu_pcs.txt")
