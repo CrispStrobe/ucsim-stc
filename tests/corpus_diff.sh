@@ -32,11 +32,15 @@ for img in "$HEXDIR"/*.hex "$HEXDIR"/*.ihx; do
 
     timeout $TIMEOUT "$EMU_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$img" \
         2>/dev/null | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.events" 2>/dev/null || true
+    # Run ucsim once, capture all events including UNMODELLED
     timeout $TIMEOUT "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$img" \
-        2>/dev/null | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.events" 2>/dev/null || true
+        2>/dev/null > "$TMP/ucsim_raw.events" 2>/dev/null || true
+    awk '$2 == "SFR" || $2 == "TF"' "$TMP/ucsim_raw.events" | cut -f2- > "$TMP/ucsim.events"
+    grep "UNMODELLED" "$TMP/ucsim_raw.events" > "$TMP/unmod.events" 2>/dev/null || true
 
     EN=$(wc -l < "$TMP/emu.events")
     UN=$(wc -l < "$TMP/ucsim.events")
+    HAS_UNMOD=$(wc -l < "$TMP/unmod.events")
 
     if [ "$EN" -eq 0 ] && [ "$UN" -eq 0 ]; then
         EMPTY=$((EMPTY + 1)); continue
@@ -48,10 +52,6 @@ for img in "$HEXDIR"/*.hex "$HEXDIR"/*.ihx; do
     fi
 
     MIN=$((EN < UN ? EN : UN))
-    # Check for unmodelled register access (wrong target)
-    timeout $TIMEOUT "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$img" \
-        2>/dev/null | grep "UNMODELLED" > "$TMP/unmod.events" 2>/dev/null || true
-    HAS_UNMOD=$(wc -l < "$TMP/unmod.events")
 
     if diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") > /dev/null 2>&1; then
         PASS=$((PASS + 1))
