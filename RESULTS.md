@@ -18,6 +18,22 @@ on all three test images.
 | `02-adc` (ADC power/start/flag cycle) | 54 | 10 ms | **Identical** |
 | `scheduled_gen` (cooperative scheduler, 2 WHEN scripts, ADC, custom block) | 37 | 10 ms | **Identical** |
 
+### Extended run: 100 ms
+
+| Image | Result | Detail |
+|-------|--------|--------|
+| `01-blink` | **499/499 identical** | Full agreement including timer overflow interleaving |
+| `02-adc` | 504/510 SFR+TF events match; 6 ordering differences | Non-timer SFRs: **8/8 identical** |
+| `scheduled_gen` | 310/310 same events; 3 ordering differences | Non-timer SFRs: **12/12 identical** |
+
+At 100 ms, the ADC and scheduler images show event **ordering**
+differences: program-driven SFR writes (port toggles, ADC starts)
+interleave with timer overflows at different points because the two
+emulators have different instruction cycle costs.  The SFR values and
+types are the same — only their position relative to timer overflows
+shifts.  When timer-related events (TCON writes + TF) are excluded,
+all non-timer SFR events remain identical.
+
 ## What is compared
 
 Events are tab-separated lines: `<t_ns>\t<type>\t<fields>`.
