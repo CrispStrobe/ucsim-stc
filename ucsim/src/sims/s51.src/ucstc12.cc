@@ -22,11 +22,7 @@
 #include "stc12_adccl.h"
 #include "stc12_portcl.h"
 #include "portcl.h"
-/* pcacl.h has a copy-paste bug: its include guard is PORTCL_HEADER (same as
-   portcl.h).  Including portcl.h first causes pcacl.h to be skipped entirely.
-   Work around by undefining the guard between the two includes. */
-#undef PORTCL_HEADER
-#include "pcacl.h"
+#include "stc12_pcacl.h"
 #include "serialcl.h"
 #include "dregcl.h"
 #include "port_hwcl.h"
@@ -150,8 +146,8 @@ cl_uc_stc12::mk_hw_elements(void)
   h->init();
   add_hw(h);
 
-  /* PCA with 2 modules (STC12 has CCAPM0 and CCAPM1 only) */
-  h= new cl_pca(this, 0);
+  /* PCA with 2 modules and correct 1T clock prescaling */
+  h= new cl_pca_stc12(this, 0);
   h->init();
   add_hw(h);
 }
