@@ -63,6 +63,9 @@ cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   trace_until_ns= 0;
   trace_fosc= 11059200;
   trace_last_pc= 0xFFFF;
+  bw_ms_addr= 0;
+  n_tasks= 0;
+  n_yield_bps= 0;
   for (int i= 0; i < STC12_TRACE_NWATCH; i++)
     {
       trace_sfr_addrs[i]= stc12_watch_addrs[i];
@@ -378,6 +381,99 @@ cl_uc_stc12::do_inst(void)
   trace_check_sfr();
 
   return result;
+}
+
+
+/*
+ * Debug target API (boundary D §7).
+ *
+ * Level 1 position: read bw_ms / <task>_state / <task>_until from IRAM.
+ * Yield breakpoints: code breakpoints on case-label addresses.
+ * Step: run N instructions and return final PC.
+ */
+
+void
+cl_uc_stc12::debug_set_bw_ms(t_addr iram_addr)
+{
+  bw_ms_addr= iram_addr;
+}
+
+void
+cl_uc_stc12::debug_add_task(const char *name, t_addr state_addr,
+			    t_addr until_addr, t_addr func_addr)
+{
+  if (n_tasks >= STC12_MAX_TASKS)
+    return;
+  task_info[n_tasks].name= name;
+  task_info[n_tasks].state_addr= state_addr;
+  task_info[n_tasks].until_addr= until_addr;
+  task_info[n_tasks].func_addr= func_addr;
+  n_tasks++;
+}
+
+int
+cl_uc_stc12::debug_add_yield_bp(int task_idx, unsigned int state,
+				t_addr code_addr)
+{
+  if (n_yield_bps >= STC12_MAX_YIELD_BPS)
+    return -1;
+  yield_bps[n_yield_bps].active= true;
+  yield_bps[n_yield_bps].task_idx= task_idx;
+  yield_bps[n_yield_bps].state= state;
+  yield_bps[n_yield_bps].code_addr= code_addr;
+  /* Install as a code breakpoint in ucsim's breakpoint infrastructure */
+  class cl_brk *b= fbrk->get_bp(code_addr, 0);
+  if (!b)
+    {
+      b= new cl_fetch_brk(rom, make_new_brknr(), code_addr, brkFIX, 1);
+      b->init();
+      fbrk->add_bp(b);
+    }
+  return n_yield_bps++;
+}
+
+unsigned int
+cl_uc_stc12::debug_read_bw_ms(void)
+{
+  if (!bw_ms_addr || !iram)
+    return 0;
+  /* 16-bit little-endian in IRAM */
+  return iram->get(bw_ms_addr) | (iram->get(bw_ms_addr + 1) << 8);
+}
+
+unsigned int
+cl_uc_stc12::debug_read_task_state(int task_idx)
+{
+  if (task_idx < 0 || task_idx >= n_tasks || !iram)
+    return 0xFFFF;
+  t_addr a= task_info[task_idx].state_addr;
+  return iram->get(a) | (iram->get(a + 1) << 8);
+}
+
+unsigned int
+cl_uc_stc12::debug_read_task_until(int task_idx)
+{
+  if (task_idx < 0 || task_idx >= n_tasks || !iram)
+    return 0;
+  t_addr a= task_info[task_idx].until_addr;
+  return iram->get(a) | (iram->get(a + 1) << 8);
+}
+
+t_addr
+cl_uc_stc12::debug_step_insn(int count)
+{
+  bool old_stop= stop_selfjump;
+  stop_selfjump= false;
+
+  for (int i= 0; i < count; i++)
+    {
+      int res= cl_51core::do_inst();
+      if (res != resGO && res != resSELFJUMP)
+	break;
+    }
+
+  stop_selfjump= old_stop;
+  return PC;
 }
 
 

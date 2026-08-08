@@ -34,6 +34,24 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 /* SFR watch list for differential trace (matches spec) */
 #define STC12_TRACE_NWATCH 21
 
+/* Debug target: yield breakpoint */
+#define STC12_MAX_TASKS 8
+#define STC12_MAX_YIELD_BPS 32
+
+struct stc12_task_info {
+  const char *name;
+  t_addr state_addr;   /* IRAM address of <task>_state */
+  t_addr until_addr;   /* IRAM address of <task>_until */
+  t_addr func_addr;    /* code address of function entry */
+};
+
+struct stc12_yield_bp {
+  bool active;
+  int task_idx;        /* index into task_info */
+  unsigned int state;  /* the state number to break on */
+  t_addr code_addr;    /* code address of the case label */
+};
+
 class cl_uc_stc12: public cl_uc52
 {
 protected:
@@ -46,6 +64,14 @@ protected:
   t_addr trace_sfr_addrs[STC12_TRACE_NWATCH];
   t_addr trace_last_pc;
   void trace_check_sfr(void);
+
+  /* Debug target state */
+  t_addr bw_ms_addr;          /* IRAM address of bw_ms (0 = not set) */
+  int n_tasks;
+  struct stc12_task_info task_info[STC12_MAX_TASKS];
+  int n_yield_bps;
+  struct stc12_yield_bp yield_bps[STC12_MAX_YIELD_BPS];
+
 public:
   cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim);
   virtual int init(void);
@@ -60,8 +86,22 @@ public:
   virtual int do_inst(void);
   virtual int tick_hw(int cycles);
 
-  /* Trace API: call before running to enable trace output */
+  /* Trace API */
   void trace_start(FILE *f, unsigned long fosc, unsigned long long until_ns);
+
+  /* Debug target API (boundary D §7) */
+  void debug_set_bw_ms(t_addr iram_addr);
+  void debug_add_task(const char *name, t_addr state_addr,
+		      t_addr until_addr, t_addr func_addr);
+  int debug_add_yield_bp(int task_idx, unsigned int state, t_addr code_addr);
+
+  /* Level 1 position (§2): read task state from IRAM */
+  unsigned int debug_read_bw_ms(void);
+  unsigned int debug_read_task_state(int task_idx);
+  unsigned int debug_read_task_until(int task_idx);
+
+  /* Step N instructions, return final PC */
+  t_addr debug_step_insn(int count);
 };
 
 
