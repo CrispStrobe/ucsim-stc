@@ -69,3 +69,14 @@ and note the discrepancy.
 4. Implement readMem/writeMem/regs/setReg
 5. Propose symbol table input format (JSON)
 6. Extend trace harness for rungs 3-6
+
+## consumes field (§7 decision 5, spec commit e62067d)
+
+For emulators: `consumes: []` (empty array, not null).
+An emulator consumes no hardware resources. `null` means "this
+target predates the field and is not saying" — which is a different
+and weaker claim than "takes nothing".
+
+The case that forced this: a TONE pin uses Timer 1, the on-chip
+monitor wants Timer 1 for skewNs, so a buzzer program cannot run
+under the monitor. `consumes: ['timer1']` makes this visible.
