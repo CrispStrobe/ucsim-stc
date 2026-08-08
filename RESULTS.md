@@ -211,3 +211,27 @@ target mismatch, not to the Timer/ADC/PCA/port-mode peripheral model.
 
 The corpus is unlicensed third-party code.  Image names are published
 here for reproducibility; image contents are never committed or pushed.
+
+## Boundary D acceptance ladder (DEBUG-CONTROL-MODEL.md §8)
+
+| Rung | Description | Status |
+|------|-------------|--------|
+| 1 | capabilities/state | API implemented in cl_uc_stc12 |
+| 2 | Level 1 position | debug_read_bw_ms/task_state/task_until from IRAM |
+| 3 | step(insn) PC sequence (interrupts masked) | **Blocked** — waiting on emu8051 `-step-pcs` (COORD-FROM-UCSIM.md) |
+| 4 | Code breakpoint at correct PC | **PASS** — halts at bw_task0 entry (0x011D) |
+| 5 | Yield breakpoint at correct (task, state) | **PASS** — halts at case-label, task0_state=3 |
+| 6 | Write while halted affects execution | **PASS** — task0_state=0xFFFF stays ended after resume |
+| 7 | Peripheral-event differential on ISR images | **PASS** — 275/349 corpus, 5006/5006 blink 1s |
+
+### Bugs found by this ladder
+
+- **PCA 2-module bug** (rung 7): ucsim's base cl_pca fired
+  do_pca_module(0..4) on overflow, setting spurious CCF2-CCF4 flags.
+  STC12 has only 2 modules. Found by 1-second periph_test differential.
+  Fixed in commit `e13ee4f`.
+
+- **ADC_START clear timing** (rung 7): ucsim cleared ADC_START on
+  write; emu8051 cleared it at conversion completion (matching the
+  datasheet). Found by scheduler image differential. Fixed, and
+  resolution recorded in spec-updates/001-adc-start-clear-timing.md.
