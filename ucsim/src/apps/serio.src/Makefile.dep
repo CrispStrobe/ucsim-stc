@@ -1,0 +1,4 @@
+fileio.o: fileio.cc fileio.hh config.h
+frontend.o: frontend.cc frontend.hh config.h
+main.o: main.cc fileio.hh config.h frontend.hh posix_signal.hh
+posix_signal.o: posix_signal.cc posix_signal.hh

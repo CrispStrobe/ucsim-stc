@@ -1,0 +1,299 @@
+dis.o: dis.cc glob12.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h m68hc12cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+glob12.o: glob12.cc glob12.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h
+glob.o: glob.cc glob.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h ../../../src/core/sim.src/iwrap.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h
+hcwrap.o: hcwrap.cc glob12.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h hcwrapcl.h m68hc12cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h wdecls.h wfills.h wdefs.h
+ialu.o: ialu.cc m68hc12cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+ibranch.o: ibranch.cc m68hc12cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+imov.o: imov.cc m68hc12cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+iother.o: iother.cc m68hc12cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+m68hc12.o: m68hc12.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/sim.src/dregcl.h \
+ ../../../src/core/motorola.src/wraps.h ../../../src/core/sim.src/uccl.h \
+ hcwrapcl.h glob12.h m68hc12cl.h ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/sim.src/iwrap.h ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h wdecls.h wfills.h
+simm68hc12.o: simm68hc12.cc glob.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h ../../../src/core/sim.src/iwrap.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h simm68hc12cl.h \
+ ../../../src/core/sim.src/simcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/argcl.h m68hc12cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/motorola.src/m68hc11cl.h \
+ ../../../src/core/motorola.src/m6800cl.h \
+ ../../../src/core/sim.src/itsrccl.h ../../../src/core/sim.src/itsrccl.h \
+ ../../../src/core/motorola.src/decode68.h \
+ ../../../src/core/motorola.src/d11p0.h \
+ ../../../src/core/motorola.src/d11p18.h \
+ ../../../src/core/motorola.src/hc18.h
+sm68hc12.o: sm68hc12.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h glob.h \
+ ../../../src/core/sim.src/iwrap.h simm68hc12cl.h

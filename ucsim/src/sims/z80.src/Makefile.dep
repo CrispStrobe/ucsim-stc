@@ -1,0 +1,361 @@
+ez80.o: ez80.cc z80mac.h ez80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h
+gb80.o: gb80.cc ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h gb80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h regsz80.h glob.h
+glob.o: glob.cc ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h
+glob_gb80.o: glob_gb80.cc ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h
+glob_r800.o: glob_r800.cc glob.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h
+inst_cb.o: inst_cb.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h
+inst.o: inst.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h
+inst_ddcb.o: inst_ddcb.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h \
+ inst_xxcb.cc
+inst_dd.o: inst_dd.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h \
+ inst_xd.cc
+inst_ed.o: inst_ed.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h
+inst_fdcb.o: inst_fdcb.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h \
+ inst_xxcb.cc
+inst_fd.o: inst_fd.cc z80cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h \
+ inst_xd.cc
+inst_gb80.o: inst_gb80.cc gb80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h z80mac.h
+inst_xd.o: inst_xd.cc
+inst_xxcb.o: inst_xxcb.cc
+lr35902.o: lr35902.cc lr35902cl.h gb80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h
+r800.o: r800.cc glob.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h r800cl.h ez80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regsz80.h
+simz80.o: simz80.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h glob.h simz80cl.h gb80cl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h regsz80.h lr35902cl.h ez80cl.h r800cl.h
+sz80.o: sz80.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h simz80cl.h glob.h
+z80.o: z80.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/sim.src/dregcl.h \
+ ../../../src/core/sim.src/pc16550cl.h \
+ ../../../src/core/sim.src/serial_hwcl.h z80cl.h \
+ ../../../src/core/sim.src/uccl.h regsz80.h glob.h z80mac.h

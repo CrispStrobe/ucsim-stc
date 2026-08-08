@@ -1,0 +1,104 @@
+glob.o: glob.cc ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h
+inst.o: inst.cc m68hc08cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h regshc08.h instcl.h \
+ hc08mac.h
+m68hc08.o: m68hc08.cc ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/sim.src/dregcl.h \
+ m68hc08cl.h ../../../src/core/sim.src/uccl.h regshc08.h instcl.h glob.h \
+ hc08mac.h
+simm68hc08.o: simm68hc08.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h simm68hc08cl.h m68hc08cl.h \
+ ../../../src/core/sim.src/uccl.h regshc08.h instcl.h
+sm68hc08.o: sm68hc08.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h simm68hc08cl.h

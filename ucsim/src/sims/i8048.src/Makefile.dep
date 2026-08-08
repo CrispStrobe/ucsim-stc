@@ -1,0 +1,298 @@
+arith.o: arith.cc i8020cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+branch.o: branch.cc i8020cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+bus.o: bus.cc buscl.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h
+glob.o: glob.cc glob.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h decode.h gen.h
+i8020.o: i8020.cc ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h ../../../src/core/sim.src/dregcl.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h glob.h i8020cl.h \
+ ../../../src/core/sim.src/uccl.h aliases.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+i8041.o: i8041.cc ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h i8041cl.h i8048cl.h i8020cl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+i8048.o: i8048.cc ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h ../../../src/core/sim.src/dregcl.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h i8048cl.h i8020cl.h \
+ ../../../src/core/sim.src/uccl.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+inst.o: inst.cc i8020cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+move.o: move.cc i8020cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+port.o: port.cc portcl.h ../../../src/core/sim.src/port_hwcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/cmdutil.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/sim.src/memcl.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h
+si8048.o: si8048.cc ../../../src/core/utils.src/globals.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/utils.src/appcl.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/optioncl.h ../../../src/core/sim.src/argcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/sim.src/hwcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h ../../../src/core/utils.src/utils.h \
+ ../../../src/core/utils.src/fiocl.h simi8048cl.h glob.h
+simi8048.o: simi8048.cc simi8048cl.h ../../../src/core/sim.src/simcl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h ../../../src/core/gui.src/guicl.h \
+ ../../../src/core/gui.src/ifcl.h ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/sim.src/uccl.h ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/brkcl.h \
+ ../../../src/core/sim.src/stackcl.h ../../../src/core/sim.src/varcl.h \
+ ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h \
+ ../../../src/core/sim.src/argcl.h i8041cl.h i8048cl.h i8020cl.h \
+ ../../../src/core/sim.src/uccl.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
+timer.o: timer.cc i8020cl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/utils.src/pobjcl.h ../../../src/core/utils.src/pobjt.h \
+ ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/charscl.h \
+ ../../../src/core/utils.src/pobjt.h ../../../src/core/sim.src/hwcl.h \
+ ../../../src/core/sim.src/guiobjcl.h \
+ ../../../src/core/utils.src/ddconfig.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/utils.src/optioncl.h \
+ ../../../src/core/utils.src/pobjcl.h \
+ ../../../src/core/utils.src/stypes.h \
+ ../../../src/core/cmd.src/commandcl.h \
+ ../../../src/core/cmd.src/newcmdcl.h \
+ ../../../src/core/cmd.src/newcmdposixcl.h \
+ ../../../src/core/utils.src/fiocl.h ../../../src/core/cmd.src/cmdutil.h \
+ ../../../src/core/sim.src/memcl.h ../../../src/core/utils.src/eventcl.h \
+ ../../../src/core/utils.src/errorcl.h ../../../src/core/sim.src/uccl.h \
+ ../../../src/core/sim.src/brkcl.h ../../../src/core/sim.src/stackcl.h \
+ ../../../src/core/sim.src/varcl.h ../../../src/core/sim.src/itabcl.h \
+ ../../../src/core/sim.src/uccl_instructions.h aliases.h glob.h timercl.h \
+ ../../../src/core/sim.src/hwcl.h buscl.h portcl.h \
+ ../../../src/core/sim.src/port_hwcl.h
