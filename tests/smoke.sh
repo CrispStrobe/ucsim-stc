@@ -71,6 +71,17 @@ OUT=$(printf 'info var AUXR\ninfo var ADC_CONTR\ninfo var P1M1\ninfo var CCON\nq
 echo "$OUT" | grep -q "sfr\[0x8e\]" && pass "AUXR at 0x8E" || fail "AUXR not found"
 echo "$OUT" | grep -q "sfr\[0xbc\]" && pass "ADC_CONTR at 0xBC" || fail "ADC_CONTR not found"
 
+# 10. STC15 model starts
+echo "[10] STC15 model starts"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15 2>&1)
+echo "$OUT" | grep -q "STC15F2K60S2" && pass "STC15F2K60S2 selectable" || fail "STC15 not found"
+
+# 11. STC15 ADRJ at CLK_DIV.5 (not AUXR1.2)
+echo "[11] STC15 ADRJ at CLK_DIV.5"
+OUT=$(printf 'set mem sfr 0x97 0x20\nset mem sfr 0x9d 0x08\nset mem sfr 0xbc 0x8b\ntick 500\ndump sfr 0xbd 0xbe\nquit\n' | $UCSIM -t STC15 2>&1)
+ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+[ "$ADCR" = "0x02" ] && pass "STC15 ADRJ via CLK_DIV.5" || fail "expected ADC_RES=0x02, got $ADCR"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ] && exit 0 || exit 1
