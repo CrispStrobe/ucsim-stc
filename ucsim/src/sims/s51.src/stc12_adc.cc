@@ -68,8 +68,8 @@ cl_stc12_adc::write(class cl_memory_cell *cell, t_mem *val)
 	  conversion_delay= delays[speed];
 	  adc_channel= v & bmADC_CHS;
 
-	  /* Clear START bit in the value being written (hardware behavior) */
-	  *val= v & ~bmADC_START;
+	  /* START bit stays set until conversion completes (datasheet).
+	     Hardware clears it together with setting ADC_FLAG. */
 	}
 
       /* If software is clearing ADC_FLAG, let it through */
@@ -116,8 +116,8 @@ cl_stc12_adc::tick(int cycles)
 	      cell_adc_resl->set(result & 0x03);
 	    }
 
-	  /* Set ADC_FLAG */
-	  cell_adc_contr->set(cell_adc_contr->get() | bmADC_FLAG);
+	  /* Set ADC_FLAG and clear ADC_START (datasheet, matches emu8051) */
+	  cell_adc_contr->set((cell_adc_contr->get() | bmADC_FLAG) & ~bmADC_START);
 	}
     }
   return resGO;
