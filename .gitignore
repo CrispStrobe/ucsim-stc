@@ -8,6 +8,7 @@ autom4te.cache/
 Makefile
 !Makefile.in
 ucsim_*
+stc12_trace
 serialview
 Makefile.dep
 ucsim/src/apps/ucsim.src/ucsim
