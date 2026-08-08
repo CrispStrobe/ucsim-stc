@@ -179,7 +179,8 @@ Ran both emulators on 349 third-party firmware images from
 | Result | Count | % |
 |--------|-------|---|
 | **Pass** (SFR+TF events identical) | **275** | **79%** |
-| Diverge | 42 | 12% |
+| Diverge | 33 | 9% |
+| Wrong-target (unmodelled SFRs) | 9 | 3% |
 | Empty (no SFR/TF events) | 29 | 8% |
 | Error (one side failed to load) | 3 | 1% |
 
