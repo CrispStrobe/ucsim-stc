@@ -56,8 +56,15 @@ OUT=$(printf 'set mem sfr 0xd9 0x00\nset mem sfr 0xd8 0x40\ntick 12\ndump sfr 0x
 CL=$(echo "$OUT" | grep "CL:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
 [ "$CL" = "0x01" ] && pass "12 ticks -> CL=1" || fail "expected CL=0x01, got $CL"
 
-# 8. SFR names resolve
-echo "[8] SFR variable names"
+# 8. ADC ADRJ=1 (result left-justified per STC12-PERIPHERAL-MODEL.md §4)
+echo "[8] ADC ADRJ=1 alignment"
+OUT=$(printf 'set mem sfr 0xa2 0x04\nset mem sfr 0x9d 0x08\nset mem sfr 0xbc 0x8b\ntick 500\ndump sfr 0xbd 0xbe\nquit\n' | $UCSIM -t STC12 2>&1)
+# Mid-scale 0x200: ADRJ=1 -> ADC_RES=0x02, ADC_RESL=0x00
+ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+[ "$ADCR" = "0x02" ] && pass "ADRJ=1: ADC_RES=0x02 (high 2 bits)" || fail "expected ADC_RES=0x02, got $ADCR"
+
+# 9. SFR names resolve
+echo "[9] SFR variable names"
 OUT=$(printf 'info var AUXR\ninfo var ADC_CONTR\ninfo var P1M1\ninfo var CCON\nquit\n' | $UCSIM -t STC12 2>&1)
 echo "$OUT" | grep -q "sfr\[0x8e\]" && pass "AUXR at 0x8E" || fail "AUXR not found"
 echo "$OUT" | grep -q "sfr\[0xbc\]" && pass "ADC_CONTR at 0xBC" || fail "ADC_CONTR not found"

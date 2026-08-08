@@ -44,6 +44,7 @@ cl_stc12_adc::init(void)
       cell_adc_res  = sfr->get_cell(STC12_ADC_RES);
       cell_adc_resl = sfr->get_cell(STC12_ADC_RESL);
       cell_p1asf    = sfr->get_cell(STC12_P1ASF);
+      cell_auxr1    = sfr->get_cell(AUXR1);
     }
   return 0;
 }
@@ -99,9 +100,21 @@ cl_stc12_adc::tick(int cycles)
 	      result= 0;
 	    }
 
-	  /* Store 10-bit result: high 8 in ADC_RES, low 2 in ADC_RESL[1:0] */
-	  cell_adc_res->set(result >> 2);
-	  cell_adc_resl->set(result & 0x03);
+	  /* AUXR1.ADRJ (bit 2) controls result alignment.
+	     Same logic as emu8051-stc/stc12.c, per STC12-PERIPHERAL-MODEL.md §4.
+	     ADRJ=0: ADC_RES = high 8, ADC_RESL[1:0] = low 2
+	     ADRJ=1: ADC_RES[1:0] = high 2, ADC_RESL = low 8 */
+	  bool adrj= cell_auxr1 && (cell_auxr1->get() & 0x04);
+	  if (adrj)
+	    {
+	      cell_adc_resl->set(result & 0xFF);
+	      cell_adc_res->set((result >> 8) & 0x03);
+	    }
+	  else
+	    {
+	      cell_adc_res->set((result >> 2) & 0xFF);
+	      cell_adc_resl->set(result & 0x03);
+	    }
 
 	  /* Set ADC_FLAG */
 	  cell_adc_contr->set(cell_adc_contr->get() | bmADC_FLAG);

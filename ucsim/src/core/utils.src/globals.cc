@@ -1,6 +1,9 @@
 /*
  * Simulator of microcontrollers (globals.cc)
  *
+ * Modified 2024-08-08 by CrispStrobe: added STC12C5A60S2 entries
+ * to the cpus_51 processor table.
+ *
  * Copyright (C) 1997 Drotos Daniel
  * 
  * To contact author send email to dr.dkdb@gmail.com

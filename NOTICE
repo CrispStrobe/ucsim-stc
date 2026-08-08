@@ -1,0 +1,41 @@
+This repository is a fork of ucsim, the microcontroller simulator that is
+part of SDCC (Small Device C Compiler).
+
+Upstream version:  ucsim 0.8.15
+Upstream source:   SDCC 4.5.0, obtained from the Debian orig tarball at
+                   https://deb.debian.org/debian/pool/main/s/sdcc/sdcc_4.5.0+dfsg.orig.tar.xz
+                   (path within tarball: sdcc-4.5.0+dfsg/sim/ucsim/)
+Upstream licence:  GNU General Public License, version 2 or later (GPL-2.0-or-later)
+                   See LICENSE in this repository and ucsim/COPYING.
+
+What was changed:
+
+  An STC12C5A60S2 processor model was added.  The following files were
+  CREATED (new work, Copyright 2024 CrispStrobe, GPL-2.0-or-later):
+
+    ucsim/src/sims/s51.src/ucstc12cl.h
+    ucsim/src/sims/s51.src/ucstc12.cc
+    ucsim/src/sims/s51.src/stc12_timercl.h
+    ucsim/src/sims/s51.src/stc12_timer.cc
+    ucsim/src/sims/s51.src/stc12_pcacl.h
+    ucsim/src/sims/s51.src/stc12_pca.cc
+    ucsim/src/sims/s51.src/stc12_adccl.h
+    ucsim/src/sims/s51.src/stc12_adc.cc
+    ucsim/src/sims/s51.src/stc12_portcl.h
+    ucsim/src/sims/s51.src/stc12_port.cc
+
+  The following upstream files were MODIFIED to register the new model:
+
+    ucsim/src/core/utils.src/stypes.h       — added CPU_STC12 enum value
+    ucsim/src/core/utils.src/globals.cc      — added STC12 entries to cpus_51 table
+    ucsim/src/sims/s51.src/sim51.cc          — added CPU_STC12 case to mk_controller
+    ucsim/src/sims/s51.src/uc51.cc           — added STC12 SFR names to sfr_tab51
+    ucsim/src/sims/s51.src/regs51.h          — added STC12 SFR address defines
+    ucsim/src/sims/s51.src/objs.mk           — added STC12 object files
+
+  Each modified file carries a change notice per GPL-2 section 2(a).
+
+This fork exists to provide a GPL-licensed STC12 simulation oracle for the
+BrickWright toolchain.  It must NEVER be bundled into brickwright-lite (which
+is MIT and ships on app stores); it is kept separate specifically to maintain
+that licence boundary.

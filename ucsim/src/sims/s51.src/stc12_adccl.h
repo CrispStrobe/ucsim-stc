@@ -21,6 +21,7 @@ protected:
   class cl_memory_cell *cell_adc_res;
   class cl_memory_cell *cell_adc_resl;
   class cl_memory_cell *cell_p1asf;
+  class cl_memory_cell *cell_auxr1;
   int conversion_delay;  /* ticks remaining until conversion complete */
   int adc_channel;
   bool adc_powered;

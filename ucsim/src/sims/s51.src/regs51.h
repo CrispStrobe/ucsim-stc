@@ -1,8 +1,11 @@
 /*
  * Simulator of microcontrollers (regs51.h)
  *
+ * Modified 2024-08-08 by CrispStrobe: added STC12C5A60S2 SFR address
+ * defines and AUXR/ADC bit masks.
+ *
  * Copyright (C) 1999 Drotos Daniel
- * 
+ *
  * To contact author send email to dr.dkdb@gmail.com
  *
  */
