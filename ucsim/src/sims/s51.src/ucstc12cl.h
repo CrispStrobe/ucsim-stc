@@ -86,7 +86,6 @@ public:
   virtual int init(void);
   virtual const char *id_string(void);
   virtual int clock_per_cycle(void) { return(1); }
-  virtual i8_t *tick_tab(t_mem code);
   virtual void mk_hw_elements(void);
   virtual void make_memories(void);
   virtual void make_chips(void);

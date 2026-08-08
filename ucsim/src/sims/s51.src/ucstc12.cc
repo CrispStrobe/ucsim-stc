@@ -262,11 +262,11 @@ cl_uc_stc12::init(void)
   return ret;
 }
 
-i8_t *
-cl_uc_stc12::tick_tab(t_mem code)
-{
-  return stc12_cycle_tab;
-}
+/* Note: tick_tab is NOT overridden. The base ucsim instruction handlers
+ * already call tick(N) internally for multi-cycle instructions (jmp.cc,
+ * bit.cc, arith.cc etc.), and tickt() adds tick(1) when tick_tab returns
+ * NULL. Providing a tick_tab would double-count. The stc12_cycle_tab
+ * array is retained as documentation of the MCS-51 spec but not used. */
 
 const char *
 cl_uc_stc12::id_string(void)
