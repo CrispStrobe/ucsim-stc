@@ -11,7 +11,7 @@
  *   CPS1:CPS0=10  Timer 0 overflow  ->  unchanged (event-driven)
  *   CPS1:CPS0=11  ECI pin  ->  unchanged (event-driven)
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

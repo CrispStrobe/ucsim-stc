@@ -1,7 +1,7 @@
 /*
  * Simulator of microcontrollers (sim51.cc)
  *
- * Modified 2024-08-08 by CrispStrobe: added CPU_STC12 case to
+ * Modified 2026-08-08 by CrispStrobe: added CPU_STC12 case to
  * mk_controller for the STC12C5A60S2 processor model.
  *
  * Copyright (C) 1999 Drotos Daniel

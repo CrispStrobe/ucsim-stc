@@ -11,7 +11,7 @@
  *   - No Timer 2 (the T2CON address 0xC8 is P5 on STC12)
  *   - P4 at 0xC0, P5 at 0xC8
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 
@@ -207,6 +207,24 @@ static void init_sfr_defined(void)
   stc12_sfr_defined_init= true;
 }
 
+/* Additional SFRs defined on STC15 (delta from STC12) */
+static void init_sfr_defined_stc15(void)
+{
+  init_sfr_defined(); /* start with STC12 base */
+  static const t_addr stc15_extra[] = {
+    0x8F,   /* INT_CLKO / AUXR2 */
+    0xBA,   /* P_SW2 */
+    0xD6,   /* T2H */
+    0xD7,   /* T2L */
+    0xDC,   /* CCAPM2 */
+    0xEC,   /* CCAP2L */
+    0xF4,   /* PCA_PWM2 */
+    0xFC,   /* CCAP2H */
+  };
+  for (unsigned i= 0; i < sizeof(stc15_extra)/sizeof(stc15_extra[0]); i++)
+    stc12_sfr_defined[stc15_extra[i] - 0x80]= true;
+}
+
 /* SFR watch list matching the trace format spec */
 static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
   0x80, /* P0 */
@@ -236,8 +254,11 @@ static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
 cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   cl_uc52(Itype, asim)
 {
-  init_sfr_defined();
   stc_part= (Itype->subtype & 0x10) ? STC_PART_STC15 : STC_PART_STC12;
+  if (stc_part == STC_PART_STC15)
+    init_sfr_defined_stc15();
+  else
+    init_sfr_defined();
   memset(trace_full_sfr_shadow, 0, sizeof(trace_full_sfr_shadow));
   memset(trace_unmodelled_reported, 0, sizeof(trace_unmodelled_reported));
   trace_file= NULL;

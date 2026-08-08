@@ -3,7 +3,7 @@
  *
  * STC12C5A60S2 ADC peripheral
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

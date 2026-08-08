@@ -1,7 +1,7 @@
 /*
  * Simulator of microcontrollers (stypes.h)
  *
- * Modified 2024-08-08 by CrispStrobe: added CPU_STC12 enum value
+ * Modified 2026-08-08 by CrispStrobe: added CPU_STC12 enum value
  * for the STC12C5A60S2 processor model.
  *
  * Copyright (C) 1997 Drotos Daniel

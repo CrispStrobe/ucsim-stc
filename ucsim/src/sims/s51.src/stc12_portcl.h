@@ -3,7 +3,7 @@
  *
  * STC12C5A60S2 port mode support (PxM1/PxM0)
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

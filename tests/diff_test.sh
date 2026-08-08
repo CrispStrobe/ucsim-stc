@@ -11,7 +11,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-UCSIM="${UCSIM:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/ucsim_51}"
+STC12_TRACE="${STC12_TRACE:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/stc12_trace}"
 EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
 HEXFILE="${1:?Usage: $0 firmware.hex [until_ns]}"
 UNTIL_NS="${2:-2000000}"
@@ -22,8 +22,8 @@ if [ ! -x "$EMU_TRACE" ]; then
     exit 0
 fi
 
-if [ ! -x "$UCSIM" ]; then
-    echo "FAIL: ucsim_51 not found at $UCSIM — build first" >&2
+if [ ! -x "$STC12_TRACE" ]; then
+    echo "FAIL: stc12_trace not found — build with: make -C ucsim/src/sims/s51.src stc12_trace" >&2
     exit 1
 fi
 
@@ -40,7 +40,7 @@ echo "Running emu8051-stc (until ${UNTIL_NS} ns, ~${EMU_CYCLES} cycles)..."
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.events"
 
 echo "Running ucsim-stc (until ${UNTIL_NS} ns)..."
-"$SCRIPT_DIR/trace.sh" -fosc $FOSC -until-ns "$UNTIL_NS" "$HEXFILE" 2>/dev/null \
+"$STC12_TRACE" -fosc $FOSC -until-ns "$UNTIL_NS" "$HEXFILE" 2>/dev/null \
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.events"
 
 EMU_N=$(wc -l < "$TMP/emu.events")

@@ -10,7 +10,7 @@
  * Since hw->tick() is called once per machine cycle (= 1 osc clock on
  * this 1T CPU), 12T mode needs a prescaler that fires every 12th tick.
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

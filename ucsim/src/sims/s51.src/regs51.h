@@ -1,7 +1,7 @@
 /*
  * Simulator of microcontrollers (regs51.h)
  *
- * Modified 2024-08-08 by CrispStrobe: added STC12C5A60S2 SFR address
+ * Modified 2026-08-08 by CrispStrobe: added STC12C5A60S2 SFR address
  * defines and AUXR/ADC bit masks.
  *
  * Copyright (C) 1999 Drotos Daniel
@@ -381,6 +381,22 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define bmAUXR_BRTx12	0x04 /* BRT 1T mode */
 #define bmAUXR_EXTRAM	0x02 /* Extended RAM enable */
 #define bmAUXR_S1ST2	0x01 /* Serial 1 use Timer 2 */
+
+/* STC15F2K60S2-specific SFR addresses (delta from STC12) */
+
+#define STC15_T2H	0xD6 /* Timer 2 High byte */
+#define STC15_T2L	0xD7 /* Timer 2 Low byte */
+#define STC15_INT_CLKO	0x8F /* INT_CLKO / AUXR2 */
+#define STC15_CCAPM2	0xDC /* PCA module 2 */
+#define STC15_CCAP2L	0xEC /* PCA module 2 capture low */
+#define STC15_CCAP2H	0xFC /* PCA module 2 capture high */
+#define STC15_PCA_PWM2	0xF4 /* PCA PWM mode 2 */
+
+/* STC15 AUXR lower bits reinterpretation (Timer 2, not BRT) */
+#define bmAUXR_T2R	0x10 /* Timer 2 run (STC15, was BRTR on STC12) */
+#define bmAUXR_T2_CT	0x08 /* Timer 2 counter/timer (STC15, was S2SMOD) */
+#define bmAUXR_T2x12	0x04 /* Timer 2 1T mode (STC15, was BRTx12) */
+#define bmAUXR_S1ST2_15	0x01 /* Serial 1 use Timer 2 (STC15) */
 
 /* Bit masks in STC12 ADC_CONTR (0xBC) */
 

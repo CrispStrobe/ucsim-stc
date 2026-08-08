@@ -1,4 +1,4 @@
-# Modified 2024-08-08 by CrispStrobe: added STC12 object files.
+# Modified 2026-08-08 by CrispStrobe: added STC12 object files.
 PKG		= 51
 
 OBJECTS		= glob.o sim51.o s51.o \

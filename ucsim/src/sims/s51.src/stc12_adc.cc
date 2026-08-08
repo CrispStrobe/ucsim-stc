@@ -14,7 +14,7 @@
  * It has NOT been validated on silicon.  It verifies the register
  * sequence is self-consistent, which is useful for software testing.
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

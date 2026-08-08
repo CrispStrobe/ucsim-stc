@@ -1,7 +1,7 @@
 /*
  * Simulator of microcontrollers (uc51.cc)
  *
- * Modified 2024-08-08 by CrispStrobe: added STC12C5A60S2 SFR names
+ * Modified 2026-08-08 by CrispStrobe: added STC12C5A60S2 SFR names
  * to sfr_tab51 table.
  *
  * Copyright (C) 1999 Drotos Daniel

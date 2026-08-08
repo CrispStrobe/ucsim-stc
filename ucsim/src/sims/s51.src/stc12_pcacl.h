@@ -3,7 +3,7 @@
  *
  * STC12 PCA with correct clock prescaling for 1T CPU.
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

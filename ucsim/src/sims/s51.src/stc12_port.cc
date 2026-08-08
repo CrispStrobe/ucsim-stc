@@ -14,7 +14,7 @@
  * input impedance) is modeled as metadata; the port data register
  * read/write still works through the base cl_port class.
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

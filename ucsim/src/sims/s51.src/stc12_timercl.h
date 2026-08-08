@@ -3,7 +3,7 @@
  *
  * STC12 Timer with AUXR.7/AUXR.6 1T mode support
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  *
  */
 

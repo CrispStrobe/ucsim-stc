@@ -21,7 +21,7 @@ if [ ! -x "$EMU_TRACE" ]; then echo "FAIL: emu_trace not found" >&2; exit 1; fi
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-TOTAL=0; PASS=0; FAIL=0; ERROR=0; EMPTY=0; WRONG_TARGET=0
+TOTAL=0; PASS=0; PREFIX_PASS=0; FAIL=0; ERROR=0; EMPTY=0; WRONG_TARGET=0
 DIVERGE_LOG="$TMP/divergences.txt"
 > "$DIVERGE_LOG"
 
@@ -53,12 +53,20 @@ for img in "$HEXDIR"/*.hex "$HEXDIR"/*.ihx; do
 
     MIN=$((EN < UN ? EN : UN))
 
-    if diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") > /dev/null 2>&1; then
+    # Strict comparison: both streams must be fully identical
+    if [ "$EN" -eq "$UN" ] && diff "$TMP/emu.events" "$TMP/ucsim.events" > /dev/null 2>&1; then
         PASS=$((PASS + 1))
+    elif diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") > /dev/null 2>&1; then
+        PREFIX_PASS=$((PREFIX_PASS + 1))
     elif [ "$HAS_UNMOD" -gt 0 ]; then
         WRONG_TARGET=$((WRONG_TARGET + 1))
         FIRST_UNMOD=$(head -1 "$TMP/unmod.events" | awk '{print $3}')
         echo "WRONG-TARGET $NAME: unmodelled SFR $FIRST_UNMOD (emu=$EN ucsim=$UN)" >> "$DIVERGE_LOG"
+    elif [ "$EN" -gt 0 ] && [ "$UN" -gt 0 ] && \
+         [ $((EN > UN ? EN / UN : UN / EN)) -ge 3 ]; then
+        # Count ratio > 3x suggests wrong target (one side models registers the other doesn't)
+        WRONG_TARGET=$((WRONG_TARGET + 1))
+        echo "WRONG-TARGET $NAME: count ratio (emu=$EN ucsim=$UN)" >> "$DIVERGE_LOG"
     else
         FAIL=$((FAIL + 1))
         FIRST_DIFF=$(diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") | head -3 | tail -1)
@@ -74,7 +82,8 @@ done
 echo ""
 echo "=== Corpus differential results (${UNTIL_NS} ns) ==="
 echo "Total:    $TOTAL images"
-echo "Pass:     $PASS (SFR+TF events identical)"
+echo "Strict:   $PASS (both streams fully identical)"
+echo "Prefix:   $PREFIX_PASS (shorter stream prefix-matches longer)"
 echo "Diverge:  $FAIL"
 echo "Wrong-target: $WRONG_TARGET (touches unmodelled SFRs)"
 echo "Empty:    $EMPTY (no events in either trace)"

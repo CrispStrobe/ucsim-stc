@@ -6,7 +6,7 @@
  *
  * Usage: stc12_trace [-t STC12] [-fosc Hz] [-until-ns N] firmware.hex
  *
- * Copyright (C) 2024 CrispStrobe
+ * Copyright (C) 2026 CrispStrobe
  * GPL-2.0-or-later
  */
 
