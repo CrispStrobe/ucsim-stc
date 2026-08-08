@@ -75,12 +75,37 @@ void
 cl_pca_stc12::do_pca_counter(int cycles)
 {
   /* STC12 has 2 PCA modules, STC15 has 3. The base 8052 has 5.
-     Only fire do_pca_module for the modules that exist.
-     PWM comparator runs on every CL tick, not just on overflow
-     (STC12-PERIPHERAL-MODEL.md §5.3). */
+     PWM output is computed on every CL tick (§5.3). Compare/match
+     and capture are only checked on overflow. */
   while (cycles--)
     {
-      if (cell_cl->set(cell_cl->get() + 1) == 0)
+      t_mem cl_val= cell_cl->set(cell_cl->get() + 1);
+
+      /* PWM output: compare CL vs CCAPnL on every tick.
+	 Only write P1 when the output actually changes. */
+      {
+	class cl_address_space *s= uc->address_space(MEM_SFR_ID);
+	if (s)
+	  {
+	    t_mem p1_old= s->get(0x90);
+	    t_mem p1_new= p1_old;
+	    static const u8_t cex_mask[] = {0x08, 0x10, 0x20, 0x40, 0x80};
+	    for (int i= 0; i < n_modules; i++)
+	      {
+		if ((ccapm[i] & bmECOM) && (ccapm[i] & bmPWM))
+		  {
+		    if (cl_val < cell_ccapl[i]->get())
+		      p1_new &= ~cex_mask[i]; /* LOW */
+		    else
+		      p1_new |= cex_mask[i];  /* HIGH */
+		  }
+	      }
+	    if (p1_new != p1_old)
+	      s->set(0x90, p1_new);
+	  }
+      }
+
+      if (cl_val == 0)
 	{
 	  /* CL wrapped: reload CCAPnL from CCAPnH for PWM modules */
 	  for (int i= 0; i < n_modules; i++)
@@ -91,11 +116,10 @@ cl_pca_stc12::do_pca_counter(int cycles)
 	    {
 	      /* Full CH:CL overflow */
 	      cell_ccon->set(cell_ccon->get() | bmCF);
+	      for (int i= 0; i < n_modules; i++)
+		do_pca_module(i);
 	    }
 	}
-      /* Run module logic on every PCA clock tick */
-      for (int i= 0; i < n_modules; i++)
-	do_pca_module(i);
     }
 }
 
