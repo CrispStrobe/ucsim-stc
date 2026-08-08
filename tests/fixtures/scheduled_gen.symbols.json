@@ -1,0 +1,35 @@
+{
+  "fosc": 11059200,
+  "device": "stc12c5a60s2",
+  "source": "sb3-creator generateC() SCHEDULED fixture, compiled with SDCC 4.2.0",
+  "scheduler": {
+    "bw_ms": {"space": "iram", "addr": 8, "size": 2},
+    "tasks": [
+      {
+        "name": "bw_task0",
+        "func_addr": 285,
+        "state": {"space": "iram", "addr": 14, "size": 2},
+        "until": {"space": "iram", "addr": 16, "size": 2},
+        "yields": [
+          {"state": 0, "label": "entry",       "addr": 320},
+          {"state": 1, "label": "forever_top", "addr": 326},
+          {"state": 2, "label": "repeat_top",  "addr": 338},
+          {"state": 3, "label": "wait_150ms",  "addr": 369}
+        ]
+      },
+      {
+        "name": "bw_task1",
+        "func_addr": 429,
+        "state": {"space": "iram", "addr": 18, "size": 2},
+        "until": {"space": "iram", "addr": 20, "size": 2},
+        "yields": [
+          {"state": 0, "label": "entry",          "addr": 467},
+          {"state": 1, "label": "wait_button",     "addr": 473},
+          {"state": 2, "label": "forever_top",     "addr": 485},
+          {"state": 3, "label": "wait_50ms",       "addr": 525},
+          {"state": 4, "label": "repeat_until",    "addr": 581}
+        ]
+      }
+    ]
+  }
+}
