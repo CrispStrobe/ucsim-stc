@@ -178,11 +178,11 @@ Ran both emulators on 349 third-party firmware images from
 
 | Result | Count | % |
 |--------|-------|---|
-| **Pass** (SFR+TF events identical) | **275** | **79%** |
-| Diverge | 33 | 9% |
-| Wrong-target (unmodelled SFRs) | 9 | 3% |
+| **Pass** (SFR+TF events identical) | **278** | **80%** |
+| Diverge | 30 | 9% |
+| Wrong-target (unmodelled SFRs) | 10 | 3% |
 | Empty (no SFR/TF events) | 29 | 8% |
-| Error (one side failed to load) | 3 | 1% |
+| Error (one side failed to load) | 2 | 1% |
 
 ### Divergence causes
 
@@ -237,11 +237,12 @@ here for reproducibility; image contents are never committed or pushed.
   datasheet). Found by scheduler image differential. Fixed, and
   resolution recorded in spec-updates/001-adc-start-clear-timing.md.
 
-- **emu8051 cycle count convention** (rung 3): emu8051's 2-cycle opcodes
-  return 2 (= 3 ticks in their convention) instead of 1 (= 2 ticks).
-  Documented in spec-updates/005-emu8051-cycle-count-bug.md. Source:
-  Intel MCS-51 User's Manual Table A-2, not derived from making the
-  diff agree.
+- **ucsim tick_tab double-counting** (rung 7): ucsim's base instruction
+  handlers already call tick(N) for multi-cycle instructions. My
+  tick_tab override added tick(2) on top, giving 3 ticks instead of 2.
+  Fixed by removing the override. Timing gap: 0.1% (1 clock), down
+  from 25%. spec-updates/005 retracted: emu8051's cycle counts are
+  correct.
 
 ## STC15 support
 
