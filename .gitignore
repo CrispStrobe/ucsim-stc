@@ -9,3 +9,5 @@ Makefile
 !Makefile.in
 ucsim_*
 serialview
+Makefile.dep
+ucsim/src/apps/ucsim.src/ucsim

@@ -396,7 +396,11 @@ struct cpu_entry cpus_51[]=
     // F type should go to subtype...
     {"DS390" , CPU_DS390, CPU_CMOS		, "Dallas DS80C390" , "cmos"},
     {"DS390F", CPU_DS390F, CPU_CMOS		, "Dallas DS80C390F", "cmos"},
-    
+
+    {"STC12"       , CPU_STC12, CPU_CMOS	, "STC STC12C5A60S2", "cmos"},
+    {"STC12C5A60S2", CPU_STC12, CPU_CMOS	, "STC STC12C5A60S2", "cmos"},
+    {"STC12C5A"    , CPU_STC12, CPU_CMOS	, "STC STC12C5A60S2", "cmos"},
+
     {NULL, CPU_NONE, 0, "", ""}
   };
 

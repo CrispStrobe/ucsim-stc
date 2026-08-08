@@ -317,7 +317,41 @@ static struct name_entry sfr_tab51[]=
   {CPU_F380, 0xfd, "PCA0CPL4"},
   {CPU_F380, 0xfe, "PCA0CPH4"},
   {CPU_F380, 0xff, "VDM0CN"},
-  
+
+  /* STC12C5A60S2 */
+  {CPU_STC12, 0x8e, "AUXR"},
+  {CPU_STC12, 0x91, "P1M1"},
+  {CPU_STC12, 0x92, "P1M0"},
+  {CPU_STC12, 0x93, "P0M1"},
+  {CPU_STC12, 0x94, "P0M0"},
+  {CPU_STC12, 0x95, "P2M1"},
+  {CPU_STC12, 0x96, "P2M0"},
+  {CPU_STC12, 0x97, "CLK_DIV"},
+  {CPU_STC12, 0x9d, "P1ASF"},
+  {CPU_STC12, 0xa2, "AUXR1"},
+  {CPU_STC12, 0xb1, "P3M1"},
+  {CPU_STC12, 0xb2, "P3M0"},
+  {CPU_STC12, 0xb3, "P4M1"},
+  {CPU_STC12, 0xb4, "P4M0"},
+  {CPU_STC12, 0xbb, "P4SW"},
+  {CPU_STC12, 0xbc, "ADC_CONTR"},
+  {CPU_STC12, 0xbd, "ADC_RES"},
+  {CPU_STC12, 0xbe, "ADC_RESL"},
+  {CPU_STC12, 0xc0, "P4"},
+  {CPU_STC12, 0xc8, "P5"},
+  {CPU_STC12, 0xc9, "P5M1"},
+  {CPU_STC12, 0xca, "P5M0"},
+  {CPU_STC12, 0xd8, "CCON"},
+  {CPU_STC12, 0xd9, "CMOD"},
+  {CPU_STC12, 0xda, "CCAPM0"},
+  {CPU_STC12, 0xdb, "CCAPM1"},
+  {CPU_STC12, 0xe9, "CL"},
+  {CPU_STC12, 0xf2, "PCA_PWM0"},
+  {CPU_STC12, 0xf3, "PCA_PWM1"},
+  {CPU_STC12, 0xf9, "CH"},
+  {CPU_STC12, 0xfa, "CCAP0H"},
+  {CPU_STC12, 0xfb, "CCAP1H"},
+
   {0, 0, NULL}
 };
 

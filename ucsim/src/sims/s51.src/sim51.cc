@@ -52,6 +52,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "uc88xcl.h"
 #include "uc320cl.h"
 #include "uc380cl.h"
+#include "ucstc12cl.h"
 //#include "glob.h"
 
 
@@ -105,6 +106,8 @@ cl_sim51::mk_controller(void)
       return(new cl_uc320(&cpus_51[i], this));
     case CPU_DS390: case CPU_DS390F:
       return(new cl_uc390(&cpus_51[i], this));
+    case CPU_STC12:
+      return(new cl_uc_stc12(&cpus_51[i], this));
     default:
       fprintf(stderr, "Unknown processor type\n");
       return NULL;

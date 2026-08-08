@@ -343,6 +343,50 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define bmPWM	0x02
 #define bmEDDF	0x01
 
+/* STC12C5A60S2-specific SFR addresses */
+
+#define STC12_P1M1	0x91 /* Port 1 Mode 1 */
+#define STC12_P1M0	0x92 /* Port 1 Mode 0 */
+#define STC12_P0M1	0x93 /* Port 0 Mode 1 */
+#define STC12_P0M0	0x94 /* Port 0 Mode 0 */
+#define STC12_P2M1	0x95 /* Port 2 Mode 1 */
+#define STC12_P2M0	0x96 /* Port 2 Mode 0 */
+#define STC12_CLK_DIV	0x97 /* Clock Divider */
+#define STC12_P1ASF	0x9D /* P1 Analog Function Select */
+#define STC12_P3M1	0xB1 /* Port 3 Mode 1 */
+#define STC12_P3M0	0xB2 /* Port 3 Mode 0 */
+#define STC12_P4M1	0xB3 /* Port 4 Mode 1 */
+#define STC12_P4M0	0xB4 /* Port 4 Mode 0 */
+#define STC12_P4SW	0xBB /* Port 4 Switch */
+#define STC12_ADC_CONTR	0xBC /* ADC Control */
+#define STC12_ADC_RES	0xBD /* ADC Result High */
+#define STC12_ADC_RESL	0xBE /* ADC Result Low */
+#define STC12_P4	0xC0 /* Port 4 */
+#define STC12_P5	0xC8 /* Port 5 */
+#define STC12_P5M1	0xC9 /* Port 5 Mode 1 */
+#define STC12_P5M0	0xCA /* Port 5 Mode 0 */
+#define STC12_PCA_PWM0	0xF2 /* PCA PWM mode 0 */
+#define STC12_PCA_PWM1	0xF3 /* PCA PWM mode 1 */
+
+/* Bit masks in STC12 AUXR (0x8E) */
+
+#define bmAUXR_T0x12	0x80 /* Timer 0 1T mode */
+#define bmAUXR_T1x12	0x40 /* Timer 1 1T mode */
+#define bmAUXR_UART_M0x6 0x20 /* UART mode */
+#define bmAUXR_BRTR	0x10 /* BRT run control */
+#define bmAUXR_S2SMOD	0x08
+#define bmAUXR_BRTx12	0x04 /* BRT 1T mode */
+#define bmAUXR_EXTRAM	0x02 /* Extended RAM enable */
+#define bmAUXR_S1ST2	0x01 /* Serial 1 use Timer 2 */
+
+/* Bit masks in STC12 ADC_CONTR (0xBC) */
+
+#define bmADC_POWER	0x80 /* ADC power on */
+#define bmADC_FLAG	0x10 /* ADC conversion complete */
+#define bmADC_START	0x08 /* ADC start conversion */
+#define bmADC_SPEED	0x60 /* ADC speed select (2 bits) */
+#define bmADC_CHS	0x07 /* ADC channel select (3 bits) */
+
 
 #endif
 
