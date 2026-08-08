@@ -29,10 +29,20 @@
 #include "interruptcl.h"
 
 
-/* MCS-51 instruction cycle table.
- * Source: Intel MCS-51 Microcontroller Family User's Manual, Table A-2.
- * Values are machine cycles (1 or 2 for most, 4 for MUL/DIV).
- * On the STC12 with clock_per_cycle()=1, these are oscillator clocks. */
+/* MCS-51 instruction cycle table — REMOVED.
+ *
+ * This array was transcribed from Intel MCS-51 Table A-2 and used as
+ * a tick_tab override. It was REMOVED because the base ucsim instruction
+ * handlers already call tick(N) internally for multi-cycle instructions,
+ * and providing a tick_tab on top of that caused double-counting (25%
+ * timing gap). See spec-updates/005-emu8051-cycle-count-bug.md.
+ *
+ * Timing now comes from the base MCS-51 handlers in jmp.cc, bit.cc,
+ * arith.cc, etc. The residual 1-clock gap against emu8051 is from minor
+ * differences in how interrupt dispatch ticks are counted.
+ */
+
+#if 0 /* Dead code — retained for reference only, not compiled */
 static i8_t stc12_cycle_tab[256] = {
   /* 0x00 NOP    */ 1,
   /* 0x01 AJMP   */ 2,
@@ -179,6 +189,7 @@ static i8_t stc12_cycle_tab[256] = {
   /* 0xF7 MOV@R1A*/ 1,
   /* 0xF8-0xFF MOV Rn,A */ 1,1,1,1,1,1,1,1,
 };
+#endif /* Dead cycle table */
 
 /* STC12C5A60S2 defined SFR addresses.
  * Any SFR write outside this set is an unmodelled register access. */
@@ -282,12 +293,6 @@ cl_uc_stc12::init(void)
   int ret= cl_uc52::init();
   return ret;
 }
-
-/* Note: tick_tab is NOT overridden. The base ucsim instruction handlers
- * already call tick(N) internally for multi-cycle instructions (jmp.cc,
- * bit.cc, arith.cc etc.), and tickt() adds tick(1) when tick_tab returns
- * NULL. Providing a tick_tab would double-count. The stc12_cycle_tab
- * array is retained as documentation of the MCS-51 spec but not used. */
 
 const char *
 cl_uc_stc12::id_string(void)
