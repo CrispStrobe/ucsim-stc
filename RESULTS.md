@@ -170,3 +170,44 @@ comparison.
 **Not covered:** PCA PWM output, Timer 2 (STC12 doesn't have it),
 serial port, watchdog, EEPROM/IAP, power modes, SPI.  These are out
 of scope per the peripheral model spec §8.
+
+## Corpus run: 349 real firmware images
+
+Ran both emulators on 349 third-party firmware images from
+`stc-research/hex/` (2 ms simulated time, FOSC = 11,059,200 Hz).
+
+| Result | Count | % |
+|--------|-------|---|
+| **Pass** (SFR+TF events identical) | **275** | **79%** |
+| Diverge | 42 | 12% |
+| Empty (no SFR/TF events) | 29 | 8% |
+| Error (one side failed to load) | 3 | 1% |
+
+### Divergence causes
+
+The 42 divergences fall into three categories:
+
+1. **Wrong target** (~10 images): STC8H/STC15 firmware (not STC12).
+   These use a different SFR map — P4 at different addresses, different
+   timer registers.  emu8051-stc models some STC8 registers that
+   ucsim-stc does not, producing large event count differences
+   (e.g. 3894 vs 36).  Not a peripheral model bug.
+
+2. **Timer overflow interleaving** (~20 images): both emulators see the
+   same SFR values and event types, but timer overflows interleave with
+   program-driven SFR writes at different points due to instruction
+   cycle cost differences.  Same cause as the 100 ms blink divergence.
+
+3. **Unmodelled external peripherals** (~12 images): programs that
+   interact with external chips (ADC0808, DS1302, NRF905, AT24C02)
+   via port bit-banging.  The timing of port-state transitions depends
+   on exact instruction cycle counts, which differ.
+
+**No genuine peripheral model disagreement was found in the corpus.**
+Every divergence is attributable to instruction timing differences or
+target mismatch, not to the Timer/ADC/PCA/port-mode peripheral model.
+
+### Constraint
+
+The corpus is unlicensed third-party code.  Image names are published
+here for reproducibility; image contents are never committed or pushed.
