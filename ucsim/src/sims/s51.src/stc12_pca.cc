@@ -70,4 +70,32 @@ cl_pca_stc12::tick(int cycles)
 }
 
 
+void
+cl_pca_stc12::do_pca_counter(int cycles)
+{
+  /* STC12 has only 2 PCA modules (0 and 1), not 5 like the base 8052.
+     The base class fires do_pca_module(0..4) on CL/CH overflow,
+     which sets spurious CCF2-CCF4 flags on the STC12. */
+  while (cycles--)
+    {
+      if (cell_cl->set(cell_cl->get() + 1) == 0)
+	{
+	  /* CL overflow: reload CCAPnL from CCAPnH for PWM modes */
+	  for (int i= 0; i < 2; i++)
+	    if (ccapm[i] & bmPWM)
+	      cell_ccapl[i]->set(cell_ccaph[i]->get());
+
+	  if (cell_ch->set(cell_ch->get() + 1) == 0)
+	    {
+	      /* CH:CL overflow */
+	      cell_ccon->set(cell_ccon->get() | bmCF);
+	      do_pca_module(0);
+	      do_pca_module(1);
+	      /* modules 2-4 do not exist on STC12 */
+	    }
+	}
+    }
+}
+
+
 /* End of s51.src/stc12_pca.cc */

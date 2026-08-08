@@ -28,6 +28,7 @@ protected:
 public:
   cl_pca_stc12(class cl_uc *auc, int aid);
   virtual int tick(int cycles);
+  virtual void do_pca_counter(int cycles);
 };
 
 
