@@ -116,6 +116,47 @@ else
     FAIL=$((FAIL+1))
 fi
 
+# --- Assertion 5: STC15F vs STC15W — Timer 1 present vs absent ---
+echo ""
+echo "[5] STC15F vs STC15W: Timer 1 (must differ)"
+FIXTURE2="tests/fixtures/timer1_test.ihx"
+if [ -f "$FIXTURE2" ]; then
+    TF1_15F=$("$TRACE" -t STC15 -fosc $FOSC -until-ns 3000000 "$FIXTURE2" 2>/dev/null \
+        | grep -c "TF	1" || true)
+    TF1_15W=$("$TRACE" -t STC15W -fosc $FOSC -until-ns 3000000 "$FIXTURE2" 2>/dev/null \
+        | grep -c "TF	1" || true)
+    echo "    STC15F TF1 events: $TF1_15F"
+    echo "    STC15W TF1 events: $TF1_15W"
+    if [ "$TF1_15F" -gt 0 ] && [ "$TF1_15W" -eq 0 ]; then
+        echo "    PASS: STC15F fires TF1, STC15W does not (no Timer 1)"
+        PASS=$((PASS+1))
+    elif [ "$TF1_15F" -eq 0 ]; then
+        echo "    FAIL: STC15F should have TF1 events"
+        FAIL=$((FAIL+1))
+    else
+        echo "    FAIL: STC15W should NOT have TF1 events"
+        FAIL=$((FAIL+1))
+    fi
+
+    # Also check that the P1 toggle count differs
+    P1_15F=$("$TRACE" -t STC15 -fosc $FOSC -until-ns 3000000 "$FIXTURE2" 2>/dev/null \
+        | awk '$2 == "SFR" && $3 ~ /^90/' | wc -l)
+    P1_15W=$("$TRACE" -t STC15W -fosc $FOSC -until-ns 3000000 "$FIXTURE2" 2>/dev/null \
+        | awk '$2 == "SFR" && $3 ~ /^90/' | wc -l)
+    echo ""
+    echo "[6] STC15F vs STC15W: program completion (must differ)"
+    echo "    STC15F P1 toggles: $P1_15F  STC15W P1 toggles: $P1_15W"
+    if [ "$P1_15F" -gt "$P1_15W" ]; then
+        echo "    PASS: STC15F completes more (Timer 1 works), STC15W hangs on while(!TF1)"
+        PASS=$((PASS+1))
+    else
+        echo "    FAIL: expected STC15F to have more P1 events"
+        FAIL=$((FAIL+1))
+    fi
+else
+    echo "    SKIP: $FIXTURE2 not found"
+fi
+
 echo ""
 echo "Results: $PASS pass, $FAIL fail"
 [ $FAIL -eq 0 ] && exit 0 || exit 1

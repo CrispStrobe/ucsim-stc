@@ -751,7 +751,20 @@ an image that writes AUXR.7=1 (switch Timer 0 to 1T):
 | STC12 | **84 µs** (FOSC) | Timer 0 switched to 1T |
 | STC89 | **1013 µs** (FOSC/12) | AUXR ignored — no such peripheral |
 
-Difference: **929 µs**. The models are distinguishable. 4/4 pass.
+Difference: **929 µs**. The models are distinguishable.
+
+### STC15F vs STC15W: Timer 1 (the second control)
+
+`timer1_test.ihx` starts both Timer 0 and Timer 1 in mode 1, then
+waits for each TF flag:
+
+| Model | TF0 | TF1 | P1 toggles | Outcome |
+|-------|-----|-----|------------|---------|
+| STC15F2K60S2 | fires | **fires** | 3 | Program completes |
+| STC15W408AS | fires | **never** | 1 | Hangs on `while(!TF1)` |
+
+The STC15W has no Timer 1 hardware, so TF1 never rises and the
+program loops forever. The models are distinguishable. 6/6 pass.
 
 ### STC15W firmware corpus (3 images)
 
@@ -793,7 +806,7 @@ emu_trace rebuild with hex type 02/04 support.
 | Example differentials (STC12 cross-emu) | **9/9** |
 | Boundary D ladder (STC12 cross-emu) | **6/6** |
 | Multi-part differentials (incl. cross-emu STC89) | **9/9** |
-| Model difference (STC12 vs STC89 must differ) | **4/4** |
+| Model difference (all 4 parts distinguishable) | **6/6** |
 | Cross-part examples (STC12=STC15=STC15W) | **9/9** |
 
 ### What was blocked and is now resolved
