@@ -112,8 +112,39 @@ else
     fail "STC15W vs STC12 scheduled_gen: diverged"
 fi
 
-# --- Test 7: Cross-emulator STC89 (requires emu_trace -part support) ---
-echo "[7] Cross-emulator STC89 blink"
+# --- Test 7: STC89 scheduler (Timer 0 ISR, cooperative tasks, port toggle) ---
+echo "[7] STC89 scheduler produces events"
+"$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS \
+    tests/fixtures/scheduler_stc89.ihx 2>/dev/null \
+    | awk '$2 == "SFR" || $2 == "TF"' > "$TMP/stc89_sched.ev"
+N=$(wc -l < "$TMP/stc89_sched.ev")
+if [ "$N" -gt 3 ]; then
+    pass "STC89 scheduler: $N events"
+else
+    fail "STC89 scheduler: only $N events"
+fi
+
+# --- Test 8: STC89 scheduler TF0 at ~1ms ---
+echo "[8] STC89 scheduler TF0 timing"
+"$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS \
+    tests/fixtures/scheduler_stc89.ihx 2>/dev/null \
+    | awk '$2 == "TF" && $3 == "0" {print $1}' > "$TMP/stc89_sched_tf.times"
+N_TF=$(wc -l < "$TMP/stc89_sched_tf.times")
+if [ "$N_TF" -ge 5 ]; then
+    T0=$(sed -n '1p' "$TMP/stc89_sched_tf.times")
+    T1=$(sed -n '2p' "$TMP/stc89_sched_tf.times")
+    DELTA=$((T1 - T0))
+    if [ "$DELTA" -gt 900000 ] && [ "$DELTA" -lt 1100000 ]; then
+        pass "STC89 scheduler TF0: ${DELTA}ns (~1ms)"
+    else
+        fail "STC89 scheduler TF0: ${DELTA}ns (expected ~1000000ns)"
+    fi
+else
+    fail "STC89 scheduler: only $N_TF TF0 events in 10ms"
+fi
+
+# --- Test 9: Cross-emulator STC89 (requires emu_trace -part support) ---
+echo "[9] Cross-emulator STC89 blink"
 # Check if emu_trace supports -part by looking for 12T timing in its output.
 # If it runs at 1T, the flag was silently ignored and we skip.
 EMU_HAS_PART=false
