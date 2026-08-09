@@ -379,3 +379,29 @@ The scan table in spec §008 (FE FD FB F7 EF DF BF 7F) is
 The per-line dwell (cleanroom: 1.007 ms, vendor: 1.238 ms) differs
 because the cleanroom uses Timer 0 at FOSC/12 (exact) while the
 vendor uses a software busy-loop (approximate).
+
+## Generated cube kernel (blocks → C → measured behaviour)
+
+`sb3-creator` `cb7894c` emits a complete cube scan kernel from
+pseudocode (`LEDCUBE 4`, `set voxel`, `hold frame`).
+
+Cross-emulator: **101/101 events strictly identical** (100ms span).
+
+| source | per-line | frame | refresh | scan table |
+|---|---|---|---|---|
+| generated kernel | 1.006 ms | 8.049 ms | 124.2 Hz | FE..7F |
+| cleanroom driver | 1.007 ms | 8.061 ms | 124.1 Hz | FE..7F |
+| vendor (SDCC) | 1.237 ms | 9.895 ms | 101.1 Hz | FE..7F |
+
+All three use the same scan table.  Generated and cleanroom use
+Timer 0 at FOSC/12 (identical dwell).  Vendor uses a software loop.
+Generated and cleanroom agree to within 1 µs per line.
+
+Polarity: generated kernel uses `BW_CUBE_ACTIVE_HIGH = 1`,
+matching the spec and `bw-circuit-ui`.
+
+Note: `delay_ms` was missing from the generated output (sb3-creator
+bug — `bw_cube_scan` calls it without emitting it).  Added manually
+for this test.  The bug is in sb3-creator, not in the kernel logic.
+
+This closes **blocks → C → measured behaviour** for the LED cube.
