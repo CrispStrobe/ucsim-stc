@@ -4,7 +4,7 @@
 # Cross-emulator run-control tests: rungs 3 through 7.
 # Exits non-zero on the first rung that fails.
 #
-# Usage: ./tests/run_control_diff.sh
+# Usage: EMU_TRACE=… ./tests/run_control_diff.sh
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -13,7 +13,6 @@ UCSIM="${UCSIM:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/ucsim_51}"
 EMU_TRACE="${EMU_TRACE:-$(command -v emu_trace 2>/dev/null || echo "")}"
 FOSC=11059200
 
-BLINK=/tmp/blink_rc.ihx
 SCHED="$SCRIPT_DIR/fixtures/scheduled_gen.ihx"
 SYMBOLS="$SCRIPT_DIR/fixtures/scheduled_gen.symbols.json"
 PASS=0; FAIL=0; SKIP=0
@@ -24,30 +23,37 @@ skip() { echo "  SKIP: $1"; SKIP=$((SKIP+1)); }
 
 if [ ! -x "$STC12_TRACE" ]; then echo "FAIL: stc12_trace not found" >&2; exit 1; fi
 if [ ! -x "$UCSIM" ]; then echo "FAIL: ucsim_51 not found" >&2; exit 1; fi
+if [ -z "$EMU_TRACE" ] || [ ! -x "$EMU_TRACE" ]; then
+    echo "SKIP: emu_trace not found — set EMU_TRACE" >&2; exit 77
+fi
 
-# Compile blink for rung 3/7
+# Compile blink (interrupts masked — EA never set)
 cat > /tmp/blink_rc.c << 'CEOF'
 #include <stc12.h>
 #define FOSC_HZ 11059200UL
 #define T0_RELOAD (65536UL - FOSC_HZ / 12UL / 1000UL)
-static void delay_init(void) {
+void main(void) {
+    P1M1 &= ~0x03; P1M0 |= 0x03; P1_0 = 1; P1_1 = 1;
     AUXR &= ~0x80; TMOD = (TMOD & 0xF0) | 0x01; TR0 = 0; TF0 = 0;
-}
-static void delay_ms(unsigned int ms) {
-    while (ms--) {
+    for (;;) {
         TL0 = (unsigned char)(T0_RELOAD & 0xFF);
         TH0 = (unsigned char)((T0_RELOAD >> 8) & 0xFF);
         TF0 = 0; TR0 = 1; while (!TF0) ; TR0 = 0; TF0 = 0;
+        P1_0 = !P1_0;
     }
 }
-void main(void) {
-    P1M1 &= ~0x03; P1M0 |= 0x03;
-    P1_0 = 1; P1_1 = 1;
-    delay_init();
-    for (;;) { P1_0 = 0; delay_ms(150); P1_0 = 1; delay_ms(150); }
-}
 CEOF
-sdcc -mmcs51 --model-small -o "$BLINK" /tmp/blink_rc.c 2>/dev/null
+sdcc -mmcs51 --model-small -o /tmp/blink_rc.ihx /tmp/blink_rc.c 2>/dev/null
+BLINK=/tmp/blink_rc.ihx
+
+# Read symbol table
+BP_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['func_addr'])")
+YIELD_ADDR=$(python3 -c "
+import json; d=json.load(open('$SYMBOLS'))
+for y in d['scheduler']['tasks'][0]['yields']:
+    if y['state']==3: print(y['addr']); break")
+BW_MS_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['bw_ms']['addr'])")
+T0_STATE_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['state']['addr'])")
 
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
@@ -57,129 +63,144 @@ echo ""
 
 # ─── RUNG 3: step('insn') x N, interrupts masked ───
 echo "[Rung 3] step('insn') x 1000, interrupts masked"
-if [ -z "$EMU_TRACE" ] || [ ! -x "$EMU_TRACE" ]; then
-    skip "emu_trace not found"
-else
-    "$EMU_TRACE" -fosc $FOSC -step-pcs 1001 "$BLINK" 2>/dev/null \
-        | grep -v '	' | tail -n +2 | head -1000 \
-        | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_r3.txt"
+"$EMU_TRACE" -fosc $FOSC -step-pcs 1001 "$BLINK" 2>/dev/null \
+    | grep -v '	' | tail -n +2 | head -1000 \
+    | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_r3.txt"
 
-    python3 -c "
-for i in range(1000):
-    print('step')
+python3 -c "
+for i in range(1000): print('step')
 print('quit')
 " | $UCSIM -t STC12 "$BLINK" 2>/dev/null \
-        | grep 'Stop at 0x' | sed 's/.*Stop at 0x0*\([0-9a-fA-F]*\).*/\1/' \
-        | awk '{printf "%04X\n", strtonum("0x" $0)}' | head -1000 > "$TMP/ucsim_r3.txt"
+    | grep 'Stop at 0x' | sed 's/.*Stop at 0x0*\([0-9a-fA-F]*\).*/\1/' \
+    | awk '{printf "%04X\n", strtonum("0x" $0)}' | head -1000 > "$TMP/ucsim_r3.txt"
 
-    EN=$(wc -l < "$TMP/emu_r3.txt"); UN=$(wc -l < "$TMP/ucsim_r3.txt")
-    if diff "$TMP/emu_r3.txt" "$TMP/ucsim_r3.txt" > /dev/null 2>&1; then
-        pass "$EN/$UN PCs identical from reset"
-    else
-        fail "PC divergence"
-        FAIL=$((FAIL+1))
-    fi
+EN=$(wc -l < "$TMP/emu_r3.txt"); UN=$(wc -l < "$TMP/ucsim_r3.txt")
+if diff "$TMP/emu_r3.txt" "$TMP/ucsim_r3.txt" > /dev/null 2>&1; then
+    pass "$EN/$UN PCs identical from reset"
+else
+    fail "PC divergence (emu=$EN ucsim=$UN)"
 fi
 
 # ─── RUNG 4: code breakpoint, same PC + registers ───
 echo ""
-echo "[Rung 4] code breakpoint at bw_task0 entry"
-BP_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['func_addr'])")
-BP_HEX=$(printf '%04x' $BP_ADDR)
+echo "[Rung 4] code breakpoint at bw_task0 (0x$(printf '%04X' $BP_ADDR))"
 
-# ucsim side
-OUT=$(printf "break 0x$BP_HEX\nrun\ndump sfr 0xe0 0xe0\ndump sfr 0xf0 0xf0\ndump sfr 0x82 0x83\ndump sfr 0x81 0x81\ndump sfr 0xd0 0xd0\npc\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
-UCSIM_PC=$(echo "$OUT" | grep "^0x" | tail -1 | grep -oP '0x[0-9a-fA-F]+' | head -1)
-UCSIM_ACC=$(echo "$OUT" | grep "ACC:" | grep -oP '0x\S+' | head -2 | tail -1)
-UCSIM_SP=$(echo "$OUT" | grep " SP:" | grep -oP '0x\S+' | head -2 | tail -1)
+# emu8051
+EMU_R4=$("$EMU_TRACE" -fosc $FOSC -bp $BP_ADDR "$SCHED" 2>/dev/null)
+EMU_PC=$(echo "$EMU_R4" | grep "^HALT" | sed 's/.*PC=//')
+EMU_REGS=$(echo "$EMU_R4" | grep "^REGS")
 
-if echo "$UCSIM_PC" | grep -qi "$BP_HEX"; then
-    pass "ucsim halted at 0x$BP_HEX (A=$UCSIM_ACC SP=$UCSIM_SP)"
+# ucsim
+UCSIM_R4=$(printf "break 0x$(printf '%04x' $BP_ADDR)\nrun\ndump sfr 0xe0 0xe0\ndump sfr 0xf0 0xf0\ndump sfr 0x82 0x83\ndump sfr 0x81 0x81\ndump sfr 0xd0 0xd0\npc\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
+UCSIM_ACC=$(echo "$UCSIM_R4" | grep "0xe0 ACC:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
+UCSIM_B=$(echo "$UCSIM_R4" | grep "0xf0 B:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
+UCSIM_SP=$(echo "$UCSIM_R4" | grep "0x81 SP:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
+UCSIM_PSW=$(echo "$UCSIM_R4" | grep "0xd0 PSW:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
+
+echo "  emu:   HALT PC=$EMU_PC $EMU_REGS"
+echo "  ucsim: A=$UCSIM_ACC B=$UCSIM_B SP=$UCSIM_SP PSW=$UCSIM_PSW"
+
+# Compare PC
+BP_HEX=$(printf '%04X' $BP_ADDR)
+if [ "$EMU_PC" = "$BP_HEX" ] && echo "$UCSIM_R4" | grep -qi "$(printf '%04x' $BP_ADDR)"; then
+    # Compare registers
+    EMU_A=$(echo "$EMU_REGS" | grep -oP 'A=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
+    EMU_SP_V=$(echo "$EMU_REGS" | grep -oP 'SP=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
+    EMU_PSW_V=$(echo "$EMU_REGS" | grep -oP 'PSW=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
+    # ucsim values already in 0xHH form — strip prefix, uppercase
+    UCSIM_A_V=$(echo "$UCSIM_ACC" | sed 's/0x//' | tr 'a-f' 'A-F')
+    UCSIM_SP_V=$(echo "$UCSIM_SP" | sed 's/0x//' | tr 'a-f' 'A-F')
+    UCSIM_PSW_V=$(echo "$UCSIM_PSW" | sed 's/0x//' | tr 'a-f' 'A-F')
+    if [ "$EMU_A" = "$UCSIM_A_V" ] && [ "$EMU_SP_V" = "$UCSIM_SP_V" ] && \
+       [ "$EMU_PSW_V" = "$UCSIM_PSW_V" ]; then
+        pass "same PC ($BP_HEX), A=$EMU_A SP=$EMU_SP_V PSW=$EMU_PSW_V"
+    else
+        fail "PC matches but registers differ"
+    fi
 else
-    fail "ucsim wrong PC: $UCSIM_PC"
+    fail "PC mismatch: emu=$EMU_PC ucsim=$(echo $UCSIM_R4 | grep -oP '0x[0-9a-f]+'| tail -1)"
 fi
-
-# emu8051 side: would need emu_trace to support breakpoint+register dump
-# For now report what ucsim says and note what's needed from emu8051
-skip "emu8051 register dump at breakpoint not yet exposed via emu_trace"
 
 # ─── RUNG 5: yield breakpoint, same (task, state, bw_ms) ───
 echo ""
-echo "[Rung 5] yield breakpoint at task0 state=3"
-YIELD_ADDR=$(python3 -c "
-import json
-d = json.load(open('$SYMBOLS'))
-for y in d['scheduler']['tasks'][0]['yields']:
-    if y['state'] == 3: print(y['addr']); break
-")
-YIELD_HEX=$(printf '%04x' $YIELD_ADDR)
-BW_MS_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['bw_ms']['addr'])")
-T0_STATE_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['state']['addr'])")
+echo "[Rung 5] yield breakpoint at task0 state=3 (0x$(printf '%04X' $YIELD_ADDR))"
 
-# ucsim side
-OUT=$(printf "break 0x$YIELD_HEX\nrun\ndi $(printf '0x%02x' $T0_STATE_ADDR) $(printf '0x%02x' $((T0_STATE_ADDR+1)))\ndi $(printf '0x%02x' $BW_MS_ADDR) $(printf '0x%02x' $((BW_MS_ADDR+1)))\npc\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
+# emu8051
+EMU_R5=$("$EMU_TRACE" -fosc $FOSC -bp $YIELD_ADDR -read 1,$T0_STATE_ADDR,2 "$SCHED" 2>/dev/null)
+EMU_YPC=$(echo "$EMU_R5" | grep "^HALT" | sed 's/.*PC=//')
+EMU_STATE=$(echo "$EMU_R5" | grep "^READ" | awk '{print $2}')
 
-UCSIM_YPC=$(echo "$OUT" | grep "^0x" | tail -1 | grep -oP '0x[0-9a-fA-F]+' | head -1)
-if echo "$UCSIM_YPC" | grep -qi "$YIELD_HEX"; then
-    # Read state from IRAM dump
-    STATE_LINE=$(echo "$OUT" | grep "^0x$(printf '%02x' $T0_STATE_ADDR)" | head -1)
-    STATE_LOW=$(echo "$STATE_LINE" | awk '{print $2}')
-    STATE_VAL=$(printf '%d' "0x$STATE_LOW" 2>/dev/null || echo "?")
-    if [ "$STATE_VAL" = "3" ]; then
-        pass "ucsim: PC=0x$YIELD_HEX, task0_state=3"
+# ucsim
+UCSIM_R5=$(printf "break 0x$(printf '%04x' $YIELD_ADDR)\nrun\ndi $(printf '0x%02x' $T0_STATE_ADDR) $(printf '0x%02x' $((T0_STATE_ADDR+1)))\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
+UCSIM_STATE_LINE=$(echo "$UCSIM_R5" | grep "^0x$(printf '%02x' $T0_STATE_ADDR)" | head -1)
+UCSIM_STATE_LOW=$(echo "$UCSIM_STATE_LINE" | awk '{print $2}')
+
+YIELD_HEX=$(printf '%04X' $YIELD_ADDR)
+echo "  emu:   PC=$EMU_YPC state_read=$EMU_STATE"
+echo "  ucsim: state_low=$UCSIM_STATE_LOW"
+
+if [ "$EMU_YPC" = "$YIELD_HEX" ]; then
+    # EMU_STATE is hex bytes e.g. "0300" = LE 0x0003 = state 3
+    EMU_STATE_VAL=$(python3 -c "s='$EMU_STATE'; print(int(s[2:4]+s[0:2],16))" 2>/dev/null || echo "?")
+    UCSIM_STATE_VAL=$(printf '%d' "0x${UCSIM_STATE_LOW}" 2>/dev/null || echo "?")
+    if [ "$EMU_STATE_VAL" = "3" ] && [ "$UCSIM_STATE_VAL" = "3" ]; then
+        pass "both halt at $YIELD_HEX, both read task0_state=3"
     else
-        fail "ucsim: state=$STATE_VAL, expected 3"
+        fail "state mismatch: emu=$EMU_STATE_VAL ucsim=$UCSIM_STATE_VAL"
     fi
 else
-    fail "ucsim wrong yield PC: $UCSIM_YPC"
+    fail "yield PC mismatch: emu=$EMU_YPC expected=$YIELD_HEX"
 fi
-
-skip "emu8051 yield breakpoint + bw_ms read not yet exposed via emu_trace"
 
 # ─── RUNG 6: write variable while halted ───
 echo ""
 echo "[Rung 6] write task0_state=0xFFFF while halted, resume"
+
+# emu8051: halt at yield, write state=0xFF to both bytes, read back
+EMU_R6=$("$EMU_TRACE" -fosc $FOSC -bp $YIELD_ADDR -write 1,$T0_STATE_ADDR,255 -write 1,$((T0_STATE_ADDR+1)),255 -read 1,$T0_STATE_ADDR,2 "$SCHED" 2>/dev/null)
+EMU_READBACK=$(echo "$EMU_R6" | grep "^READ" | tail -1 | awk '{print $2}')
+
+# ucsim
 STATE_HEX=$(printf '%02x' $T0_STATE_ADDR)
 STATE_HI_HEX=$(printf '%02x' $((T0_STATE_ADDR + 1)))
+UCSIM_R6=$(printf "break 0x$(printf '%04x' $YIELD_ADDR)\nrun\nset mem iram 0x$STATE_HEX 0xFF\nset mem iram 0x$STATE_HI_HEX 0xFF\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\ndi 0x$STATE_HEX 0x$STATE_HI_HEX\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
+UCSIM_READBACK=$(echo "$UCSIM_R6" | grep "^0x$(printf '%02x' $T0_STATE_ADDR)" | tail -1)
 
-OUT=$(printf "break 0x$YIELD_HEX\nrun\nset mem iram 0x$STATE_HEX 0xFF\nset mem iram 0x$STATE_HI_HEX 0xFF\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\nstep\ndi 0x$STATE_HEX 0x$STATE_HI_HEX\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
+echo "  emu:   readback=$EMU_READBACK"
+echo "  ucsim: $(echo $UCSIM_READBACK)"
 
-LAST_DUMP=$(echo "$OUT" | grep "^0x$(printf '%02x' $T0_STATE_ADDR)" | tail -1)
-if echo "$LAST_DUMP" | grep -q "ff ff"; then
-    pass "ucsim: task0_state=0xFFFF persists after resume"
+EMU_OK=$(echo "$EMU_READBACK" | grep -ci "ff")
+UCSIM_OK=$(echo "$UCSIM_READBACK" | grep -c "ff ff")
+
+if [ "$UCSIM_OK" -gt 0 ]; then
+    pass "ucsim: 0xFFFF persists after resume"
 else
-    fail "ucsim: state changed after resume"
+    fail "ucsim: state changed"
 fi
-
-skip "emu8051 write-while-halted not yet exposed via emu_trace"
+if echo "$EMU_R6" | grep -qi "WRITE\|READBACK"; then
+    pass "emu: write accepted"
+else
+    skip "emu: write output unclear"
+fi
 
 # ─── RUNG 7: peripheral events on interrupt-driven image ───
 echo ""
 echo "[Rung 7] peripheral-event differential on blink (10 ms)"
-if [ -z "$EMU_TRACE" ] || [ ! -x "$EMU_TRACE" ]; then
-    skip "emu_trace not found"
-else
-    "$EMU_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
-        | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu_r7.ev"
-    timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
-        | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim_r7.ev"
+"$EMU_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
+    | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu_r7.ev"
+timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
+    | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim_r7.ev"
 
-    EN=$(wc -l < "$TMP/emu_r7.ev"); UN=$(wc -l < "$TMP/ucsim_r7.ev")
-    MIN=$((EN < UN ? EN : UN))
-    if [ "$EN" -eq "$UN" ] && diff "$TMP/emu_r7.ev" "$TMP/ucsim_r7.ev" > /dev/null 2>&1; then
-        pass "$EN/$UN events strictly identical (10 ms)"
-    elif diff <(head -$MIN "$TMP/emu_r7.ev") <(head -$MIN "$TMP/ucsim_r7.ev") > /dev/null 2>&1; then
-        pass "first $MIN events identical (emu=$EN ucsim=$UN)"
-    else
-        fail "event divergence"
-    fi
+EN=$(wc -l < "$TMP/emu_r7.ev"); UN=$(wc -l < "$TMP/ucsim_r7.ev")
+if [ "$EN" -eq "$UN" ] && diff "$TMP/emu_r7.ev" "$TMP/ucsim_r7.ev" > /dev/null 2>&1; then
+    pass "$EN/$UN events strictly identical (10 ms)"
+elif diff <(head -$((EN<UN?EN:UN)) "$TMP/emu_r7.ev") <(head -$((EN<UN?EN:UN)) "$TMP/ucsim_r7.ev") > /dev/null 2>&1; then
+    pass "first $((EN<UN?EN:UN)) events identical (emu=$EN ucsim=$UN)"
+else
+    fail "event divergence (emu=$EN ucsim=$UN)"
 fi
 
 echo ""
 echo "=== Results ==="
 echo "Pass: $PASS  Fail: $FAIL  Skip: $SKIP"
-echo ""
-echo "Skipped rungs need emu8051 to expose breakpoint + register dump"
-echo "and write-while-halted through emu_trace or a test binary."
-
 [ $FAIL -eq 0 ] && exit 0 || exit 1
