@@ -672,7 +672,32 @@ which is the exact 12× timing bug this ladder exists to catch.
 | Suite | Result |
 |-------|--------|
 | Smoke tests (STC12/STC15/STC89/STC15W) | **28/28** |
-| Timing verification (4 parts) | **4/4** |
+| Timing verification (4 parts + diff + equiv) | **6/6** |
 | Example differentials (STC12 cross-emu) | **9/9** |
 | Boundary D ladder (STC12 cross-emu) | **6/6** |
-| Multi-part differentials | **6/6 pass, 1 skip** |
+| Multi-part differentials | **8/8 pass, 1 skip** |
+
+### What is blocked and why
+
+Cross-emulator parity on STC89 and STC15W requires `emu_trace` to
+accept `-part STC89` / `-part STC15W`. Requested in spec-updates/012.
+The existing `emu_set_part()` WASM API (wasm_api.c line 105) has the
+part IDs; the trace binary simply doesn't call it yet.
+
+The `/tmp/stc89-12t.md` finding — STC89 core rate is 1T in the shipped
+WASM build — is confirmed on this side: ucsim-stc's STC89 model runs
+at 12T core rate (1085 ns/NOP vs 90 ns), and the rung_timing.sh test
+asserts the 12× difference explicitly.
+
+The `/tmp/stc89-correction.md` withdrawal is also addressed: the test
+now asserts both axes — the 12× DIFFERENCE in core rate (which must
+exist) AND the 1% EQUALITY in Timer 0 at FOSC/12 (which must hold).
+The methodological point — "a differential probe needs a control that
+is known to differ" — is exactly what rung_timing.sh's difference
+assertion implements.
+
+### stc-compiler pseudocode path bug (not blocking)
+
+`POST /compile` with `language=pseudocode, target=stc89c52rc` generates
+`P1M0` and `AUXR` writes despite `port_modes=False`. Noted in
+spec-updates/013. Worked around by using `language=c` for test fixtures.
