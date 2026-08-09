@@ -98,6 +98,70 @@ echo "[14] STC12 no Timer 2"
 OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC12 2>&1)
 echo "$OUT" | grep -q "stc15_timer2" && fail "STC12 should not have timer2" || pass "STC12 correctly lacks timer2"
 
+# 15. STC89 model starts
+echo "[15] STC89 model starts"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC89 2>&1)
+echo "$OUT" | grep -q "STC89C52RC" && pass "STC89C52RC selectable" || fail "STC89 not found"
+
+# 16. STC89 has Timer 2 (standard 8052 T2CON at 0xC8)
+echo "[16] STC89 has Timer 2"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC89 2>&1)
+echo "$OUT" | grep -q "timer2" && pass "STC89 has timer2 (standard 8052)" || fail "STC89 missing timer2"
+
+# 17. STC89 timer runs at 12T (no 1T option — no AUXR)
+echo "[17] STC89 timer 12T only"
+# Standard 8052 timer: counts once per machine cycle.
+# On a 12T core, 1 tick = 1 machine cycle = 1 timer increment.
+# (The 12T factor is in time-per-cycle, not in the count rate.)
+OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\ntick 1\ndump sfr 0x8a 0x8a\nquit\n' | $UCSIM -t STC89 2>&1)
+TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+[ "$TL0" = "0x01" ] && pass "STC89 12T: 1 tick -> TL0=1" || fail "expected TL0=0x01, got $TL0"
+
+# 18. STC89 no port modes (no PxM0/PxM1 hw)
+echo "[18] STC89 no port modes"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC89 2>&1)
+echo "$OUT" | grep -q "stc12_port" && fail "STC89 should not have port mode hw" || pass "STC89 correctly lacks port mode hw"
+
+# 19. STC89 no ADC
+echo "[19] STC89 no ADC"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC89 2>&1)
+echo "$OUT" | grep -q "stc12_adc" && fail "STC89 should not have ADC" || pass "STC89 correctly lacks ADC"
+
+# 20. STC89 no PCA
+echo "[20] STC89 no PCA"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC89 2>&1)
+echo "$OUT" | grep -q "stc12_pca" && fail "STC89 should not have PCA" || pass "STC89 correctly lacks PCA"
+
+# 21. STC15W model starts
+echo "[21] STC15W model starts"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "STC15W408AS" && pass "STC15W408AS selectable" || fail "STC15W not found"
+
+# 22. STC15W has Timer 2
+echo "[22] STC15W has Timer 2"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "stc15_timer2" && pass "STC15W has timer2" || fail "STC15W missing timer2"
+
+# 23. STC15W has port modes (for P0-P3)
+echo "[23] STC15W has port modes"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "stc12_port" && pass "STC15W has port mode hw" || fail "STC15W missing port mode hw"
+
+# 24. STC15W has ADC
+echo "[24] STC15W has ADC"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "stc12_adc" && pass "STC15W has ADC" || fail "STC15W missing ADC"
+
+# 25. STC15W has PCA (3 modules)
+echo "[25] STC15W has PCA"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "pca\[" && pass "STC15W has PCA" || fail "STC15W missing PCA"
+
+# 26. STC15W no Timer 1 hw
+echo "[26] STC15W no Timer 1"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
+echo "$OUT" | grep -q "timer1" && fail "STC15W should not have timer1" || pass "STC15W correctly lacks timer1"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ] && exit 0 || exit 1
