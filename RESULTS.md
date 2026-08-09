@@ -709,6 +709,20 @@ are the same — no peripheral model disagreement.
 
 **No genuine peripheral model disagreement was found.**
 
+Expanded with Gitee repos (`oopxiajun/STC89C52`, `lujiancy/STC89C52_Tutorial`,
+`pgwangc/stc89c52`) — 36 Keil-compiled hex files (LED, button, timer,
+UART, stepper motor, IR remote, DS18B20, LCD, etc.):
+
+| Result | Count (63 images) | % |
+|--------|-------|---|
+| **Strict** | **29** | **46%** |
+| Prefix | 22 | 35% |
+| Diverge | 4 | 6% |
+| Empty | 6 | 10% |
+| Error (emu load fail) | 2 | 3% |
+
+51/55 images with events agree (93%). All 4 divergences are timer-interleaving.
+
 ### STC15W firmware corpus (3 images)
 
 Sourced from GitHub: `zerog2k/stc_diyclock`, `aFewBits/stc-led-clock`,
