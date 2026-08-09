@@ -185,29 +185,28 @@ Ran both emulators on 349 third-party firmware images from
 | Empty (no SFR/TF events) | 29 | 8% |
 | Error (one side failed to load) | 2 | 1% |
 
-### Divergence causes
+### Divergence causes (hand-attributed)
 
-The 42 divergences fall into three categories:
+The 32 divergences and 54 prefix-only passes are not automatically
+classified.  Manual inspection of the first corpus run attributed
+them as follows (these numbers are judgements, not script output):
 
-1. **Wrong target** (~10 images): STC8H/STC15 firmware (not STC12).
-   These use a different SFR map — P4 at different addresses, different
-   timer registers.  emu8051-stc models some STC8 registers that
-   ucsim-stc does not, producing large event count differences
-   (e.g. 3894 vs 36).  Not a peripheral model bug.
+- **Wrong-target** (12, automatically detected): STC8H/STC15 firmware
+  or images with event count ratio > 3x, indicating one emulator
+  models registers the other doesn't.
+- **Timing interleaving** (~20 of the 32 divergences): same SFR values
+  and types, different ordering relative to timer overflows.  Caused by
+  the residual 1-clock timing gap (0.1%).
+- **Prefix-only** (54): one side covers more simulated time in the 2 ms
+  window.  4 within 2 events (benign boundary), 36 with 50+ event
+  difference.
 
-2. **Timer overflow interleaving** (~20 images): both emulators see the
-   same SFR values and event types, but timer overflows interleave with
-   program-driven SFR writes at different points due to instruction
-   cycle cost differences.  Same cause as the 100 ms blink divergence.
-
-3. **Unmodelled external peripherals** (~12 images): programs that
-   interact with external chips (ADC0808, DS1302, NRF905, AT24C02)
-   via port bit-banging.  The timing of port-state transitions depends
-   on exact instruction cycle counts, which differ.
-
-**No genuine peripheral model disagreement was found in the corpus.**
-Every divergence is attributable to instruction timing differences or
-target mismatch, not to the Timer/ADC/PCA/port-mode peripheral model.
+**No genuine peripheral model disagreement was found.**  Every
+divergence or prefix mismatch is attributable to instruction timing
+or target mismatch, not to the Timer/ADC/PCA/port-mode peripheral
+model.  This claim is supported by the strict result but limited by
+the fact that past the truncation point the harness cannot see
+disagreement at all.
 
 ### Constraint
 
