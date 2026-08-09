@@ -1,6 +1,9 @@
 #!/bin/bash
 # examples_diff.sh — differential execution on all stc/examples bundles.
 #
+# THE CANONICAL COPY. emu8051-stc does not have its own; this repo
+# owns the differential harness (as corpus_diff.sh already does).
+#
 # Runs each example through both emulators and compares SFR+TF events.
 # Exits non-zero if any example diverges.
 #
@@ -31,9 +34,15 @@ for dir in "$EXAMPLES"/*/; do
     hex="$dir/${name}.hex"
     [ -f "$hex" ] || { SKIP=$((SKIP+1)); continue; }
 
-    # emu8051: use -adc 2,512 for images that read the ADC
-    # (matches ucsim's synthetic mid-scale default)
-    "$EMU_TRACE" -fosc $FOSC -until-ns $UNTIL_NS -adc 2,512 "$hex" 2>/dev/null \
+    # ADC stimulus: only examples that read the ADC need -adc.
+    # 03-potentiometer reads channel 2, 06-dimmer reads channel 2.
+    # Others do not touch the ADC, so the flag is harmless but unnecessary.
+    adc_flag=""
+    case "$name" in
+        03-potentiometer|06-dimmer) adc_flag="-adc 2,512" ;;
+    esac
+
+    "$EMU_TRACE" -fosc $FOSC -until-ns $UNTIL_NS $adc_flag "$hex" 2>/dev/null \
         | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
 
     timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$hex" 2>/dev/null \
@@ -55,7 +64,7 @@ for dir in "$EXAMPLES"/*/; do
         MIN=$((EN < UN ? EN : UN))
         if [ "$MIN" -gt 0 ] && diff <(head -$MIN "$TMP/emu.ev") <(head -$MIN "$TMP/ucsim.ev") > /dev/null 2>&1; then
             echo "  PREFIX $name: first $MIN identical (emu=$EN ucsim=$UN)"
-            PASS=$((PASS+1))  # prefix match still counts for non-timing peripherals
+            PASS=$((PASS+1))
         else
             echo "  FAIL   $name (emu=$EN ucsim=$UN)"
             diff "$TMP/emu.ev" "$TMP/ucsim.ev" 2>/dev/null | head -5
@@ -65,7 +74,7 @@ for dir in "$EXAMPLES"/*/; do
 done
 
 echo ""
-echo "=== Examples differential results ==="
+echo "=== Examples differential results (span: ${UNTIL_NS} ns) ==="
 echo "Pass: $PASS  Fail: $FAIL  Skip: $SKIP"
 
 [ $FAIL -eq 0 ] && exit 0 || exit 1
