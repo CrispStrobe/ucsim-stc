@@ -35,9 +35,31 @@ two colors, the 8 bits map to 4 positions × 2 colors:
     P0.2 = column 2 red     P0.6 = column 2 blue
     P0.3 = column 3 red     P0.7 = column 3 blue
 
-A LOW bit lights the corresponding LED (active-low cathode drive
-through current-limiting resistors on the PCB). P0 = 0x00 lights
-all LEDs in the selected layer; P0 = 0xFF lights none.
+**P0 polarity — UNVERIFIED, assumed active-low.**
+
+This spec assumes a LOW bit on P0 lights the corresponding LED
+(cathode drive through current-limiting resistors, common-anode
+layers).  Under this convention:
+- P0 = 0x00 lights all LEDs in the selected layer.
+- P0 = 0xFF lights none (blank).
+- `fb_clear()` should fill with 0xFF; setters clear bits.
+
+`probe.c` in `stc/src/20-ledcube/` assumes the **opposite**
+(active-high: a HIGH bit lights the LED, P0=0x00 is blank).
+The two are both internally consistent; only a real cube settles
+which is correct.
+
+**All implementations must isolate this assumption in one named
+constant** so flipping it is a one-line change:
+
+```c
+#define P0_LED_ON  0   /* active-low: 0 lights, 1 blanks */
+/* OR: #define P0_LED_ON  1   active-high: 1 lights, 0 blanks */
+#define P0_ALL_OFF (P0_LED_ON ? 0x00 : 0xFF)
+```
+
+This is the second unmeasured fact (after the voxel map) that only
+a real cube can answer.
 
 ### Port P2 — layer select (active-low scan)
 
