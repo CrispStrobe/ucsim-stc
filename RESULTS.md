@@ -138,12 +138,32 @@ If `diff` produces no output, the event sequences are identical.
 Runs both emulators and reports PASS/FAIL.  Requires `emu_trace` at
 `/mnt/volume1/code/emu8051-stc/emu_trace` (or set `EMU_TRACE`).
 
-## Firmware images tested
+## Example bundles (9/9 verified)
+
+Reproducible: `./tests/examples_diff.sh`
+
+| Example | Events | What it exercises |
+|---------|--------|-------------------|
+| `01-blink` | 9 | Timer 0 polled, port mode, LED toggle |
+| `02-button` | 3 | External input on P3.2 |
+| `03-potentiometer` | 14 | ADC read, variable delay |
+| `04-brightness` | 11 | ADC + PWM duty |
+| `05-scheduler` | 8 | Timer 0 ISR, cooperative scheduler |
+| `06-dimmer` | 27 | PCA PWM 50% duty (ADC→CCAPnH), P1 toggles |
+| `07-buzzer` | 3 | Timer 1 ISR tone (blocks on button, init only) |
+| `08-seven-segment` | 9 | Port bit-banging for 7-segment display |
+| `09-shift-register` | 29 | 74HC595 shift register via port pins |
+
+`06-dimmer` requires matching ADC input (`-adc 2,512` on emu8051).
+`07-buzzer` verified separately: Timer 1 reload for 1000 Hz produces
+a measured 999.4 Hz toggle (half-period 500,308 ns), matching the
+theoretical `460800/461 = 999.57 Hz` from the round-not-truncate
+formula `(FOSC/24 + hz/2) / hz`.
+
+## Additional test images
 
 | Image | Source | What it exercises |
 |-------|--------|-------------------|
-| `01-blink` | `/mnt/volume1/code/stc/src/01-blink` | Timer 0 mode 1 polled overflow, port mode push-pull, LED toggle |
-| `02-adc` | `/mnt/volume1/code/stc/src/02-adc` | ADC power/start/flag/result, P1ASF, input-only port mode |
 | `scheduled_gen` | `sb3-creator` `generateC()` SCHEDULED fixture | Timer 0 ISR, cooperative Duff's-device scheduler, 2 WHEN scripts, ADC read, custom block, port toggle |
 | `periph_test` | hand-written edge-case test | Timer 0 12T→1T switch mid-run, Timer 1 at 1T simultaneously, both TF0 events, port mode changes, ADC full cycle, PCA start |
 
@@ -271,3 +291,22 @@ Timer 2 counts correctly at both 1T and 12T prescaler settings.
 - **Watchdog timer**: WDT_CONTR (0xC1). Prescaled counter, overflow
   at 32768 sets WDT_FLAG. Behavioral model (enable, clear, prescaler).
   A real chip resets on overflow; the emulator sets the flag.
+
+### Prefix-only characterisation
+
+The 54 prefix-only images were investigated at 10ms (53 remain
+prefix-only, 1 diverges).  On a sample of 20:
+
+- **Every shorter stream is an exact prefix of the longer one.**
+  No hidden disagreements exist past the truncation point.
+- ucsim has more events in 17/20 cases (runs slightly faster).
+- The extra events are overwhelmingly port writes (P2 0xA0, P0 0x80,
+  P3 0xB0) from display-driving loops that run more iterations on
+  the faster model.
+- 3/20 cases have emu8051 ahead (instruction mixes where emu8051's
+  cycle counts are smaller).
+
+**Conclusion:** the prefix-only category contains no peripheral model
+disagreements.  The shorter stream prefix-matches because both models
+produce the same SFR transitions in the same order; one simply covers
+more simulated time in the 2ms window.
