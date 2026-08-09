@@ -24,6 +24,7 @@ run_suite "Timing verification" ./tests/rung_timing.sh
 run_suite "Multi-part differential" ./tests/multipart_diff.sh
 run_suite "Cross-part examples" ./tests/crosspart_examples.sh
 run_suite "Model difference (STC12 vs STC89)" ./tests/rung_model_diff.sh
+run_suite "Baud divergence (BRT vs T2)" ./tests/rung_baud.sh
 
 # Cross-emulator tests (require emu_trace)
 EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
