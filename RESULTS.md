@@ -310,3 +310,21 @@ prefix-only, 1 diverges).  On a sample of 20:
 disagreements.  The shorter stream prefix-matches because both models
 produce the same SFR transitions in the same order; one simply covers
 more simulated time in the 2ms window.
+
+## ledcube444 scan timing
+
+Reproducible: `./tests/ledcube_timing.sh`
+
+rgm3/ledcube444 is a port of the icstation 4681 kit's vendor firmware,
+reformatted for SDCC. The rgm3 repo carries an MIT licence but the
+underlying code is from an unlicensed Chinese vendor source (4681.zip).
+**We measure against it but do not treat it as independently licensed.**
+
+| | emu8051 | ucsim | diff |
+|---|---|---|---|
+| SDCC build scan step | 8.876 ms | 8.875 ms | 1,477 ns (0.017%) |
+| Keil build scan step | 12.217 ms | 12.215 ms | 2,123 ns (0.017%) |
+
+Port-state sequence (P0 values): **IDENTICAL** between Keil and SDCC
+builds. Both compilers produce the same observable behaviour; only the
+software delay loop timing differs (27%).
