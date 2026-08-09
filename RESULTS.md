@@ -723,6 +723,22 @@ UART, stepper motor, IR remote, DS18B20, LCD, etc.):
 
 51/55 images with events agree (93%). All 4 divergences are timer-interleaving.
 
+### STC12 corpus on STC89 model (cross-target)
+
+Ran the first 100 of the existing 347 STC12 corpus images through
+both emulators as STC89 (1 ms window). Most produce no events in
+the shorter window (12T = 12× fewer instructions per ms). Of the
+26 that did:
+
+| Result | Count |
+|--------|-------|
+| Strict | 20 |
+| Prefix | 6 |
+| Diverge | **0** |
+
+**26/26 (100%) agree.** No peripheral model disagreement when
+running STC12-compiled firmware on the STC89 model.
+
 ### STC15W firmware corpus (3 images)
 
 Sourced from GitHub: `zerog2k/stc_diyclock`, `aFewBits/stc-led-clock`,
