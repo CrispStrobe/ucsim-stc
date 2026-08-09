@@ -87,3 +87,33 @@ behavior, and multiprocessor addressing doesn't affect UART byte delivery.
 The ABSENT peripherals (SPI, comparator, power modes) would need new hardware
 element classes. SPI is the most impactful — several firmware images in the
 corpus use it.
+
+## Cross-model agreement: PWM edge rate
+
+Two independent models arrive at the same physical quantity:
+
+| Source | Derivation | Result |
+|--------|-----------|--------|
+| **ucsim-stc** (7e3cee2) | `pwm_set(0, 50)` → PCA at SYSclk/12, period measured at PIN events | **277.6 µs** = 3.60 kHz = **7.2 K edges/sec** |
+| **bw-board** (PARTS-TO-BLOCKS.md) | Performance budget measurement, PWM at `CMOD=0x00` | **7.2 K edges/sec** |
+
+Both use the same clock source (SYSclk/12 = 11059200/12 = 921600 Hz),
+the same PCA period (256 counts), and arrive at 921600/256 = 3600 Hz
+= 7200 edges/sec. The agreement is arithmetic, not coincidental — but
+it confirms bw-board's 1.1×-real-time headroom figure was computed
+against a realistic edge rate.
+
+**Caveat:** two models agreeing is not silicon agreeing. Both derive
+from the same datasheet section (§10, PCA clock = SYSclk/12 when
+`CMOD.CPS2:1:0 = 000`). A shared misreading would produce exactly
+this agreement.
+
+### Duty vs brightness: the boundary that does not exist yet
+
+ucsim-stc verifies **duty** (50% = 50.0% at the pin). bw-board
+reports **brightness** (0.0725 for a 50% duty LED). Nobody has
+connected them: the interface to feed real edge streams from an
+emulator into the board's analog model does not exist. Until it
+does, the two numbers are independently correct but never tested
+against each other. "The interface needed to ask this question is
+missing" is the finding.
