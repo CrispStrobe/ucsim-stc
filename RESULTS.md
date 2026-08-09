@@ -769,7 +769,18 @@ All 5 images load and produce events on the STC15W model:
 | `stc_led_clock_8k.ihx` | shenghaoyang/stc_led_clock_8k | 13 |
 | `stc-led-clock.hex` | aFewBits/stc-led-clock | 772 |
 
-Cross-emulator differential pending emu_trace `-part STC15W` testing.
+Cross-emulator differential (emu_trace `-part STC15W`):
+
+| Result | Count |
+|--------|-------|
+| Strict | 2 (stc_led_clock_8k, stc-led-clock) |
+| Prefix | 1 (stc_diyclock: agree on 397/400) |
+| Timer interleave | 1 (stc_diywatch: 784 vs 783) |
+| Emu load fail | 1 (stc_diyclock_ntp) |
+
+4/4 executed images agree. No peripheral model disagreements.
+The stc_diyclock_ntp load failure is on the emu8051-stc side
+(reported via spec-updates).
 
 ### Test summary (all green)
 
