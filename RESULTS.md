@@ -736,8 +736,22 @@ the shorter window (12T = 12× fewer instructions per ms). Of the
 | Prefix | 6 |
 | Diverge | **0** |
 
-**26/26 (100%) agree.** No peripheral model disagreement when
-running STC12-compiled firmware on the STC89 model.
+**26/26 (100%) agree.** This is a **state-only** comparison
+(timestamps stripped). It proves both emulators implement the same
+ISA under STC89 mode, not that the STC89 model differs from STC12.
+
+### Model difference assertion (the control that must differ)
+
+Per the coordinator's n17: a differential probe needs a control
+known to differ. `rung_model_diff.sh` uses `auxr_switch.ihx` —
+an image that writes AUXR.7=1 (switch Timer 0 to 1T):
+
+| Model | Post-AUXR TF interval | AUXR effect |
+|-------|----------------------|-------------|
+| STC12 | **84 µs** (FOSC) | Timer 0 switched to 1T |
+| STC89 | **1013 µs** (FOSC/12) | AUXR ignored — no such peripheral |
+
+Difference: **929 µs**. The models are distinguishable. 4/4 pass.
 
 ### STC15W firmware corpus (3 images)
 
@@ -766,6 +780,7 @@ Cross-emulator differential pending emu_trace `-part STC15W` testing.
 | Example differentials (STC12 cross-emu) | **9/9** |
 | Boundary D ladder (STC12 cross-emu) | **6/6** |
 | Multi-part differentials (incl. cross-emu STC89) | **9/9** |
+| Model difference (STC12 vs STC89 must differ) | **4/4** |
 | Cross-part examples (STC12=STC15=STC15W) | **9/9** |
 
 ### What was blocked and is now resolved
