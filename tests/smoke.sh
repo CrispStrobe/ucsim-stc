@@ -82,6 +82,22 @@ OUT=$(printf 'set mem sfr 0x97 0x20\nset mem sfr 0x9d 0x08\nset mem sfr 0xbc 0x8
 ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
 [ "$ADCR" = "0x02" ] && pass "STC15 ADRJ via CLK_DIV.5" || fail "expected ADC_RES=0x02, got $ADCR"
 
+# 12. STC15 Timer 2 counts at 12T
+echo "[12] STC15 Timer 2 at 12T"
+OUT=$(printf 'set mem sfr 0x8e 0x10\nset mem sfr 0xd7 0x00\nset mem sfr 0xd6 0x00\ntick 24\ndump sfr 0xd6 0xd7\nquit\n' | $UCSIM -t STC15 2>&1)
+T2L=$(echo "$OUT" | grep "T2L:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+[ "$T2L" = "0x02" ] && pass "24 ticks -> T2L=2 (12T)" || fail "expected T2L=0x02, got $T2L"
+
+# 13. STC15 has Timer 2 hw element
+echo "[13] STC15 Timer 2 registered"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15 2>&1)
+echo "$OUT" | grep -q "stc15_timer2" && pass "STC15 has timer2 hw" || fail "timer2 not found"
+
+# 14. STC12 does NOT have Timer 2
+echo "[14] STC12 no Timer 2"
+OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC12 2>&1)
+echo "$OUT" | grep -q "stc15_timer2" && fail "STC12 should not have timer2" || pass "STC12 correctly lacks timer2"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ] && exit 0 || exit 1
