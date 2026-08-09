@@ -1,6 +1,8 @@
 #
 # uCsim  simulator Makefile
 #
+# Modified 2026-08-08 by CrispStrobe: added stc12_trace build target.
+#
 # (c) Drotos Daniel, Talker Bt. 1997
 #
 

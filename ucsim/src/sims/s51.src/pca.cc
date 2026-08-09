@@ -1,6 +1,9 @@
 /*
  * Simulator of microcontrollers (pca.cc)
  *
+ * Modified 2026-08-08 by CrispStrobe: fixed PWM output polarity
+ * per STC12-PERIPHERAL-MODEL.md §5.3 (both branches were setting HIGH).
+ *
  * Copyright (C) 1999 Drotos Daniel
  * 
  * To contact author send email to dr.dkdb@gmail.com
