@@ -247,7 +247,7 @@ Reproducible: `EMU_TRACE=… ./tests/run_control_diff.sh`
 | 4 | Code breakpoint, same PC + registers | **PASS** PC=011D, A=01, SP=17, PSW=01 |
 | 5 | Yield breakpoint, same (task, state) | **PASS** both halt at 0171, state=3 |
 | 6 | Write while halted, resume | **PASS** 0xFFFF persists on both |
-| 7 | Peripheral-event differential (10 ms) | **PASS** 57/57 events strictly identical |
+| 7 | Peripheral-event differential | **PASS** scheduler 37/37, ledcube 348/348, generated 598/598, blink 57/57 |
 
 ### Bugs found by this ladder
 
