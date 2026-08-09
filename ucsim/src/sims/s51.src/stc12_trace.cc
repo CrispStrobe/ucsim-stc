@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 
 int
@@ -64,9 +65,12 @@ main(int argc, char *argv[])
     }
   new_argv[new_argc]= NULL;
 
-  /* Standard ucsim init — same as s51.cc */
+  /* Standard ucsim init — redirect stdout to stderr during init
+     so the banner doesn't pollute the trace stream. */
   app_start_at= dnow();
   cpus= cpus_51;
+  int saved_stdout= dup(1);
+  dup2(2, 1); /* stdout -> stderr */
   application= new cl_app();
   application->set_name("stc12_trace");
   application->init(new_argc, new_argv);
@@ -105,6 +109,10 @@ main(int argc, char *argv[])
       else
 	fprintf(stderr, "Failed to load %s\n", fname);
     }
+
+  /* Restore stdout for trace output */
+  dup2(saved_stdout, 1);
+  close(saved_stdout);
 
   /* Disable stop-on-selfjump — cooperative schedulers loop
      repeatedly without PC changing. */
