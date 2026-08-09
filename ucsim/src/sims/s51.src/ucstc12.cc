@@ -546,6 +546,40 @@ cl_uc_stc12::trace_check_sfr(void)
 		  (unsigned long long)t_ns,
 		  (unsigned)trace_sfr_addrs[i], (unsigned)val);
 
+	  /* PIN events: per-bit for port SFR changes */
+	  {
+	    static const struct { t_addr port; int id; t_addr m1; t_addr m0; }
+	      port_map[] = {
+		{0x80, 0, 0x93, 0x94}, /* P0 */
+		{0x90, 1, 0x91, 0x92}, /* P1 */
+		{0xA0, 2, 0x95, 0x96}, /* P2 */
+		{0xB0, 3, 0xB1, 0xB2}, /* P3 */
+		{0xC0, 4, 0xB3, 0xB4}, /* P4 */
+	    };
+	    for (unsigned p= 0; p < 5; p++)
+	      {
+		if (trace_sfr_addrs[i] == port_map[p].port)
+		  {
+		    t_mem old= trace_sfr_shadow[i];
+		    t_mem m1= sfr->get(port_map[p].m1);
+		    t_mem m0= sfr->get(port_map[p].m0);
+		    for (int bit= 0; bit < 8; bit++)
+		      {
+			if ((val ^ old) & (1 << bit))
+			  {
+			    int mode= ((m1 >> bit) & 1) << 1 | ((m0 >> bit) & 1);
+			    static const char *modes[] = {"Q","PP","IN","OD"};
+			    fprintf(trace_file, "%llu\tPIN\t%d.%d %s %c\n",
+				    (unsigned long long)t_ns,
+				    port_map[p].id, bit, modes[mode],
+				    (val & (1 << bit)) ? 'H' : 'L');
+			  }
+		      }
+		    break;
+		  }
+	      }
+	  }
+
 	  /* TF events: detect rising edge of TF0 (bit 5) or TF1 (bit 7) */
 	  if (trace_sfr_addrs[i] == 0x88)
 	    {
