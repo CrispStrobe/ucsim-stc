@@ -404,10 +404,11 @@ Generated and cleanroom agree to within 1 µs per line.
 Polarity: generated kernel uses `BW_CUBE_ACTIVE_HIGH = 1`,
 matching the spec and `bw-circuit-ui`.
 
-Re-run on unedited emitter output (`sb3-creator` `9673f21`, which
-fixed the missing `delay_ms` emission): **101/101 strictly identical,
-0 ns difference from the previous run.**  No edits to the generated C.
-The emitter change did not disturb the kernel.
+Independently reproduced from a cold invocation (`sb3-creator`
+`8a2fde1`, two commits newer than the original `9673f21`):
+**101/101 strictly identical, 0 ns difference.**  No edits to the
+generated C.  The kernel is stable across emitter changes — the
+harness caught its first non-regression.
 
 This closes **blocks → C → measured behaviour** for the LED cube.
 
