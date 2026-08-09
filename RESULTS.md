@@ -660,6 +660,21 @@ STC12, STC15, and STC15W:
 |----------|-------------|-------|--------|
 | `scheduled_gen.ihx` | 37 | **37/37 identical** | **37/37 identical** |
 
+All 9 example bundles also produce identical traces across the three
+1T parts (crosspart_examples.sh: 9/9 pass):
+
+| Example | Events | STC12 = STC15 = STC15W |
+|---------|--------|------------------------|
+| 01-blink | 9 | identical |
+| 02-button | 3 | identical |
+| 03-potentiometer | 14 | identical |
+| 04-brightness | 11 | identical |
+| 05-scheduler | 8 | identical |
+| 06-dimmer | 27 | identical |
+| 07-buzzer | 3 | identical |
+| 08-seven-segment | 9 | identical |
+| 09-shift-register | 29 | identical |
+
 ### Cross-emulator parity (pending)
 
 Cross-emulator STC89 differential is blocked on `emu_trace` adding
@@ -676,6 +691,7 @@ which is the exact 12× timing bug this ladder exists to catch.
 | Example differentials (STC12 cross-emu) | **9/9** |
 | Boundary D ladder (STC12 cross-emu) | **6/6** |
 | Multi-part differentials | **8/8 pass, 1 skip** |
+| Cross-part examples (STC12=STC15=STC15W) | **9/9** |
 
 ### What is blocked and why
 

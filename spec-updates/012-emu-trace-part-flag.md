@@ -18,8 +18,15 @@ Mapping:
 - `STC89` → PART_STC89 (12T core: **clock_per_cycle must be 12**)
 - `STC15W` → PART_STC15W (no Timer 1)
 
-The WASM API already has `emu_set_part()` with these four IDs
-(`wasm_api.c` line 105). The trace binary just needs to call it.
+The API exists and works — `stc12_set_part()` in `stc12.h` line 390,
+`PART_STC12/STC15/STC89/STC15W` at lines 340–343, and the core's
+`mMachineCycleScale` field (`emu8051.h` line 77) already does the 12T
+scaling. Commit `00e9d5b` verified 12.0 clocks/NOP for STC89.
+
+`trace.c` just needs to parse `-part NAME`, call `stc12_set_part()`,
+and set `cpu.mMachineCycleScale` (currently implicit in wasm_api.c's
+`emu_set_part` but not available to the trace binary). The trace binary
+also predates the 12T fix and needs a rebuild.
 
 ## Why
 
