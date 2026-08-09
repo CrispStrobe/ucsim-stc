@@ -35,7 +35,7 @@ two colors, the 8 bits map to 4 positions × 2 colors:
     P0.2 = column 2 red     P0.6 = column 2 blue
     P0.3 = column 3 red     P0.7 = column 3 blue
 
-**P0 polarity — UNVERIFIED.  Assumed active-high.**
+**P0 polarity — measured active-HIGH.**
 
 `BW_CUBE_ACTIVE_HIGH = 1` — a HIGH bit on P0 lights the LED.
 Under this convention:
@@ -43,27 +43,29 @@ Under this convention:
 - Setting a bit lights the corresponding LED.
 - `fb_clear()` fills with 0x00; setters set bits.
 
-Evidence for active-high (three independent directions from
-`stc/src/20-ledcube` `b77b176`):
-1. `probe.c` blank frame is `{0, 0, …, 0}`.
-2. `probe.c` single-voxel probe step is `1 << bit`.
-3. Vendor firmware sequence: `P0 = 0; P2 = select; P0 = data` —
-   `P0 = 0` is called blanking, which is active-high.
+Evidence (emu8051-stc Finding #14, P0 value histogram over 5 s
+of vendor firmware, zero exceptions in 3,930+ writes):
+- `0x00` appears 1,560 times, always before a layer select (blank).
+- `0xFF` appears 414 times, always after a select (all-on data).
+- `0x0F` appears 540 times = red-on/blue-off under active-high,
+  matching the red-only layer sweep the animation performs.
+- Under active-low, `0x0F` would mean the exact opposite of what
+  is on screen.
+
+**Not yet confirmed on silicon** — `probe.c` on a real cube is
+the definitive check.  The firmware's intent is now known; whether
+the hardware matches it is not.
 
 **One name, one sense, across all implementations:**
 
 ```c
-#define BW_CUBE_ACTIVE_HIGH  1  /* UNVERIFIED — flip to 0 if
-                                 * a real cube shows inverted */
+#define BW_CUBE_ACTIVE_HIGH  1  /* Measured: Finding #14.
+                                 * Not yet confirmed on silicon. */
 ```
 
 All implementations (`main.c`, `sb3-creator` kernel,
 `bw-circuit-ui` renderer) must use `BW_CUBE_ACTIVE_HIGH` or
-defer to this spec.  The earlier `P0_ACTIVE_LOW`,
-`P0_LED_ON`, `P0_ACTIVE_HIGH` names are superseded.
-
-This is the second unmeasured fact (after the voxel map) that
-only a real cube can answer.
+defer to this spec.
 
 ### Port P2 — layer select (active-low scan)
 
