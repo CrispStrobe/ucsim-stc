@@ -205,12 +205,15 @@ static void init_sfr_defined(void)
     0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, /* P0,SP,DPL,DPH,DPL1,DPH1,DPS,PCON */
     0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D,    /* TCON, TMOD, TL0, TL1, TH0, TH1 */
     0x8E,                                    /* AUXR */
+    0x8F,                                    /* WAKE_CLKO (clock output control) */
     0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, /* P1, PxM, CLK_DIV */
-    0x98, 0x99, 0x9D,                        /* SCON, SBUF, P1ASF */
-    0xA0, 0xA2, 0xA8,                        /* P2, AUXR1, IE */
+    0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D,    /* SCON, SBUF, S2CON, S2BUF, BRT, P1ASF */
+    0xA0, 0xA2, 0xA8, 0xA9,                /* P2, AUXR1, IE, SADDR */
     0xB0, 0xB1, 0xB2, 0xB3, 0xB4,          /* P3, P3M1, P3M0, P4M1, P4M0 */
-    0xB8, 0xBB, 0xBC, 0xBD, 0xBE,          /* IP, P4SW, ADC_CONTR/RES/RESL */
+    0xB6, 0xB7,                              /* IP2H, IPH */
+    0xB8, 0xB9, 0xBB, 0xBC, 0xBD, 0xBE,   /* IP, SADEN, P4SW, ADC_CONTR/RES/RESL */
     0xC1,                                    /* WDT_CONTR */
+    0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,   /* IAP: DATA, ADDRH, ADDRL, CMD, TRIG, CONTR */
     0xC0, 0xC8, 0xC9, 0xCA,                /* P4, P5, P5M1, P5M0 */
     0xD0, 0xD8, 0xD9, 0xDA, 0xDB,          /* PSW, CCON, CMOD, CCAPM0, CCAPM1 */
     0xE0, 0xE9, 0xEA, 0xEB,                  /* ACC, CL, CCAP0L, CCAP1L */
@@ -227,7 +230,13 @@ static void init_sfr_defined_stc15(void)
   init_sfr_defined(); /* start with STC12 base */
   static const t_addr stc15_extra[] = {
     0x8F,   /* INT_CLKO / AUXR2 */
+    0xA1,   /* BUS_SPEED */
+    0xAA,   /* WKTCL (wake-up timer low) */
+    0xAB,   /* WKTCH (wake-up timer high) */
     0xBA,   /* P_SW2 */
+    0xCD,   /* SPSTAT */
+    0xCE,   /* SPCTL */
+    0xCF,   /* SPDAT */
     0xD6,   /* T2H */
     0xD7,   /* T2L */
     0xDC,   /* CCAPM2 */
@@ -251,11 +260,13 @@ static void init_sfr_defined_stc89(void)
     0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D,     /* TCON, TMOD, TL0, TL1, TH0, TH1 */
     0x90,                                     /* P1 */
     0x98, 0x99,                               /* SCON, SBUF */
-    0xA0, 0xA8,                               /* P2, IE */
-    0xB0, 0xB8,                               /* P3, IP */
+    0xA0, 0xA8, 0xA9,                        /* P2, IE, SADDR */
+    0xB0, 0xB8, 0xB9,                        /* P3, IP, SADEN */
     0xC8, 0xCA, 0xCB, 0xCC, 0xCD,           /* T2CON, RCAP2L, RCAP2H, TL2, TH2 */
     0xD0,                                     /* PSW */
-    0xE0,                                     /* ACC */
+    0xE0, 0xE1,                               /* ACC, WDT_CONTR */
+    0xE2, 0xE3, 0xE4, 0xE5,                  /* ISP_DATA, ISP_ADDRH, ISP_ADDRL, ISP_CMD */
+    0xE6, 0xE7,                               /* ISP_TRIG, ISP_CONTR */
     0xF0,                                     /* B */
   };
   for (unsigned i= 0; i < sizeof(defined)/sizeof(defined[0]); i++)
