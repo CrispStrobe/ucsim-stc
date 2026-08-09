@@ -322,6 +322,9 @@ static struct name_entry sfr_tab51[]=
   {CPU_F380, 0xff, "VDM0CN"},
 
   /* STC12C5A60S2 */
+  {CPU_STC12, 0x84, "DPL1"},
+  {CPU_STC12, 0x85, "DPH1"},
+  {CPU_STC12, 0x86, "DPS"},
   {CPU_STC12, 0x8e, "AUXR"},
   {CPU_STC12, 0x91, "P1M1"},
   {CPU_STC12, 0x92, "P1M0"},

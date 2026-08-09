@@ -200,7 +200,7 @@ static void init_sfr_defined(void)
   if (stc12_sfr_defined_init) return;
   memset(stc12_sfr_defined, 0, sizeof(stc12_sfr_defined));
   static const t_addr defined[] = {
-    0x80, 0x81, 0x82, 0x83, 0x87,          /* P0, SP, DPL, DPH, PCON */
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, /* P0,SP,DPL,DPH,DPL1,DPH1,DPS,PCON */
     0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D,    /* TCON, TMOD, TL0, TL1, TH0, TH1 */
     0x8E,                                    /* AUXR */
     0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, /* P1, PxM, CLK_DIV */
@@ -208,6 +208,7 @@ static void init_sfr_defined(void)
     0xA0, 0xA2, 0xA8,                        /* P2, AUXR1, IE */
     0xB0, 0xB1, 0xB2, 0xB3, 0xB4,          /* P3, P3M1, P3M0, P4M1, P4M0 */
     0xB8, 0xBB, 0xBC, 0xBD, 0xBE,          /* IP, P4SW, ADC_CONTR/RES/RESL */
+    0xC1,                                    /* WDT_CONTR */
     0xC0, 0xC8, 0xC9, 0xCA,                /* P4, P5, P5M1, P5M0 */
     0xD0, 0xD8, 0xD9, 0xDA, 0xDB,          /* PSW, CCON, CMOD, CCAPM0, CCAPM1 */
     0xE0, 0xE9, 0xEA, 0xEB,                  /* ACC, CL, CCAP0L, CCAP1L */
@@ -291,6 +292,16 @@ int
 cl_uc_stc12::init(void)
 {
   int ret= cl_uc52::init();
+
+  /* Dual DPTR: DPS at 0x86 bit 0 selects between DPTR0 and DPTR1.
+     DPL1 at 0x84, DPH1 at 0x85. SFR-mode (not chip-mode). */
+  cpu->cfg_set(uc51cpu_aof_mdps, 0x86);   /* DPS address */
+  cpu->cfg_set(uc51cpu_mask_mdps, 1);      /* bit 0 */
+  cpu->cfg_set(uc51cpu_aof_mdps1l, 0x84);  /* DPL1 */
+  cpu->cfg_set(uc51cpu_aof_mdps1h, 0x85);  /* DPH1 */
+  cpu->cfg_set(uc51cpu_mdp_mode, 's');     /* SFR mode */
+  decode_dptr();
+
   return ret;
 }
 
