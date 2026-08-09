@@ -4,6 +4,11 @@
 # Runs all hex/ihx files in corpus/stc89/ through both emulators as STC89
 # and compares SFR+TF events (timestamps stripped).
 #
+# LOAD FAILURES ARE REPORTED, NOT SILENTLY COUNTED AS EMPTY.
+# Per fleet-silent-degradation rule: a fallback silently worse than the
+# real thing is a bug. "63 images" is only meaningful if the denominator
+# is images actually executed, not images attempted.
+#
 # Usage: ./tests/corpus_stc89.sh [corpus_dir] [until_ns]
 set -e
 cd "$(dirname "$0")/.."
@@ -20,7 +25,7 @@ if [ ! -x "$EMU" ]; then echo "SKIP: emu_trace not found" >&2; exit 0; fi
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-STRICT=0; PREFIX=0; DIVERGE=0; EMPTY=0; ERROR=0; TOTAL=0
+STRICT=0; PREFIX=0; DIVERGE=0; EMPTY=0; LOAD_FAIL=0; ERROR=0; TOTAL=0
 
 echo "=== STC89 cross-emulator corpus ($CORPUS, ${UNTIL_NS}ns) ==="
 
@@ -29,15 +34,42 @@ for hex in "$CORPUS"/*.ihx "$CORPUS"/*.hex; do
     TOTAL=$((TOTAL+1))
     name=$(basename "$hex")
 
-    "$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" 2>/dev/null \
-        | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.ev"
-    "$EMU" -part STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" 2>/dev/null \
-        | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
+    # Capture stderr to detect load failures — do NOT discard it.
+    # The 3>&1 1>&2 2>&3 trick swaps stdout and stderr so $() captures stderr.
+    U_ERR=$("$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
+        3>&1 1>"$TMP/ucsim_raw.ev" 2>&3)
+    E_ERR=$("$EMU" -part STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
+        3>&1 1>"$TMP/emu_raw.ev" 2>&3)
+
+    # Check for load failures:
+    # - ucsim: "Read error" or "0 words read" (silently skipped bad records)
+    # - emu: "Failed to load"
+    U_LOADED=true; E_LOADED=true
+    echo "$U_ERR" | grep -qi "error\|fail" && U_LOADED=false
+    echo "$U_ERR" | grep -qP "^0 words read" && U_LOADED=false
+    echo "$E_ERR" | grep -qi "fail" && E_LOADED=false
+
+    if ! $U_LOADED && ! $E_LOADED; then
+        LOAD_FAIL=$((LOAD_FAIL+1))
+        echo "  LOAD_FAIL  $name (both sides)"
+        continue
+    fi
+    if ! $U_LOADED || ! $E_LOADED; then
+        LOAD_FAIL=$((LOAD_FAIL+1))
+        echo "  LOAD_FAIL  $name (ucsim=$U_LOADED, emu=$E_LOADED)"
+        continue
+    fi
+
+    # Extract SFR+TF events
+    awk '$2 == "SFR" || $2 == "TF"' "$TMP/ucsim_raw.ev" | cut -f2- > "$TMP/ucsim.ev"
+    awk '$2 == "SFR" || $2 == "TF"' "$TMP/emu_raw.ev" | cut -f2- > "$TMP/emu.ev"
 
     NU=$(wc -l < "$TMP/ucsim.ev")
     NE=$(wc -l < "$TMP/emu.ev")
 
     if [ "$NU" -eq 0 ] && [ "$NE" -eq 0 ]; then
+        # Both loaded successfully but produced no watched SFR events.
+        # This is genuinely empty (e.g. image only touches IRAM/XRAM).
         EMPTY=$((EMPTY+1)); continue
     fi
     if [ "$NU" -eq 0 ] || [ "$NE" -eq 0 ]; then
@@ -61,10 +93,15 @@ done
 
 echo ""
 echo "Results ($TOTAL images):"
-echo "  Strict:  $STRICT"
-echo "  Prefix:  $PREFIX"
-echo "  Diverge: $DIVERGE"
-echo "  Empty:   $EMPTY"
-echo "  Error:   $ERROR"
+echo "  Strict:    $STRICT"
+echo "  Prefix:    $PREFIX"
+echo "  Diverge:   $DIVERGE"
+echo "  Empty:     $EMPTY (loaded, no watched SFR events)"
+echo "  Load fail: $LOAD_FAIL (hex decode error)"
+echo "  Error:     $ERROR (one side 0 events, other > 0)"
+
+EXECUTED=$((STRICT + PREFIX + DIVERGE + EMPTY))
+echo ""
+echo "  Attempted: $TOTAL  Executed: $EXECUTED  Load failures: $LOAD_FAIL"
 
 [ $DIVERGE -le 1 ] && exit 0 || exit 1
