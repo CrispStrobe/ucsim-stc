@@ -31,9 +31,11 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "uc52cl.h"
 
-/* Part identity: STC12 base, STC15 delta */
+/* Part identity */
 #define STC_PART_STC12  0
 #define STC_PART_STC15  1
+#define STC_PART_STC89  2
+#define STC_PART_STC15W 3
 
 /* SFR watch list for differential trace (matches spec) */
 #define STC12_TRACE_NWATCH 21
@@ -85,7 +87,7 @@ public:
   cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim);
   virtual int init(void);
   virtual const char *id_string(void);
-  virtual int clock_per_cycle(void) { return(1); }
+  virtual int clock_per_cycle(void) { return (stc_part == STC_PART_STC89) ? 12 : 1; }
   virtual void mk_hw_elements(void);
   virtual void make_memories(void);
   virtual void make_chips(void);

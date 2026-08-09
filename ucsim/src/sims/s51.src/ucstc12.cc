@@ -239,6 +239,47 @@ static void init_sfr_defined_stc15(void)
     stc12_sfr_defined[stc15_extra[i] - 0x80]= true;
 }
 
+/* STC89C52RC: standard 8052 SFR set only — no port modes, no ADC, no PCA */
+static bool stc89_sfr_defined[128];
+static bool stc89_sfr_defined_init = false;
+static void init_sfr_defined_stc89(void)
+{
+  if (stc89_sfr_defined_init) return;
+  memset(stc89_sfr_defined, 0, sizeof(stc89_sfr_defined));
+  static const t_addr defined[] = {
+    0x80, 0x81, 0x82, 0x83, 0x87,           /* P0, SP, DPL, DPH, PCON */
+    0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D,     /* TCON, TMOD, TL0, TL1, TH0, TH1 */
+    0x90,                                     /* P1 */
+    0x98, 0x99,                               /* SCON, SBUF */
+    0xA0, 0xA8,                               /* P2, IE */
+    0xB0, 0xB8,                               /* P3, IP */
+    0xC8, 0xCA, 0xCB, 0xCC, 0xCD,           /* T2CON, RCAP2L, RCAP2H, TL2, TH2 */
+    0xD0,                                     /* PSW */
+    0xE0,                                     /* ACC */
+    0xF0,                                     /* B */
+  };
+  for (unsigned i= 0; i < sizeof(defined)/sizeof(defined[0]); i++)
+    stc89_sfr_defined[defined[i] - 0x80]= true;
+  stc89_sfr_defined_init= true;
+}
+
+/* STC15W408AS: STC15 minus Timer 1, minus P4/P5, minus UART2 */
+static void init_sfr_defined_stc15w(void)
+{
+  init_sfr_defined_stc15(); /* start with STC15F base */
+  /* Remove P4, P5, P4M1, P4M0, P5M1, P5M0, P4SW (already gone on STC15) */
+  stc12_sfr_defined[0xC0 - 0x80]= false; /* P4 */
+  stc12_sfr_defined[0xC8 - 0x80]= false; /* P5 */
+  stc12_sfr_defined[0xC9 - 0x80]= false; /* P5M1 */
+  stc12_sfr_defined[0xCA - 0x80]= false; /* P5M0 */
+  stc12_sfr_defined[0xB3 - 0x80]= false; /* P4M1 */
+  stc12_sfr_defined[0xB4 - 0x80]= false; /* P4M0 */
+  /* Timer 1 SFRs stay in the map (cells exist) but have no timer effect.
+     The 8052 core needs TH1/TL1 for the UART baud rate when Timer 1 is
+     used, and we keep the cells to avoid crashing on reads.  The timer
+     hardware itself is simply not instantiated. */
+}
+
 /* SFR watch list matching the trace format spec */
 static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
   0x80, /* P0 */
@@ -268,8 +309,21 @@ static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
 cl_uc_stc12::cl_uc_stc12(struct cpu_entry *Itype, class cl_sim *asim):
   cl_uc52(Itype, asim)
 {
-  stc_part= (Itype->subtype & 0x10) ? STC_PART_STC15 : STC_PART_STC12;
-  if (stc_part == STC_PART_STC15)
+  int sub= Itype->subtype & 0x30;
+  if (sub == 0x20)
+    stc_part= STC_PART_STC89;
+  else if (sub == 0x30)
+    stc_part= STC_PART_STC15W;
+  else if (sub == 0x10)
+    stc_part= STC_PART_STC15;
+  else
+    stc_part= STC_PART_STC12;
+
+  if (stc_part == STC_PART_STC89)
+    init_sfr_defined_stc89();
+  else if (stc_part == STC_PART_STC15W)
+    init_sfr_defined_stc15w();
+  else if (stc_part == STC_PART_STC15)
     init_sfr_defined_stc15();
   else
     init_sfr_defined();
@@ -295,14 +349,16 @@ cl_uc_stc12::init(void)
 {
   int ret= cl_uc52::init();
 
-  /* Dual DPTR: DPS at 0x86 bit 0 selects between DPTR0 and DPTR1.
-     DPL1 at 0x84, DPH1 at 0x85. SFR-mode (not chip-mode). */
-  cpu->cfg_set(uc51cpu_aof_mdps, 0x86);   /* DPS address */
-  cpu->cfg_set(uc51cpu_mask_mdps, 1);      /* bit 0 */
-  cpu->cfg_set(uc51cpu_aof_mdps1l, 0x84);  /* DPL1 */
-  cpu->cfg_set(uc51cpu_aof_mdps1h, 0x85);  /* DPH1 */
-  cpu->cfg_set(uc51cpu_mdp_mode, 's');     /* SFR mode */
-  decode_dptr();
+  /* Dual DPTR: present on STC12 and STC15 variants, absent on STC89 */
+  if (stc_part != STC_PART_STC89)
+    {
+      cpu->cfg_set(uc51cpu_aof_mdps, 0x86);   /* DPS address */
+      cpu->cfg_set(uc51cpu_mask_mdps, 1);      /* bit 0 */
+      cpu->cfg_set(uc51cpu_aof_mdps1l, 0x84);  /* DPL1 */
+      cpu->cfg_set(uc51cpu_aof_mdps1h, 0x85);  /* DPH1 */
+      cpu->cfg_set(uc51cpu_mdp_mode, 's');     /* SFR mode */
+      decode_dptr();
+    }
 
   return ret;
 }
@@ -310,7 +366,13 @@ cl_uc_stc12::init(void)
 const char *
 cl_uc_stc12::id_string(void)
 {
-  return (stc_part == STC_PART_STC15) ? "STC15F2K60S2" : "STC12C5A60S2";
+  switch (stc_part)
+    {
+    case STC_PART_STC15:  return "STC15F2K60S2";
+    case STC_PART_STC89:  return "STC89C52RC";
+    case STC_PART_STC15W: return "STC15W408AS";
+    default:              return "STC12C5A60S2";
+    }
 }
 
 void
@@ -318,20 +380,43 @@ cl_uc_stc12::mk_hw_elements(void)
 {
   class cl_hw *h;
 
-  /* Call cl_51core's base (NOT cl_uc52's, which adds Timer 2).
-     The STC12 has no Timer 2; its address (0xC8) is P5. */
+  bool is_stc89= (stc_part == STC_PART_STC89);
+  bool has_timer1= (stc_part != STC_PART_STC15W);
+  bool has_port_modes= !is_stc89;
+  bool has_adc= !is_stc89;
+  bool has_pca= !is_stc89;
+  bool has_timer2= (stc_part == STC_PART_STC15 || stc_part == STC_PART_STC15W);
+  bool has_p4p5= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
+  int port_mode_count= has_p4p5 ? 6 : 4; /* P0-P5 or P0-P3 */
+
+  if (is_stc89)
+    {
+      /* STC89: standard 8052 hardware — call cl_uc52's mk_hw_elements
+	 which sets up standard timers (12T), Timer 2, serial, ports,
+	 interrupts, and display. */
+      cl_uc52::mk_hw_elements();
+      return;
+    }
+
+  /* STC12/STC15/STC15W: 1T core with STC peripherals.
+     Call cl_uc's base (NOT cl_uc52's, which adds Timer 2 at 0xC8).
+     On STC12 the T2CON address (0xC8) is P5; on STC15 variants,
+     Timer 2 is at 0xD6/0xD7 instead. */
   cl_uc::mk_hw_elements();
 
   acc= sfr->get_cell(ACC);
   psw= sfr->get_cell(PSW);
 
-  /* STC12 timers with AUXR.7/AUXR.6 1T mode support */
+  /* Timers with AUXR.7/AUXR.6 1T mode support */
   h= new cl_timer0_stc12(this, 0, "timer0");
   h->init();
   add_hw(h);
-  h= new cl_timer0_stc12(this, 1, "timer1");
-  h->init();
-  add_hw(h);
+  if (has_timer1)
+    {
+      h= new cl_timer0_stc12(this, 1, "timer1");
+      h->init();
+      add_hw(h);
+    }
 
   /* Serial port (standard 8051 UART) */
   h= new cl_serial(this);
@@ -399,26 +484,32 @@ cl_uc_stc12::mk_hw_elements(void)
   add_hw(interrupt= new cl_interrupt(this));
   interrupt->init();
 
-  /* STC12-specific port mode registers for P0-P5 */
-  for (int i= 0; i < 6; i++)
+  /* Port mode registers (P0-P3 or P0-P5 depending on part) */
+  if (has_port_modes)
     {
-      h= new cl_stc12_port_mode(this, i);
-      h->init();
-      add_hw(h);
+      for (int i= 0; i < port_mode_count; i++)
+	{
+	  h= new cl_stc12_port_mode(this, i);
+	  h->init();
+	  add_hw(h);
+	}
     }
 
   /* ADC */
-  h= new cl_stc12_adc(this, stc_part);
-  h->init();
-  add_hw(h);
+  if (has_adc)
+    {
+      h= new cl_stc12_adc(this, stc_part);
+      h->init();
+      add_hw(h);
+    }
 
   /* Watchdog timer */
   h= new cl_stc12_wdt(this);
   h->init();
   add_hw(h);
 
-  /* STC15 Timer 2 (replaces BRT on STC12) */
-  if (stc_part == STC_PART_STC15)
+  /* Timer 2 (STC15 variants only) */
+  if (has_timer2)
     {
       h= new cl_timer2_stc15(this);
       h->init();
@@ -426,10 +517,13 @@ cl_uc_stc12::mk_hw_elements(void)
     }
 
   /* PCA with correct module count and 1T clock prescaling */
-  int pca_modules= (stc_part == STC_PART_STC15) ? 3 : 2;
-  h= new cl_pca_stc12(this, 0, pca_modules);
-  h->init();
-  add_hw(h);
+  if (has_pca)
+    {
+      int pca_modules= (stc_part == STC_PART_STC15 || stc_part == STC_PART_STC15W) ? 3 : 2;
+      h= new cl_pca_stc12(this, 0, pca_modules);
+      h->init();
+      add_hw(h);
+    }
 }
 
 void
@@ -462,11 +556,23 @@ cl_uc_stc12::make_vars(void)
 void
 cl_uc_stc12::clear_sfr(void)
 {
-  /* Call cl_51core's clear, NOT cl_uc52's (which writes T2CON etc.) */
+  if (stc_part == STC_PART_STC89)
+    {
+      /* STC89: standard 8052 clear — includes T2CON at 0xC8 */
+      cl_uc52::clear_sfr();
+      return;
+    }
+
+  /* STC12/STC15/STC15W: call cl_51core's clear, NOT cl_uc52's
+     (which writes T2CON etc. — on STC12, 0xC8 is P5, not T2CON). */
   cl_51core::clear_sfr();
 
-  /* STC12-specific SFR reset values */
-  sfr->write(AUXR,  0x00);  /* 12T mode for both timers */
+  bool has_p4p5= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
+
+  /* AUXR: 12T mode for timers */
+  sfr->write(AUXR,  0x00);
+
+  /* Port mode registers */
   sfr->write(STC12_P0M1, 0x00);
   sfr->write(STC12_P0M0, 0x00);
   sfr->write(STC12_P1M1, 0x00);
@@ -475,18 +581,31 @@ cl_uc_stc12::clear_sfr(void)
   sfr->write(STC12_P2M0, 0x00);
   sfr->write(STC12_P3M1, 0x00);
   sfr->write(STC12_P3M0, 0x00);
-  sfr->write(STC12_P4M1, 0x00);
-  sfr->write(STC12_P4M0, 0x00);
-  sfr->write(STC12_P5M1, 0x00);
-  sfr->write(STC12_P5M0, 0x00);
+  if (has_p4p5)
+    {
+      sfr->write(STC12_P4M1, 0x00);
+      sfr->write(STC12_P4M0, 0x00);
+      sfr->write(STC12_P5M1, 0x00);
+      sfr->write(STC12_P5M0, 0x00);
+    }
+
   sfr->write(STC12_CLK_DIV, 0x00);
   sfr->write(STC12_P1ASF, 0x00);
-  sfr->write(STC12_P4SW, 0x00);
+  if (stc_part == STC_PART_STC12)
+    sfr->write(STC12_P4SW, 0x00);
+
+  /* ADC */
   sfr->write(STC12_ADC_CONTR, 0x00);
   sfr->write(STC12_ADC_RES,  0x00);
   sfr->write(STC12_ADC_RESL, 0x00);
-  sfr->write(STC12_P4, 0xff);  /* ports reset high */
-  sfr->write(STC12_P5, 0xff);
+
+  /* Extra ports */
+  if (has_p4p5)
+    {
+      sfr->write(STC12_P4, 0xff);  /* ports reset high */
+      sfr->write(STC12_P5, 0xff);
+    }
+
   /* PCA registers */
   sfr->write(CCON,  0x00);
   sfr->write(CMOD,  0x00);
@@ -622,7 +741,9 @@ cl_uc_stc12::trace_check_sfr(void)
       if (val != trace_full_sfr_shadow[i])
 	{
 	  trace_full_sfr_shadow[i]= val;
-	  if (!stc12_sfr_defined[i] && !trace_unmodelled_reported[i])
+	  bool defined= (stc_part == STC_PART_STC89)
+	    ? stc89_sfr_defined[i] : stc12_sfr_defined[i];
+	  if (!defined && !trace_unmodelled_reported[i])
 	    {
 	      unsigned long long t_ns= trace_osc_clocks * 1000000000ULL / trace_fosc;
 	      fprintf(trace_file, "%llu\tUNMODELLED\t%02X %02X\n",
@@ -642,7 +763,10 @@ cl_uc_stc12::tick_hw(int cycles)
      before the ISR has a chance to clear it. */
   if (trace_file)
     {
-      trace_osc_clocks += cycles;
+      /* On a 1T core (STC12/STC15), cycles = osc clocks (clock_per_cycle=1).
+	 On a 12T core (STC89), cycles = machine cycles, each = 12 osc clocks.
+	 trace_osc_clocks must always be in oscillator clocks. */
+      trace_osc_clocks += (unsigned long long)cycles * clock_per_cycle();
       trace_check_sfr();
     }
 

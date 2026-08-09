@@ -405,6 +405,11 @@ struct cpu_entry cpus_51[]=
     {"STC12C5A"    , CPU_STC12, CPU_CMOS	, "STC STC12C5A60S2", "cmos"},
     {"STC15"       , CPU_STC12, CPU_CMOS|0x10, "STC STC15F2K60S2", "cmos"},
     {"STC15F2K60S2", CPU_STC12, CPU_CMOS|0x10, "STC STC15F2K60S2", "cmos"},
+    {"STC89"       , CPU_STC12, CPU_CMOS|0x20, "STC STC89C52RC",   "cmos"},
+    {"STC89C52RC"  , CPU_STC12, CPU_CMOS|0x20, "STC STC89C52RC",   "cmos"},
+    {"STC89C52"    , CPU_STC12, CPU_CMOS|0x20, "STC STC89C52RC",   "cmos"},
+    {"STC15W"      , CPU_STC12, CPU_CMOS|0x30, "STC STC15W408AS",  "cmos"},
+    {"STC15W408AS" , CPU_STC12, CPU_CMOS|0x30, "STC STC15W408AS",  "cmos"},
 
     {NULL, CPU_NONE, 0, "", ""}
   };

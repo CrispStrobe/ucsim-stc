@@ -50,7 +50,8 @@ main(int argc, char *argv[])
       new_argv[new_argc++]= argv[i];
     }
 
-  /* Force -t STC12 if not already specified */
+  /* Force -t STC12 if not already specified.
+     Accepted: STC12, STC15, STC89, STC15W (and full part names). */
   bool has_type= false;
   for (int i= 0; i < new_argc; i++)
     if (strcmp(new_argv[i], "-t") == 0) has_type= true;
@@ -58,7 +59,6 @@ main(int argc, char *argv[])
   if (!has_type)
     {
       new_argv= (char**)realloc(new_argv, (new_argc + 3) * sizeof(char*));
-      /* Insert -t STC12 before the hex file (last positional arg) */
       new_argv[new_argc]= (char*)"-t";
       new_argv[new_argc+1]= (char*)"STC12";
       new_argc += 2;
