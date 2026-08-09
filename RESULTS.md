@@ -420,6 +420,15 @@ Cross-emulator (50 ms span):
   separately, depending on ISR dispatch granularity)
 
 The monitor builds, runs, and produces the same init sequence and
-timer overflow counts on both emulators.  UART byte-stream comparison
-requires driving the serial port (not yet done — no UART model in
-either emulator's trace).
+timer overflow counts on both emulators.
+
+emu8051-stc has additionally driven the UART protocol (`331bb3f`):
+HELLO returns a well-formed capabilities frame (proto v1, block step,
+yield BP, timeFreezes=true, consumes T0+T1+BRT).  POS returns Level 1
+position for 2 tasks.  17 assertions passing.
+
+ucsim does not yet inject UART bytes into the serial model.  The
+cross-emulator comparison covers SFR init and timer behaviour;
+the UART protocol differential is the next step and requires
+plumbing the serial byte stream into the trace harness (ucsim
+has `cl_serial` with IO write, emu8051 has `emu_serial_write`).
