@@ -1,10 +1,12 @@
 #!/bin/bash
 # run_control_diff.sh — DEBUG-CONTROL-MODEL §8 acceptance ladder.
 #
-# Cross-emulator run-control tests: rungs 3 through 7.
-# Exits non-zero on the first rung that fails.
+# THE SINGLE COMMAND that re-runs the full ladder (rungs 3-7).
+# Cross-emulator run-control tests. Exits non-zero on any failure.
+# Rung 8 (on-chip monitor) is in RESULTS.md; it needs emu8051's
+# test_monitor binary and is not part of this automated suite.
 #
-# Usage: EMU_TRACE=… ./tests/run_control_diff.sh
+# Usage: EMU_TRACE=/path/to/emu_trace ./tests/run_control_diff.sh
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

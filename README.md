@@ -15,9 +15,13 @@ The binary is `ucsim/src/sims/s51.src/ucsim_51`.  Select the STC12 model with:
 
 ## Test
 
-    ./tests/smoke.sh
+    ./tests/smoke.sh                                          # 16 assertions
+    EMU_TRACE=… ./tests/run_control_diff.sh                   # §8 ladder, rungs 3-7
+    EMU_TRACE=… ./tests/examples_diff.sh                      # 9 example bundles
+    EMU_TRACE=… ./tests/generated_cube_diff.sh                # blocks→C→behaviour
 
-Runs 11 headless assertions.  Exits non-zero on any failure.
+`smoke.sh` runs standalone.  The others need `emu_trace` from
+`emu8051-stc` (set `EMU_TRACE` to its path).
 
 ## Baseline version
 
