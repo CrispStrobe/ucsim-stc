@@ -58,6 +58,7 @@ for img in "$HEXDIR"/*.hex "$HEXDIR"/*.ihx; do
         PASS=$((PASS + 1))
     elif diff <(head -$MIN "$TMP/emu.events") <(head -$MIN "$TMP/ucsim.events") > /dev/null 2>&1; then
         PREFIX_PASS=$((PREFIX_PASS + 1))
+        echo "PREFIX $NAME (emu=$EN ucsim=$UN diff=$((EN > UN ? EN - UN : UN - EN)))" >> "$DIVERGE_LOG"
     elif [ "$HAS_UNMOD" -gt 0 ]; then
         WRONG_TARGET=$((WRONG_TARGET + 1))
         FIRST_UNMOD=$(head -1 "$TMP/unmod.events" | awk '{print $3}')
