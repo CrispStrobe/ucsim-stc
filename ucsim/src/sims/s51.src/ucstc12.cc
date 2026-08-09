@@ -21,6 +21,7 @@
 #include "stc12_timercl.h"
 #include "stc12_adccl.h"
 #include "stc12_portcl.h"
+#include "stc12_wdtcl.h"
 #include "portcl.h"
 #include "stc12_pcacl.h"
 #include "serialcl.h"
@@ -407,6 +408,11 @@ cl_uc_stc12::mk_hw_elements(void)
 
   /* ADC */
   h= new cl_stc12_adc(this, stc_part);
+  h->init();
+  add_hw(h);
+
+  /* Watchdog timer */
+  h= new cl_stc12_wdt(this);
   h->init();
   add_hw(h);
 
