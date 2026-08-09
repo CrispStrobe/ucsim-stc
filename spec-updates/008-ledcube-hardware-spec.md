@@ -35,31 +35,35 @@ two colors, the 8 bits map to 4 positions × 2 colors:
     P0.2 = column 2 red     P0.6 = column 2 blue
     P0.3 = column 3 red     P0.7 = column 3 blue
 
-**P0 polarity — UNVERIFIED, assumed active-low.**
+**P0 polarity — UNVERIFIED.  Assumed active-high.**
 
-This spec assumes a LOW bit on P0 lights the corresponding LED
-(cathode drive through current-limiting resistors, common-anode
-layers).  Under this convention:
-- P0 = 0x00 lights all LEDs in the selected layer.
-- P0 = 0xFF lights none (blank).
-- `fb_clear()` should fill with 0xFF; setters clear bits.
+`BW_CUBE_ACTIVE_HIGH = 1` — a HIGH bit on P0 lights the LED.
+Under this convention:
+- P0 = 0x00 is blank (all LEDs off in the selected layer).
+- Setting a bit lights the corresponding LED.
+- `fb_clear()` fills with 0x00; setters set bits.
 
-`probe.c` in `stc/src/20-ledcube/` assumes the **opposite**
-(active-high: a HIGH bit lights the LED, P0=0x00 is blank).
-The two are both internally consistent; only a real cube settles
-which is correct.
+Evidence for active-high (three independent directions from
+`stc/src/20-ledcube` `b77b176`):
+1. `probe.c` blank frame is `{0, 0, …, 0}`.
+2. `probe.c` single-voxel probe step is `1 << bit`.
+3. Vendor firmware sequence: `P0 = 0; P2 = select; P0 = data` —
+   `P0 = 0` is called blanking, which is active-high.
 
-**All implementations must isolate this assumption in one named
-constant** so flipping it is a one-line change:
+**One name, one sense, across all implementations:**
 
 ```c
-#define P0_LED_ON  0   /* active-low: 0 lights, 1 blanks */
-/* OR: #define P0_LED_ON  1   active-high: 1 lights, 0 blanks */
-#define P0_ALL_OFF (P0_LED_ON ? 0x00 : 0xFF)
+#define BW_CUBE_ACTIVE_HIGH  1  /* UNVERIFIED — flip to 0 if
+                                 * a real cube shows inverted */
 ```
 
-This is the second unmeasured fact (after the voxel map) that only
-a real cube can answer.
+All implementations (`main.c`, `sb3-creator` kernel,
+`bw-circuit-ui` renderer) must use `BW_CUBE_ACTIVE_HIGH` or
+defer to this spec.  The earlier `P0_ACTIVE_LOW`,
+`P0_LED_ON`, `P0_ACTIVE_HIGH` names are superseded.
+
+This is the second unmeasured fact (after the voxel map) that
+only a real cube can answer.
 
 ### Port P2 — layer select (active-low scan)
 
