@@ -827,8 +827,75 @@ methodological point — "a differential probe needs a control that is
 known to differ" — is exactly what rung_timing.sh's difference
 assertion implements.
 
-### stc-compiler pseudocode path bug (not blocking)
+### stc-compiler pseudocode path (corrected)
 
-`POST /compile` with `language=pseudocode, target=stc89c52rc` generates
-`P1M0` and `AUXR` writes despite `port_modes=False`. Noted in
-spec-updates/013. Worked around by using `language=c` for test fixtures.
+Originally reported as a bug (spec-updates/013); withdrawn after
+investigation showed the pseudocode emitter is correct. Without a
+`DEVICE stc89c52rc:` line, the transpiler defaults to STC12 and
+generates STC12 code regardless of the API `target` parameter.
+
+---
+
+## Close-out: what is verified and what is not
+
+### What is verified under emulation (two independent emulators agree)
+
+| Claim | Evidence |
+|-------|---------|
+| Timer 0 at FOSC/12 produces 1 ms overflows at 11.0592 MHz | STC12×emu8051: 9/9 examples identical; STC89: 43/43 prefix match |
+| AUXR.7=1 switches Timer 0 to FOSC (1T) on STC12/STC15 | Model-diff rung: 84 µs post-AUXR vs 1013 µs on STC89 |
+| AUXR has no peripheral effect on STC89 (standard 8052) | STC89 timer stays at FOSC/12 regardless of AUXR writes |
+| STC89 core runs at 12T (12 osc clocks per NOP) | Timing rung: 1085 ns/NOP vs 90 ns on STC12, ratio 12.0 |
+| STC15W has no Timer 1 | Model-diff rung: TF1 fires on STC15F, never on STC15W |
+| Port mode registers set pin direction on STC12/STC15 | 9/9 examples, PxM0/PxM1 writes traced |
+| ADC power/start/flag/clear sequence is self-consistent | Cross-emu identical on 02-adc register sequence |
+| PCA counter runs at all 8 clock sources | Smoke test, periph_test differential |
+| STC12 BRT and STC15 T2H/T2L produce identical 115200 baud | Baud rung: BRT=0xFD and T2=0xFFFD, divisor 3, 0.000% error |
+| Naive STC15 port (BRT written, T2 untouched) gives 5 baud | Baud rung: T2H=0x00 after init, 23040× too slow |
+
+### What is verified ONLY under emulation — NOT confirmed on silicon
+
+**Everything.** No part of this campaign has run on real hardware.
+Both emulators implement the same datasheet. A shared misreading
+produces exactly this agreement. The strongest evidence available
+short of a bench session — but not a substitute for one.
+
+Specifically unverified on silicon:
+- ADC analog path (voltage → correct number)
+- UART baud rate timing (BRT overflow rate, /32 divider)
+- PCA PWM output polarity
+- Port mode sink/source currents
+- Timer overflow interrupt latency
+- SPI (not modelled at all)
+- EEPROM/IAP (not modelled)
+- Power modes (not modelled)
+
+### Baud reload table for 10-live-firmware
+
+At FOSC = 11,059,200 Hz, BRTx12=1 / T2x12=1 (1T mode), SMOD=0:
+
+```
+Baud     Divisor  BRT (STC12)  T2H:T2L (STC15)   Error
+------   -------  -----------  ----------------   -----
+   300     1152   N/A (>255)   0xFB:0x80 (64384)  0.000%
+   600      576   N/A (>255)   0xFD:0xC0 (64960)  0.000%
+  1200      288   N/A (>255)   0xFE:0xE0 (65248)  0.000%
+  2400      144   0x70         0xFF:0x70 (65392)  0.000%
+  4800       72   0xB8         0xFF:0xB8 (65464)  0.000%
+  9600       36   0xDC         0xFF:0xDC (65500)  0.000%
+ 19200       18   0xEE         0xFF:0xEE (65518)  0.000%
+ 38400        9   0xF7         0xFF:0xF7 (65527)  0.000%
+ 57600        6   0xFA         0xFF:0xFA (65530)  0.000%
+115200        3   0xFD         0xFF:0xFD (65533)  0.000%
+```
+
+Formula: `divisor = FOSC / (32 × baud)`, `BRT = 256 − divisor`,
+`T2_RELOAD = 65536 − divisor`, `T2H = (T2_RELOAD >> 8) & 0xFF`,
+`T2L = T2_RELOAD & 0xFF`.
+
+### Feature parity gaps
+
+See `PARITY-GAPS.md` for the full matrix. Summary: 12 peripheral
+blocks have behavioral models, 10 have SFR cells registered (writes
+accepted, no behavior), 3 are absent (SPI, comparator, power modes).
+None of the absent peripherals are exercised by the 347-image corpus.
