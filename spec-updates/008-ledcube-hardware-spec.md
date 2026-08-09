@@ -137,20 +137,38 @@ void main(void) {
 }
 ```
 
-## 7. What NOT to do
+## 7. Cleanroom boundary
 
-- Do NOT read or reference the icstation 4681 source code, the
-  rgm3/ledcube444 port, or any derivative. This is a cleanroom spec.
+**Permitted reading** (measurements and hardware facts):
+- This specification (008-ledcube-hardware-spec.md).
+- `stc/src/20-ledcube/README.md` — measurement notes, observed
+  hardware behavior, timing data.  These are facts, not expression.
+- The kit product page, circuit diagram, welding guide PDF.
+- `stc/include/stc12.h`, `board.h` — SFR definitions.
+
+**Forbidden reading** (firmware source code):
+- `stc-research/corpus/icstation_4681/Code/main.c`
+- `stc-research/corpus/rgm3_ledcube444/ledcube444.c`
+- `bw-cfront/sb3-creator/corpus/ledcube444/`
+- Any `.c` or `.h` file containing LED cube driver logic from
+  any third party.
+- The hex files from either build (they are compiled expression).
+
+**Other constraints:**
 - Do NOT use Timer 0 or Timer 1 for the delay (reserved).
 - Do NOT use interrupts (not needed for a simple display driver).
 - Do NOT use the ADC, PCA, or UART (not connected on this PCB).
 
 ## 8. Deliverable
 
-One C file, compilable with `sdcc -mmcs51 --model-small`, that
-drives the LED cube through the animation patterns above. Include
-`<stc12.h>` for the SFR definitions. The file should be self-contained
-(no external headers beyond stc12.h and stdint.h).
+One C file at `stc/src/20-ledcube/main.c`, compilable with
+`sdcc -mmcs51 --model-small`.  Include `<stc12.h>` for the SFR
+definitions.  Self-contained (no external headers beyond stc12.h
+and stdint.h).
 
-Test it by running under ucsim (`ucsim_51 -t STC12`) and checking
+The file header must state that it was written from this hardware
+specification.  The cleanroom claim is a statement about the author;
+it must be written by the implementing agent, not by the spec author.
+
+Test by running under ucsim (`ucsim_51 -t STC12`) and checking
 that P0 and P2 change in the expected scan pattern.
