@@ -105,21 +105,35 @@ Pattern data should be stored in code flash (`__code` arrays) to
 save RAM.  The implementer chooses the exact patterns; these
 descriptions are goals, not pixel-level prescriptions.
 
-## 5. Software delay
+## 5. Timing
 
-Use a software busy-loop for timing. Do NOT use Timer 0 (which
-the BrickWright toolchain reserves for the millisecond tick).
+Use **Timer 0 at FOSC/12, mode 1** for the dwell delay —
+the same technique `stc/src/20-ledcube/probe.c` uses and the
+same mode the BrickWright toolchain uses.  A 12T and a 1T part
+count Timer 0 at FOSC/12 identically, so the dwell is correct
+on both.  Do NOT use a software busy-loop: the STC12 is a 1T
+part and a loop calibrated for 12T runs ~12× too fast, making
+the LEDs too dim to see.
 
 ```c
-void delay_ms(unsigned int ms) {
-    /* Calibrate this loop for the target FOSC.
-     * On a 1T STC12 at 11.0592 MHz, approximately:
-     *   for (i = 0; i < 120; i++) for (j = 0; j < ms; j++);
-     * gives roughly 1 ms per unit of ms.
-     * The exact count does not matter for a display —
-     * flicker-free is the only constraint. */
+/* Timer 0 polled delay — same pattern as delay.h in this repo */
+static void delay_ms(unsigned int ms) {
+    AUXR &= ~0x80;  /* T0 at FOSC/12 */
+    TMOD = (TMOD & 0xF0) | 0x01;  /* mode 1, 16-bit */
+    while (ms--) {
+        TL0 = 0x67;  /* reload for 1 ms at 11059200/12 */
+        TH0 = 0xFC;
+        TF0 = 0;
+        TR0 = 1;
+        while (!TF0) ;
+        TR0 = 0;
+        TF0 = 0;
+    }
 }
 ```
+
+Each scan line dwell should be ~1 ms.  Full 8-line scan < 10 ms
+for > 100 Hz refresh.
 
 ## 6. Initialisation
 
@@ -155,7 +169,8 @@ void main(void) {
 - The hex files from either build (they are compiled expression).
 
 **Other constraints:**
-- Do NOT use Timer 0 or Timer 1 for the delay (reserved).
+- Timer 0 is used for the dwell delay (polled, not ISR-driven).
+  Timer 1 is available but not needed.
 - Do NOT use interrupts (not needed for a simple display driver).
 - Do NOT use the ADC, PCA, or UART (not connected on this PCB).
 
