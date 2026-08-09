@@ -241,13 +241,13 @@ here for reproducibility; image contents are never committed or pushed.
 
 Reproducible: `EMU_TRACE=… ./tests/run_control_diff.sh`
 
-| Rung | Description | Cross-emulator | ucsim-only |
-|------|-------------|---------------|------------|
-| 3 | step(insn) x 1000, interrupts masked | **PASS** 1000/1000 PCs | — |
-| 4 | Code breakpoint, same PC + registers | SKIP (needs emu_trace BP+regs) | **PASS** PC=0x011D |
-| 5 | Yield breakpoint, same (task, state, bw_ms) | SKIP (needs emu_trace yield) | **PASS** state=3 |
-| 6 | Write while halted, same subsequent trace | SKIP (needs emu_trace write) | **PASS** 0xFFFF persists |
-| 7 | Peripheral-event differential on ISR images | **PASS** 49/49 (10 ms) | — |
+| Rung | Description | Cross-emulator result |
+|------|-------------|----------------------|
+| 3 | step(insn) x 1000, interrupts masked | **PASS** 1000/1000 PCs identical |
+| 4 | Code breakpoint, same PC + registers | **PASS** PC=011D, A=01, SP=17, PSW=01 |
+| 5 | Yield breakpoint, same (task, state) | **PASS** both halt at 0171, state=3 |
+| 6 | Write while halted, resume | **PASS** 0xFFFF persists on both |
+| 7 | Peripheral-event differential (10 ms) | **PASS** 57/57 events strictly identical |
 
 ### Bugs found by this ladder
 
