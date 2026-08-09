@@ -13,3 +13,4 @@ serialview
 Makefile.dep
 ucsim/src/apps/ucsim.src/ucsim
 stc-research/
+corpus/

@@ -688,6 +688,37 @@ Event count differs because emu8051 runs more instructions in the same
 time window (same pattern as the STC12 corpus §Prefix-only). Within the
 overlap, every SFR value and event type is identical.
 
+### STC89 firmware corpus (27 images)
+
+Sourced from GitHub: `treideme/stc89c52-demos` (16 programs, compiled
+with SDCC), `chenjr15/STC89C52RC` (5 hex files), `MangnimitMCU/STC89C52RC`
+(3 hex files). Stored in `corpus/stc89/` (non-committed, unlicensed).
+
+Cross-emulator differential (2 ms, FOSC = 11,059,200 Hz):
+
+| Result | Count | % |
+|--------|-------|---|
+| **Strict** (both streams identical) | **16** | **59%** |
+| Prefix-only (shorter prefix matches) | 8 | 30% |
+| Diverge | 1 | 4% |
+| Empty (no SFR/TF events) | 2 | 7% |
+
+The single divergence (`PWM_LED.hex`) is timer-interleaving: P1 writes
+appear at different positions relative to timer overflows. The SFR values
+are the same — no peripheral model disagreement.
+
+**No genuine peripheral model disagreement was found.**
+
+### STC15W firmware corpus (3 images)
+
+Sourced from GitHub: `zerog2k/stc_diyclock`, `aFewBits/stc-led-clock`,
+`shenghaoyang/stc_led_clock_8k`. All are SDCC-compiled LED clock kits
+for the STC15W408AS. Stored in `corpus/stc15w/` (non-committed).
+
+All 3 images load and produce events on the STC15W model (total: 1185
+events across 2 ms). Cross-emulator differential pending emu_trace
+`-part STC15W` testing.
+
 ### Test summary (all green)
 
 | Suite | Result |
