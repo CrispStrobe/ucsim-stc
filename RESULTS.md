@@ -311,25 +311,35 @@ disagreements.  The shorter stream prefix-matches because both models
 produce the same SFR transitions in the same order; one simply covers
 more simulated time in the 2ms window.
 
-## ledcube444 scan timing
+## ledcube444 timing (icstation product 4682, archive 4681.zip)
 
 Reproduced against the local-only corpus; supply inputs to re-run:
 `./tests/ledcube_timing.sh ledcube444.c keil_main.hex`
 
-rgm3/ledcube444 is a port of the icstation 4681 kit's vendor firmware,
-reformatted for SDCC. The rgm3 repo carries an MIT licence but the
-underlying code is from an unlicensed Chinese vendor source (4681.zip).
+rgm3/ledcube444 is a port of the icstation 4681 vendor firmware,
+reformatted for SDCC.  The rgm3 repo carries an MIT licence but the
+underlying code is from an unlicensed vendor source (4681.zip).
 **We measure against it but do not treat it as independently licensed.**
 
 Input SHA-256 (for verification without publishing contents):
 - ledcube444.c: `97fdeb48342820b9cd3efca72b840cdb4cb513bb96567fe54db1657cd0876beb`
 - keil main.hex: `2dd4c198548ece891f5efc16a9b2e6dd6e23f2b8fe10fd8ffb05a831e3144976`
 
-| | emu8051 | ucsim | diff |
-|---|---|---|---|
-| SDCC build scan step | 8.876 ms | 8.875 ms | 1,477 ns (0.017%) |
-| Keil build scan step | 12.217 ms | 12.215 ms | 2,123 ns (0.017%) |
+**Terminology:** a "frame" is one full cycle of all 8 scan lines.
+A "scan line" is one layer-select dwell.  The table below reports
+**frames** (time between two consecutive P0=0x00 writes, covering
+all 8 scan lines).  Per-line dwell = frame / 8.
+
+| build | emu8051 frame | ucsim frame | diff | per-line dwell | refresh |
+|---|---|---|---|---|---|
+| SDCC (ledcube444.c) | 8.876 ms | 8.875 ms | 1,477 ns (0.017%) | 1.110 ms | 113 Hz |
+| Keil (4681 main.hex) | 12.217 ms | 12.215 ms | 2,123 ns (0.017%) | 1.527 ms | 82 Hz |
+
+`stc/src/20-ledcube` reports 1.235 ms per scan line (9.88 ms frame,
+101 Hz), measured by emu8051 on a different SDCC build.  The
+difference from our 1.110 ms is from the software delay loop
+compiling differently across SDCC versions.
 
 Port-state sequence (P0 values): **IDENTICAL** between Keil and SDCC
-builds. Both compilers produce the same observable behaviour; only the
-software delay loop timing differs (27%).
+builds.  Both compilers produce the same observable behaviour; only
+the software delay loop timing differs (27%).
