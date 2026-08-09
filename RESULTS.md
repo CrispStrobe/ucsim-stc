@@ -497,3 +497,31 @@ The meaningful test is on the **on-chip monitor**, where the chip
 keeps running during a halt and `timeFreezes` requires the firmware
 to explicitly stop Timer 0.  That test needs `10-live-firmware`
 with UART driving, which is emu8051-stc's domain (`331bb3f`).
+
+## Rung 8: on-chip monitor vs emulators
+
+The on-chip monitor (`stc/src/10-live-firmware`) answers `HELLO`,
+`POS`, `REGS`, `READ` through the emulated UART (emu8051-stc
+`test_monitor`, 32/32 assertions).
+
+Three-way comparison at a yield point:
+
+| value | ucsim (direct IRAM) | emu8051 (direct IRAM) | monitor (UART protocol) |
+|-------|--------------------|-----------------------|------------------------|
+| bw_ms | 7 (at 7.3 ms) | 67 (at ~67 ms) | 67 (via READ cmd) |
+| task0_state | 2 | — | 2 (via POS cmd) |
+| task1_state | 2 | — | 2 (via POS cmd) |
+| SP | 0x42 | 0x44 | 0x44 (via REGS cmd) |
+| timeFreezes | inherent | verified | verified: bw_ms=67 before and after 500ms halt |
+
+Values differ between ucsim and emu8051 because they are sampled at
+different execution points (7ms vs 67ms). Within each emulator, the
+monitor's UART replies match the direct IRAM reads — the monitor
+protocol is consistent with the memory model.
+
+**What rung 8 establishes:** the monitor firmware runs, its protocol
+is well-formed, and its answers are consistent with the emulator's
+own view of memory. Five independent codecs agree on the wire format.
+
+**What it does NOT establish:** UART bring-up, BRT baud divisor, or
+1T core behaviour on real silicon. Those need the bench.
