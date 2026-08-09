@@ -779,8 +779,10 @@ Cross-emulator differential (emu_trace `-part STC15W`):
 | Emu load fail | 1 (stc_diyclock_ntp) |
 
 4/4 executed images agree. No peripheral model disagreements.
-The stc_diyclock_ntp load failure is on the emu8051-stc side
-(reported via spec-updates).
+The stc_diyclock_ntp failure is on the emu8051-stc side — the hex
+loads but execution halts immediately (code is 3040 bytes, well
+within 8K flash). Reported via direct message; persists after
+emu_trace rebuild with hex type 02/04 support.
 
 ### Test summary (all green)
 
