@@ -343,3 +343,33 @@ compiling differently across SDCC versions.
 Port-state sequence (P0 values): **IDENTICAL** between Keil and SDCC
 builds.  Both compilers produce the same observable behaviour; only
 the software delay loop timing differs (27%).
+
+## Cleanroom LED cube driver
+
+`stc/src/20-ledcube/main.c` — written by an uncontaminated agent
+from hardware spec `008-ledcube-hardware-spec.md` only.
+
+### Cross-emulator agreement
+
+| | emu8051 | ucsim | diff |
+|---|---|---|---|
+| P0+P2 events (50ms) | 100 | 100 | **0 (strictly identical)** |
+| Per scan line | 1.007 ms | 1.007 ms | — |
+| Full frame (8 lines) | 8.061 ms | 8.061 ms | — |
+| Refresh rate | 124.1 Hz | 124.1 Hz | — |
+
+### Cleanroom vs vendor scan pattern
+
+The two programs use **different display strategies**:
+- Cleanroom: multiplexed scanning (P2 cycles 0xFE..0x7F, one
+  layer at a time, with 0xFF blanking between)
+- Vendor: all layers lit simultaneously (P2=0x00), P0 toggles
+  the pattern data
+
+Both are valid for a 4×4×4 cube.  The difference is a design
+choice, not a spec gap: the spec describes multiplexed scanning
+(which is the standard technique), and the vendor took a shortcut
+that works for simple patterns.
+
+The per-line dwell (1.007 ms) matches the Timer 0 reload
+(0xFC67 at FOSC/12 = 921 counts = 1.000 ms + overhead).
