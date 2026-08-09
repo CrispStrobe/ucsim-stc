@@ -567,3 +567,112 @@ what the user sees (LED blinks, display scans, ADC reads), not how
 the compiler arranged it internally.  A decompiler that passes the
 oracle may still produce ugly or incorrect pseudocode — but it
 cannot produce wrong pin behaviour.
+
+## STC89C52RC support (12T core)
+
+`-t STC89` or `-t STC89C52RC` selects the STC89C52RC model.
+
+The STC89 is a **12T** core — the single most consequential difference
+in the part list.  `clock_per_cycle()` returns 12, so every instruction
+takes 12 oscillator clocks per machine cycle.  Timers count at FOSC/12
+natively (one increment per machine cycle, no prescaler needed).
+
+### What the STC89 has
+
+Standard 8052 hardware only:
+- Timer 0 and Timer 1 (standard modes, FOSC/12)
+- Timer 2 (standard 8052 T2CON at 0xC8)
+- Serial port (standard 8051 UART, baud from Timer 1)
+- Interrupt system (standard IE/IP)
+- Ports P0–P3 (quasi-bidirectional only)
+
+### What the STC89 does NOT have
+
+- No AUXR (no 1T/12T switching)
+- No port modes (PxM0/PxM1)
+- No ADC
+- No PCA/PWM
+- No dual DPTR
+- No P4, P5
+
+### 12T timing verification
+
+Measured via NOP sled at FOSC = 11,059,200 Hz:
+
+| Part | Clocks/NOP | ns/NOP | Ratio to STC12 |
+|------|-----------|--------|----------------|
+| STC12 (1T) | 1 | 90 ns | 1× |
+| STC15F (1T) | 1 | 90 ns | 1× |
+| **STC89 (12T)** | **12** | **1085 ns** | **12.06×** |
+| STC15W (1T) | 1 | 90 ns | 1× |
+
+The Timer 0 at FOSC/12 timing equivalence is confirmed: the STC89
+blink fixture (`blink_stc89.ihx`) shows TF0 at ~1017 µs intervals,
+matching the STC12's Timer 0 at FOSC/12 within 2%.
+
+### STC89 smoke tests (28/28)
+
+Tests 15–20 verify: STC89 selectable, has Timer 2, 12T timing correct,
+no port modes / ADC / PCA hardware present.
+
+## STC15W408AS support
+
+`-t STC15W` or `-t STC15W408AS` selects the STC15W408AS model.
+
+The STC15W408AS is a smaller STC15 variant: 1T core, 8K flash, 512B SRAM,
+2.5–5.5V (wide voltage), 28-pin package max.
+
+### Delta from STC15F2K60S2
+
+| Feature | STC15F2K60S2 | STC15W408AS |
+|---------|-------------|-------------|
+| Timer 1 | present | **absent** |
+| Ports | P0–P5 | **P0–P3 only** |
+| UARTs | 2 | **1** |
+| Flash | 60 KB | **8 KB** |
+| SRAM | 2048 B | **512 B** |
+| Supply | 4.2–5.5 V | **2.5–5.5 V** |
+
+### What the STC15W has
+
+Same as STC15F2K60S2 for available peripherals:
+- Timer 0 with AUXR.T0x12 (1T/12T switching)
+- Timer 2 (T2H/T2L at 0xD6/0xD7)
+- Port modes for P0–P3
+- 10-bit ADC on P1
+- 3-channel PCA/PWM
+- Watchdog
+
+### STC15W smoke tests
+
+Tests 21–26 verify: STC15W selectable, has Timer 2/ADC/PCA/port modes,
+correctly lacks Timer 1.
+
+## Multi-part parity
+
+### Internal parity (ucsim across parts)
+
+Firmware that uses only the shared subset (Timer 0 at FOSC/12, ports,
+no STC12-specific peripherals) produces **identical event traces** on
+STC12, STC15, and STC15W:
+
+| Firmware | STC12 events | STC15 | STC15W |
+|----------|-------------|-------|--------|
+| `scheduled_gen.ihx` | 37 | **37/37 identical** | **37/37 identical** |
+
+### Cross-emulator parity (pending)
+
+Cross-emulator STC89 differential is blocked on `emu_trace` adding
+`-part` support (spec-updates/012).  The finding in `/tmp/stc89-12t.md`
+confirms that emu8051-stc's WASM build currently runs STC89 at 1T speed,
+which is the exact 12× timing bug this ladder exists to catch.
+
+### Test summary (all green)
+
+| Suite | Result |
+|-------|--------|
+| Smoke tests (STC12/STC15/STC89/STC15W) | **28/28** |
+| Timing verification (4 parts) | **4/4** |
+| Example differentials (STC12 cross-emu) | **9/9** |
+| Boundary D ladder (STC12 cross-emu) | **6/6** |
+| Multi-part differentials | **6/6 pass, 1 skip** |
