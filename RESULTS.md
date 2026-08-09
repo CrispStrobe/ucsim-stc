@@ -525,3 +525,45 @@ own view of memory. Five independent codecs agree on the wire format.
 
 **What it does NOT establish:** UART bring-up, BRT baud divisor, or
 1T core behaviour on real silicon. Those need the bench.
+
+## Oracle for the reverse direction (asm → blocks)
+
+`sb3-creator/reference/c-target.md` names this emulator as the
+oracle for decompilation: *"a recovered program can be validated
+by executing both and comparing pin/SFR traces."*
+
+### Baseline: what differential execution sees
+
+The scheduler fixture (`scheduled_gen.ihx`, 318 instructions)
+disassembled with `stc_disasm.py` shows recognisable patterns:
+
+| pattern | disassembly | how a recovery finds it |
+|---------|-------------|------------------------|
+| Timer 0 ISR (bw_tick) | `LJMP 0x0072` at vector 0x000B, `MOV TL0,#0x67 / MOV TH0,#0xFC` | interrupt vector + reload constant |
+| bw_now | `CLR ET0 / MOV A,bw_ms / SETB ET0` | interrupt-safe 16-bit read pattern |
+| delay_ms / bw_block_ms | polled TF0 loop with reload | FLIRT-style byte signature |
+| adc_read | `MOV ADC_CONTR,#0xE8|ch` + flag poll | SFR write to 0xBC + bit test |
+| Port writes | `CPL P1.0`, `SETB P1.1`, `CLR P1.1` | bit-addressable SFR writes |
+| Duff's-device yield | `switch (state) { case N: ... state = M; return; }` | `CJNE` chain + state variable write |
+
+The SFR trace (37 events over 10 ms) is the oracle output:
+each event is a port write, timer flag, or ADC register change
+that a recovered program must reproduce to pass.
+
+### What the oracle catches and what it misses
+
+**Catches:** any difference in observable peripheral behaviour —
+wrong port pin, wrong timer reload, wrong ADC channel, wrong
+scan order, wrong delay timing.  These are the errors that matter
+on real hardware.
+
+**Misses:** structural differences that produce identical traces —
+a recovered program could use a different variable layout, different
+register allocation, or a different loop structure and still pass.
+The oracle proves *behavioural equivalence*, not *structural identity*.
+
+This is a known limitation and is by design: the oracle validates
+what the user sees (LED blinks, display scans, ADC reads), not how
+the compiler arranged it internally.  A decompiler that passes the
+oracle may still produce ugly or incorrect pseudocode — but it
+cannot produce wrong pin behaviour.
