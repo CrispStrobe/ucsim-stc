@@ -104,8 +104,6 @@ fi
 # --- Assertion 4: verify in emulator models ---
 echo ""
 echo "[4] Emulator verification: BRT overflow period"
-# On STC12: BRT at 1T with reload 253, overflows every 3 osc clocks
-# Period = 3 * 1e9 / 11059200 = 271.267 ns
 BRT_PERIOD=$(brt_period_ns STC12 $BRT_RELOAD)
 T2_PERIOD=$(t2_period_ns $T2_RELOAD)
 echo "    STC12 BRT period: ${BRT_PERIOD}ns"
@@ -116,6 +114,55 @@ if [ "$BRT_PERIOD" -eq "$T2_PERIOD" ]; then
 else
     echo "    FAIL: periods differ ($BRT_PERIOD vs $T2_PERIOD)"
     FAIL=$((FAIL+1))
+fi
+
+# --- Assertion 5: end-to-end register verification in emulator ---
+echo ""
+echo "[5] End-to-end: emulator register values after init"
+UCSIM="./ucsim/src/sims/s51.src/ucsim_51"
+if [ -x "$UCSIM" ] && [ -f tests/fixtures/baud_stc12.ihx ] && \
+   [ -f tests/fixtures/baud_stc15.ihx ] && [ -f tests/fixtures/baud_naive.ihx ]; then
+
+    # STC12: BRT should be 0xFD after init
+    BRT_VAL=$(printf 'step 600\ndump sfr 0x9C 0x9C\nquit\n' | \
+        timeout 5 "$UCSIM" -t STC12 -b tests/fixtures/baud_stc12.ihx 2>&1 | \
+        grep "^0x9c" | awk '{print $2}')
+    echo "    STC12 BRT = 0x$BRT_VAL (expect 0xfd)"
+    if [ "$BRT_VAL" = "fd" ]; then
+        echo "    PASS: BRT correctly loaded"
+        PASS=$((PASS+1))
+    else
+        echo "    FAIL: expected 0xfd"
+        FAIL=$((FAIL+1))
+    fi
+
+    # STC15: AUXR should be 0x15 (T2R=1, T2x12=1, S1ST2=1)
+    AUXR_VAL=$(printf 'step 600\ndump sfr 0x8E 0x8E\nquit\n' | \
+        timeout 5 "$UCSIM" -t STC15 -b tests/fixtures/baud_stc15.ihx 2>&1 | \
+        grep "^0x8e" | grep -oP '0x[0-9a-f]{2}' | tail -1)
+    echo "    STC15 AUXR = $AUXR_VAL (expect 0x15)"
+    if [ "$AUXR_VAL" = "0x15" ]; then
+        echo "    PASS: AUXR correctly set for Timer 2 baud"
+        PASS=$((PASS+1))
+    else
+        echo "    FAIL: expected 0x15"
+        FAIL=$((FAIL+1))
+    fi
+
+    # NAIVE: BRT written but T2H should NOT be 0xFF (was never loaded)
+    NAIVE_T2H=$(printf 'step 600\ndump sfr 0xD6 0xD6\nquit\n' | \
+        timeout 5 "$UCSIM" -t STC15 -b tests/fixtures/baud_naive.ihx 2>&1 | \
+        grep "^0xd6" | awk '{print $NF}' | head -1)
+    echo "    Naive STC15 T2H = $NAIVE_T2H (must be 0)"
+    if [ "$NAIVE_T2H" = "0" ]; then
+        echo "    PASS: T2H = 0x00 — naive port did not load Timer 2 reload"
+        PASS=$((PASS+1))
+    else
+        echo "    FAIL: T2H should be 0x00 (default, unloaded)"
+        FAIL=$((FAIL+1))
+    fi
+else
+    echo "    SKIP: fixtures or ucsim not available"
 fi
 
 # --- Baud reload table ---
