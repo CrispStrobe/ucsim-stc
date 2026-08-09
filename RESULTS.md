@@ -464,3 +464,31 @@ Cross-emulator: **init sequence identical on both emulators.**
 **Status: the register sequence matches the peripheral model.
 The analog path (real voltage → correct number) is untested —
 that needs a bench session with a pot on P1.3.**
+
+## timeFreezes measurement
+
+`DEBUG-CONTROL-MODEL.md` §3.1: program time (Timer 0 / bw_ms)
+freezes while halted.  Timer 1 (wall time) accumulates skew.
+
+On an emulator, `timeFreezes = true` is **inherently correct**:
+time is a counter the emulator owns, and halting (stopping
+`do_inst`) stops the counter.  There is no hardware clock running
+independently.
+
+Measured by stepping 15,000 instructions from a yield breakpoint:
+- `bw_ms` advanced from 0 to 2 (23,792 clocks = ~2.15 ms = 2
+  timer overflows).  **Correct**: stepping executes instructions,
+  which tick the hardware.
+- ISR ran for 74 clocks (0.31% of execution) — the Timer 0 ISR
+  incremented `bw_ms` twice.
+
+**`timeFreezes` is a property of the halt, not of the step.**
+While halted (between steps), no instructions execute, no ticks
+happen, and `bw_ms` does not advance.  The step itself is a
+brief resume that advances time by exactly the stepped
+instruction's cycle count.
+
+The meaningful test is on the **on-chip monitor**, where the chip
+keeps running during a halt and `timeFreezes` requires the firmware
+to explicitly stop Timer 0.  That test needs `10-live-firmware`
+with UART driving, which is emu8051-stc's domain (`331bb3f`).
