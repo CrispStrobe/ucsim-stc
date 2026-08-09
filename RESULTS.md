@@ -72,9 +72,13 @@ configurable value).
   traced per-tick.
 - **Exact instruction cycle timing.**  Both emulators agree on *which*
   SFR transitions happen and in *what order*, but not on the exact
-  nanosecond.  A 1-cycle error in a specific opcode would shift
-  timestamps but not change the event sequence — and so would not be
-  caught by this comparison.
+  nanosecond (0.1% gap, ~1 clock).  Timing comes from the base ucsim
+  MCS-51 instruction handlers (which count in standard machine cycles),
+  not from the STC12 datasheet's own 1T instruction clock table.  The
+  STC12 1T table has per-instruction clock counts that differ from the
+  standard 12T cycle table divided by 12 — that table is nobody's
+  oracle yet, and the residual gap is against emu8051's counts, not
+  against the datasheet.
 
 ## What this proves and what it does not
 
