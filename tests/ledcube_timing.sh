@@ -1,21 +1,38 @@
 #!/bin/bash
-# ledcube_timing.sh — measure scan step timing on rgm3/ledcube444.
+# ledcube_timing.sh — measure scan step timing on ledcube444 firmware.
 #
-# Compiles the firmware, runs both emulators, and compares P0 write
-# timestamps to microsecond precision.
+# Requires two inputs from the local-only corpus (never committed):
+#   $1 = ledcube444.c (SDCC-compatible source)
+#   $2 = Keil-compiled main.hex (original vendor build)
 #
-# Usage: ./tests/ledcube_timing.sh [source_dir]
+# Not runnable from a clean clone. Supply the inputs to re-run.
+#
+# Usage: ./tests/ledcube_timing.sh ledcube444.c keil_main.hex
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 STC12_TRACE="${STC12_TRACE:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/stc12_trace}"
-EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
-SRC="${1:-/mnt/volume1/code/stc-research/corpus/rgm3_ledcube444/ledcube444.c}"
+EMU_TRACE="${EMU_TRACE:-$(command -v emu_trace 2>/dev/null || echo "")}"
 FOSC=11059200
 
-if [ ! -x "$STC12_TRACE" ]; then echo "FAIL: stc12_trace not found" >&2; exit 1; fi
-if [ ! -x "$EMU_TRACE" ]; then echo "SKIP: emu_trace not found" >&2; exit 0; fi
-if [ ! -f "$SRC" ]; then echo "SKIP: ledcube444.c not found at $SRC" >&2; exit 0; fi
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <ledcube444.c> [keil_main.hex]"
+    echo "Needs local-only corpus inputs; not runnable from a clean clone."
+    exit 77  # conventional skip
+fi
+
+SRC="$1"
+KEIL_HEX="${2:-}"
+
+if [ ! -x "$STC12_TRACE" ]; then
+    echo "FAIL: stc12_trace not found" >&2; exit 1
+fi
+if [ -z "$EMU_TRACE" ] || [ ! -x "$EMU_TRACE" ]; then
+    echo "SKIP: emu_trace not found" >&2; exit 77
+fi
+if [ ! -f "$SRC" ]; then
+    echo "SKIP: source not found at $SRC" >&2; exit 77
+fi
 
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
@@ -39,7 +56,7 @@ echo "ledcube444 scan timing (FOSC=$FOSC, 200ms span)"
 echo "  emu8051: $EN P0 events"
 echo "  ucsim:   $UN P0 events"
 
-# Compare timestamps of first 10 P0 events
+# Compare timestamps
 python3 -c "
 import sys
 emu = [int(l.split('\t')[0]) for l in open('$TMP/emu_p0.tsv')]
@@ -47,14 +64,12 @@ ucsim = [int(l.split('\t')[0]) for l in open('$TMP/ucsim_p0.tsv')]
 n = min(len(emu), len(ucsim), 10)
 if n < 4:
     print('  too few events'); sys.exit(1)
-# Scan step = gap between consecutive P0 writes
 print(f'  First {n} P0 write timestamps:')
 max_diff = 0
 for i in range(n):
     d = abs(emu[i] - ucsim[i])
     max_diff = max(max_diff, d)
     print(f'    [{i}] emu={emu[i]:>12} ucsim={ucsim[i]:>12} diff={d:>6} ns')
-# First scan step
 step_e = emu[2] - emu[0]
 step_u = ucsim[2] - ucsim[0]
 step_diff = abs(step_e - step_u)
@@ -63,13 +78,12 @@ print(f'  Max per-event diff: {max_diff} ns')
 if step_diff < 5000:
     print('  PASS: scan step agrees to microsecond precision')
 else:
-    print(f'  FAIL: scan step differs by {step_diff/1e3:.1f} µs')
+    print(f'  FAIL: scan step differs by {step_diff/1e3:.1f} us')
     sys.exit(1)
 "
 
-# --- Keil vs SDCC port-state comparison ---
-KEIL_HEX="${2:-/mnt/volume1/code/stc-research/corpus/icstation_4681/Code/main.hex}"
-if [ -f "$KEIL_HEX" ] && [ -x "$EMU_TRACE" ]; then
+# Keil vs SDCC port-state comparison (if Keil hex provided)
+if [ -n "$KEIL_HEX" ] && [ -f "$KEIL_HEX" ]; then
     echo ""
     echo "Keil vs SDCC port-state comparison:"
     "$EMU_TRACE" -fosc $FOSC -until-ns 200000000 "$KEIL_HEX" 2>/dev/null \
@@ -83,9 +97,4 @@ if [ -f "$KEIL_HEX" ] && [ -x "$EMU_TRACE" ]; then
     else
         echo "  FAIL: port states differ"
     fi
-    # Timing comparison
-    python3 -c "
-keil_t = [int(l.split('\t')[0]) for l in open('$TMP/keil_ports.ev') if 'SFR' in l and '80' in l][:4] if False else []
-" 2>/dev/null || true
-    echo "  Keil scan step: ~12.2ms, SDCC scan step: ~8.9ms (27% difference from delay loop)"
 fi

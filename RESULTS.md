@@ -313,12 +313,17 @@ more simulated time in the 2ms window.
 
 ## ledcube444 scan timing
 
-Reproducible: `./tests/ledcube_timing.sh`
+Reproduced against the local-only corpus; supply inputs to re-run:
+`./tests/ledcube_timing.sh ledcube444.c keil_main.hex`
 
 rgm3/ledcube444 is a port of the icstation 4681 kit's vendor firmware,
 reformatted for SDCC. The rgm3 repo carries an MIT licence but the
 underlying code is from an unlicensed Chinese vendor source (4681.zip).
 **We measure against it but do not treat it as independently licensed.**
+
+Input SHA-256 (for verification without publishing contents):
+- ledcube444.c: `97fdeb48342820b9cd3efca72b840cdb4cb513bb96567fe54db1657cd0876beb`
+- keil main.hex: `2dd4c198548ece891f5efc16a9b2e6dd6e23f2b8fe10fd8ffb05a831e3144976`
 
 | | emu8051 | ucsim | diff |
 |---|---|---|---|
