@@ -404,4 +404,6 @@ Note: `delay_ms` was missing from the generated output (sb3-creator
 bug — `bw_cube_scan` calls it without emitting it).  Added manually
 for this test.  The bug is in sb3-creator, not in the kernel logic.
 
-This closes **blocks → C → measured behaviour** for the LED cube.
+This closes **C → measured behaviour** for the LED cube, and closes
+blocks → C → behaviour **once the emitter emits `delay_ms`** — see
+the sb3-creator note above.
