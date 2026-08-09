@@ -325,24 +325,25 @@ Input SHA-256 (for verification without publishing contents):
 - ledcube444.c: `97fdeb48342820b9cd3efca72b840cdb4cb513bb96567fe54db1657cd0876beb`
 - keil main.hex: `2dd4c198548ece891f5efc16a9b2e6dd6e23f2b8fe10fd8ffb05a831e3144976`
 
-**Terminology:** a "frame" is one full cycle of all 8 scan lines.
-A "scan line" is one layer-select dwell.  The table below reports
-**frames** (time between two consecutive P0=0x00 writes, covering
-all 8 scan lines).  Per-line dwell = frame / 8.
+**Measured from the scan phase only** (after the all-on pattern ends).
+Earlier figures (8.876 ms / 1.110 ms, 12.217 ms / 1.527 ms) were
+taken through a 50 ms window that overlapped the all-on phase and
+mis-triggered the frame detector.  Corrected with a 5-second window.
 
-| build | emu8051 frame | ucsim frame | diff | per-line dwell | refresh |
+| build | emu per-line | ucsim per-line | cross-emu diff | frame | refresh |
 |---|---|---|---|---|---|
-| SDCC (ledcube444.c) | 8.876 ms | 8.875 ms | 1,477 ns (0.017%) | 1.110 ms | 113 Hz |
-| Keil (4681 main.hex) | 12.217 ms | 12.215 ms | 2,123 ns (0.017%) | 1.527 ms | 82 Hz |
+| SDCC | 1.237 ms | 1.236 ms | 1,201 ns (0.097%) | 9.895 ms | 101 Hz |
+| Keil | 0.824 ms | — | — | 6.594 ms | 152 Hz |
 
-`stc/src/20-ledcube` reports 1.235 ms per scan line (9.88 ms frame,
-101 Hz), measured by emu8051 on a different SDCC build.  The
-difference from our 1.110 ms is from the software delay loop
-compiling differently across SDCC versions.
+SDCC 1.237 ms agrees with `stc/src/20-ledcube` README's 1.235 ms
+to 0.16% — the same behaviour measured twice, not different builds.
 
-Port-state sequence (P0 values): **IDENTICAL** between Keil and SDCC
-builds.  Both compilers produce the same observable behaviour; only
-the software delay loop timing differs (27%).
+Keil is **faster** than SDCC (0.824 ms vs 1.237 ms per line).  The
+Keil compiler generates a tighter software delay loop.  The earlier
+claim of "27% slower" was inverted by the all-on phase artifact.
+
+Port-state sequence (P2 scan values): **IDENTICAL** between Keil
+and SDCC builds — both cycle FE FD FB F7 EF DF BF 7F.
 
 ## Cleanroom LED cube driver
 
