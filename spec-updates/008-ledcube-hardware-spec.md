@@ -76,23 +76,34 @@ Repeat forever:
 - Each scan line dwell: ~1 ms is typical.
 - Animation frame rate: 10–50 fps depending on the pattern.
 
+### Implementation note: framebuffer
+
+A practical approach is an 8-byte array (one byte per scan line).
+The animation code fills this buffer; the scan loop reads it.
+This separates "what to display" from "how to scan".
+
 ## 4. Animation patterns
 
 The cube should display at least these patterns (in order):
 
-1. **All on** — every LED lit, steady. The simplest test.
-2. **Layer sweep** — one layer at a time, bottom to top, then top
-   to bottom.
-3. **Rain** — random LEDs light in the top layer and "fall" down
-   one layer per frame.
-4. **Spiral** — LEDs light in a spiral pattern around the outside
-   edges of each layer.
+1. **All on** — every LED lit (P0 = 0x00 on all scan lines), steady
+   for ~3 seconds.  Both colors.
+2. **Layer sweep** — one layer at a time, bottom to top then top to
+   bottom (bounce: layers 0,1,2,3,2,1,0,1,...).  Use red LEDs
+   (P0 bits 0–3).  Each layer visible for ~200 ms.
+3. **Rain** — LEDs appear in the top layer and fall down one layer
+   per step.  Use blue LEDs (P0 bits 4–7).  4 drops at staggered
+   positions, cycling through 4 column rotations.  ~100 ms per step.
+4. **Spiral** — one column lit at a time, sweeping through all 4
+   columns on each layer, bottom to top.  Both colors.  ~100 ms
+   per position.
 
-Each pattern runs for a few seconds before advancing to the next.
+Each pattern runs for ~3 seconds before advancing to the next.
 The sequence repeats forever.
 
 Pattern data should be stored in code flash (`__code` arrays) to
-save RAM.
+save RAM.  The implementer chooses the exact patterns; these
+descriptions are goals, not pixel-level prescriptions.
 
 ## 5. Software delay
 
