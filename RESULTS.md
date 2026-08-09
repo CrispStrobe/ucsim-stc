@@ -253,7 +253,17 @@ Implemented as a delta on the STC12 base per STC15-PERIPHERAL-MODEL.md:
 |-------|-------|-------|
 | ADRJ location | AUXR1.2 (0xA2 bit 2) | CLK_DIV.5 (0x97 bit 5) |
 | PCA modules | 2 (CCAPM0/1) | 3 (CCAPM0/1/2) |
-| AUXR lower bits | BRT | Timer 2 (noted, not yet behavioral) |
+| AUXR lower bits | BRT (8-bit, 0x9C) | Timer 2 (16-bit, T2H/T2L 0xD6/0xD7) |
+| SFR gate | 57 defined addresses | 65 defined (adds T2H/T2L, CCAPM2, etc.) |
 
 Verified: STC15 ADRJ works at CLK_DIV.5 and does NOT respond to
 the old AUXR1.2 location (the trap from STC15-PERIPHERAL-MODEL §2.1).
+Timer 2 counts correctly at both 1T and 12T prescaler settings.
+
+## Additional peripherals
+
+- **Dual DPTR**: DPS (0x86) bit 0 selects DPTR0/DPTR1. DPL1 (0x84),
+  DPH1 (0x85). Uses ucsim's built-in SFR-mode dual DPTR support.
+- **Watchdog timer**: WDT_CONTR (0xC1). Prescaled counter, overflow
+  at 32768 sets WDT_FLAG. Behavioral model (enable, clear, prescaler).
+  A real chip resets on overflow; the emulator sets the flag.
