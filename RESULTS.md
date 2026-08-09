@@ -239,15 +239,15 @@ here for reproducibility; image contents are never committed or pushed.
 
 ## Boundary D acceptance ladder (DEBUG-CONTROL-MODEL.md §8)
 
-| Rung | Description | Status |
-|------|-------------|--------|
-| 1 | capabilities/state | API implemented in cl_uc_stc12 |
-| 2 | Level 1 position | debug_read_bw_ms/task_state/task_until from IRAM |
-| 3 | step(insn) PC sequence (interrupts masked) | **PASS** — 1000/1000 PCs identical from reset (blink.ihx) |
-| 4 | Code breakpoint at correct PC | **PASS** — halts at bw_task0 entry (0x011D) |
-| 5 | Yield breakpoint at correct (task, state) | **PASS** — halts at case-label, task0_state=3 |
-| 6 | Write while halted affects execution | **PASS** — task0_state=0xFFFF stays ended after resume |
-| 7 | Peripheral-event differential on ISR images | **PASS** — 275/349 corpus, 5006/5006 blink 1s |
+Reproducible: `EMU_TRACE=… ./tests/run_control_diff.sh`
+
+| Rung | Description | Cross-emulator | ucsim-only |
+|------|-------------|---------------|------------|
+| 3 | step(insn) x 1000, interrupts masked | **PASS** 1000/1000 PCs | — |
+| 4 | Code breakpoint, same PC + registers | SKIP (needs emu_trace BP+regs) | **PASS** PC=0x011D |
+| 5 | Yield breakpoint, same (task, state, bw_ms) | SKIP (needs emu_trace yield) | **PASS** state=3 |
+| 6 | Write while halted, same subsequent trace | SKIP (needs emu_trace write) | **PASS** 0xFFFF persists |
+| 7 | Peripheral-event differential on ISR images | **PASS** 49/49 (10 ms) | — |
 
 ### Bugs found by this ladder
 
