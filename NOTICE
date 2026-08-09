@@ -26,6 +26,8 @@ What was changed:
     ucsim/src/sims/s51.src/stc12_port.cc
     ucsim/src/sims/s51.src/stc12_wdtcl.h
     ucsim/src/sims/s51.src/stc12_wdt.cc
+    ucsim/src/sims/s51.src/stc15_timer2cl.h
+    ucsim/src/sims/s51.src/stc15_timer2.cc
     ucsim/src/sims/s51.src/stc12_trace.cc
 
   The following upstream files were MODIFIED to register the new models:

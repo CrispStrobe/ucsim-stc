@@ -22,6 +22,7 @@
 #include "stc12_adccl.h"
 #include "stc12_portcl.h"
 #include "stc12_wdtcl.h"
+#include "stc15_timer2cl.h"
 #include "portcl.h"
 #include "stc12_pcacl.h"
 #include "serialcl.h"
@@ -415,6 +416,14 @@ cl_uc_stc12::mk_hw_elements(void)
   h= new cl_stc12_wdt(this);
   h->init();
   add_hw(h);
+
+  /* STC15 Timer 2 (replaces BRT on STC12) */
+  if (stc_part == STC_PART_STC15)
+    {
+      h= new cl_timer2_stc15(this);
+      h->init();
+      add_hw(h);
+    }
 
   /* PCA with correct module count and 1T clock prescaling */
   int pca_modules= (stc_part == STC_PART_STC15) ? 3 : 2;
