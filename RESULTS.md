@@ -382,8 +382,12 @@ vendor uses a software busy-loop (approximate).
 
 ## Generated cube kernel (blocks → C → measured behaviour)
 
-`sb3-creator` `cb7894c` emits a complete cube scan kernel from
-pseudocode (`LEDCUBE 4`, `set voxel`, `hold frame`).
+Reproducible: `EMU_TRACE=… ./tests/generated_cube_diff.sh [sb3-creator-path]`
+
+`sb3-creator` emits a complete cube scan kernel from pseudocode
+(`LEDCUBE 4`, `set voxel`, `hold frame`).  The harness takes the
+pseudocode inline, emits C, builds with SDCC (no edits), and diffs
+both emulators.
 
 Cross-emulator: **101/101 events strictly identical** (100ms span).
 
