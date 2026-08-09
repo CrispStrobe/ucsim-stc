@@ -675,12 +675,18 @@ All 9 example bundles also produce identical traces across the three
 | 08-seven-segment | 9 | identical |
 | 09-shift-register | 29 | identical |
 
-### Cross-emulator parity (pending)
+### Cross-emulator parity (STC89: verified)
 
-Cross-emulator STC89 differential is blocked on `emu_trace` adding
-`-part` support (spec-updates/012).  The finding in `/tmp/stc89-12t.md`
-confirms that emu8051-stc's WASM build currently runs STC89 at 1T speed,
-which is the exact 12× timing bug this ladder exists to catch.
+Cross-emulator STC89 differential resolved after emu8051-stc rebuilt
+`emu_trace` with `-part` support (post commit `00e9d5b`, the 12T fix).
+
+| Image | ucsim events | emu events | Prefix match |
+|-------|-------------|-----------|--------------|
+| `blink_stc89.ihx` | 43 | 388 | **43/43 identical** |
+
+Event count differs because emu8051 runs more instructions in the same
+time window (same pattern as the STC12 corpus §Prefix-only). Within the
+overlap, every SFR value and event type is identical.
 
 ### Test summary (all green)
 
@@ -690,26 +696,25 @@ which is the exact 12× timing bug this ladder exists to catch.
 | Timing verification (4 parts + diff + equiv) | **6/6** |
 | Example differentials (STC12 cross-emu) | **9/9** |
 | Boundary D ladder (STC12 cross-emu) | **6/6** |
-| Multi-part differentials | **8/8 pass, 1 skip** |
+| Multi-part differentials (incl. cross-emu STC89) | **9/9** |
 | Cross-part examples (STC12=STC15=STC15W) | **9/9** |
 
-### What is blocked and why
+### What was blocked and is now resolved
 
-Cross-emulator parity on STC89 and STC15W requires `emu_trace` to
-accept `-part STC89` / `-part STC15W`. Requested in spec-updates/012.
-The existing `emu_set_part()` WASM API (wasm_api.c line 105) has the
-part IDs; the trace binary simply doesn't call it yet.
+Cross-emulator STC89 parity was blocked on `emu_trace -part`. Resolved
+after requesting via spec-updates/012 and direct message to emu8051-stc.
+They rebuilt with commit `00e9d5b`'s 12T fix.
 
-The `/tmp/stc89-12t.md` finding — STC89 core rate is 1T in the shipped
-WASM build — is confirmed on this side: ucsim-stc's STC89 model runs
-at 12T core rate (1085 ns/NOP vs 90 ns), and the rung_timing.sh test
-asserts the 12× difference explicitly.
+Cross-emulator STC15W parity remains untested (no `-part STC15W` tested
+yet, but the API exists in emu8051-stc).
 
-The `/tmp/stc89-correction.md` withdrawal is also addressed: the test
-now asserts both axes — the 12× DIFFERENCE in core rate (which must
-exist) AND the 1% EQUALITY in Timer 0 at FOSC/12 (which must hold).
-The methodological point — "a differential probe needs a control that
-is known to differ" — is exactly what rung_timing.sh's difference
+### Methodology notes
+
+The `/tmp/stc89-correction.md` withdrawal is addressed: the test now
+asserts both axes — the 12× DIFFERENCE in core rate (which must exist)
+AND the 1% EQUALITY in Timer 0 at FOSC/12 (which must hold). The
+methodological point — "a differential probe needs a control that is
+known to differ" — is exactly what rung_timing.sh's difference
 assertion implements.
 
 ### stc-compiler pseudocode path bug (not blocking)
