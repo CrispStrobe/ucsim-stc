@@ -406,3 +406,20 @@ fixed the missing `delay_ms` emission): **101/101 strictly identical,
 The emitter change did not disturb the kernel.
 
 This closes **blocks → C → measured behaviour** for the LED cube.
+
+## 10-live-firmware (on-chip debug monitor)
+
+`stc/src/10-live-firmware/main.c` — the chip-side debug monitor,
+never previously executed.  Interrupt-driven: Timer 0 ISR (bw_ms),
+Timer 1 (baud rate), UART RX.
+
+Cross-emulator (50 ms span):
+- **5/5 non-TCON SFR events identical** (P1M0, AUXR, TMOD, P1 init)
+- **49/49 TF0 events, 49/49 TF1 events** — identical counts
+- TCON event ordering differs (TF0+TF1 observed together vs
+  separately, depending on ISR dispatch granularity)
+
+The monitor builds, runs, and produces the same init sequence and
+timer overflow counts on both emulators.  UART byte-stream comparison
+requires driving the serial port (not yet done — no UART model in
+either emulator's trace).
