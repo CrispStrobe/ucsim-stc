@@ -432,3 +432,35 @@ cross-emulator comparison covers SFR init and timer behaviour;
 the UART protocol differential is the next step and requires
 plumbing the serial byte stream into the trace harness (ucsim
 has `cl_serial` with IO write, emu8051 has `emu_serial_write`).
+
+## 02-adc register sequence (the half that does not need a bench)
+
+Run under both emulators (5 s, FOSC = 11,059,200 Hz).  Checked
+against `STC12-PERIPHERAL-MODEL.md` §4.
+
+| register | value | check |
+|---|---|---|
+| `P1ASF` | `0x08` | P1.3 only — no stray analog bits |
+| `P1M1` | `0x08` | P1.3 input-only (high-Z for analog) |
+| `P1M0` | `0x03` | P1.0-1 push-pull (LED pins) |
+| `AUXR1` | `0x00` | ADRJ=0, right-justified result |
+| `ADC_CONTR` sequence | `0x80 → 0x8B → 0x93 → 0x83` | see below |
+
+ADC_CONTR handshake:
+1. `0x80` — power on, settling time
+2. `0x8B` — power + START + channel 3
+3. `0x93` — power + FLAG + ch3 (START cleared by hardware)
+4. `0x83` — power + ch3 (FLAG cleared by software, writing 0)
+
+All match the peripheral model:
+- `ADC_START` cleared at conversion completion, not on write
+- `ADC_FLAG` cleared by software writing 0
+- `SPEED = 00` (420 clocks)
+- `P1ASF` set for P1.3 only
+- `ADRJ = 0` (right-justified, matching `adc_read()` formula)
+
+Cross-emulator: **init sequence identical on both emulators.**
+
+**Status: the register sequence matches the peripheral model.
+The analog path (real voltage → correct number) is untested —
+that needs a bench session with a pot on P1.3.**
