@@ -108,12 +108,20 @@ from the same datasheet section (§10, PCA clock = SYSclk/12 when
 `CMOD.CPS2:1:0 = 000`). A shared misreading would produce exactly
 this agreement.
 
-### Duty vs brightness: the boundary that does not exist yet
+### Duty vs brightness: which emulator has both halves?
 
-ucsim-stc verifies **duty** (50% = 50.0% at the pin). bw-board
-reports **brightness** (0.0725 for a 50% duty LED). Nobody has
-connected them: the interface to feed real edge streams from an
-emulator into the board's analog model does not exist. Until it
-does, the two numbers are independently correct but never tested
-against each other. "The interface needed to ask this question is
-missing" is the finding.
+ucsim-stc verifies **duty** (50.0% at the pin) but has no board
+adapter. emu8051-stc has `emu8051-adapter.js` — a working boundary A
+adapter that calls `board.setPin()` on every pin change — AND it
+models PCA PWM (full 9-bit comparator, double buffering, pin output
+in `stc12.c` line 640–680).
+
+So the **brightness question is answerable today** via emu8051-stc +
+bw-board, with no new code needed from ucsim-stc. What is missing is
+not the interface — boundary A is implemented — but a ucsim-specific
+adapter. That is one file to write, not one architecture to design,
+and it should satisfy `bw-board/conformance.js` on day one.
+
+Correction: the earlier version of this section stated "the interface
+needed to ask this question is missing." That was wrong — I should
+have grepped for `emu8051-adapter.js` before recording it.
