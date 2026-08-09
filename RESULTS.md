@@ -360,16 +360,21 @@ from hardware spec `008-ledcube-hardware-spec.md` only.
 
 ### Cleanroom vs vendor scan pattern
 
-The two programs use **different display strategies**:
-- Cleanroom: multiplexed scanning (P2 cycles 0xFE..0x7F, one
-  layer at a time, with 0xFF blanking between)
-- Vendor: all layers lit simultaneously (P2=0x00), P0 toggles
-  the pattern data
+**Correction:** the original 50ms window landed inside the vendor's
+all-on pattern (P2=0x00, all layers simultaneously) and incorrectly
+concluded P2 was always 0x00.  A 5-second window shows both phases:
 
-Both are valid for a 4×4×4 cube.  The difference is a design
-choice, not a spec gap: the spec describes multiplexed scanning
-(which is the standard technique), and the vendor took a shortcut
-that works for simple patterns.
+- **All-on phase** (~1.24s): vendor holds P2=0x00.  Cleanroom uses
+  multiplexed scan even for all-on.
+- **After all-on**: vendor scans identically to the cleanroom —
+  P2 cycles FE FD FB F7 EF DF BF 7F, one layer at a time.
 
-The per-line dwell (1.007 ms) matches the Timer 0 reload
-(0xFC67 at FOSC/12 = 921 counts = 1.000 ms + overhead).
+Vendor scan timing (SDCC build, after the all-on phase):
+1.238 ms per line, 9.895 ms frame, 101 Hz.
+
+The scan table in spec §008 (FE FD FB F7 EF DF BF 7F) is
+**confirmed** by the vendor firmware.  The spec is correct.
+
+The per-line dwell (cleanroom: 1.007 ms, vendor: 1.238 ms) differs
+because the cleanroom uses Timer 0 at FOSC/12 (exact) while the
+vendor uses a software busy-loop (approximate).
