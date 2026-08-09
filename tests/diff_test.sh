@@ -37,11 +37,11 @@ trap "rm -rf $TMP" EXIT
 echo "Running emu8051-stc (until ${UNTIL_NS} ns, ~${EMU_CYCLES} cycles)..."
 "$EMU_TRACE" -fosc $FOSC -cycles "$EMU_CYCLES" "$HEXFILE" 2>/dev/null \
     | awk -v limit="$UNTIL_NS" '$1 <= limit' \
-    | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.events"
+    | awk '$2 == "SFR" || $2 == "TF" || $2 == "PIN"' | cut -f2- > "$TMP/emu.events"
 
 echo "Running ucsim-stc (until ${UNTIL_NS} ns)..."
 "$STC12_TRACE" -fosc $FOSC -until-ns "$UNTIL_NS" "$HEXFILE" 2>/dev/null \
-    | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.events"
+    | awk '$2 == "SFR" || $2 == "TF" || $2 == "PIN"' | cut -f2- > "$TMP/ucsim.events"
 
 EMU_N=$(wc -l < "$TMP/emu.events")
 UCSIM_N=$(wc -l < "$TMP/ucsim.events")
