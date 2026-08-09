@@ -715,9 +715,17 @@ Sourced from GitHub: `zerog2k/stc_diyclock`, `aFewBits/stc-led-clock`,
 `shenghaoyang/stc_led_clock_8k`. All are SDCC-compiled LED clock kits
 for the STC15W408AS. Stored in `corpus/stc15w/` (non-committed).
 
-All 3 images load and produce events on the STC15W model (total: 1185
-events across 2 ms). Cross-emulator differential pending emu_trace
-`-part STC15W` testing.
+All 5 images load and produce events on the STC15W model:
+
+| Image | Source | Events (2ms) |
+|-------|--------|-------------|
+| `stc_diyclock.hex` | zerog2k/stc_diyclock | 400 |
+| `stc_diyclock_ntp.hex` | onivan/stc_diyclock-ntp | 402 |
+| `stc_diywatch.hex` | ruthsarian/stc_diywatch | 784 |
+| `stc_led_clock_8k.ihx` | shenghaoyang/stc_led_clock_8k | 13 |
+| `stc-led-clock.hex` | aFewBits/stc-led-clock | 772 |
+
+Cross-emulator differential pending emu_trace `-part STC15W` testing.
 
 ### Test summary (all green)
 
