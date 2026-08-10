@@ -121,8 +121,27 @@ cl_pca_stc12::do_pca_counter(int cycles)
 	  }
       }
 
-      /* 16-bit compare/match: check {CH,CL} == {CCAPnH,CCAPnL}
-	 on every CL tick when MAT is set and PWM is not. */
+      /* CL wrap: increment CH BEFORE the 16-bit compare.
+	 If CH increments after, a target at CL=0x00 sees
+	 {old_CH, 0x00} and misses by 256 counts (one CL rollover). */
+      if (cl_val == 0)
+	{
+	  /* CL wrapped: reload CCAPnL from CCAPnH for PWM modules */
+	  for (int i= 0; i < n_modules; i++)
+	    if (ccapm[i] & bmPWM)
+	      cell_ccapl[i]->set(cell_ccaph[i]->get());
+
+	  if (cell_ch->set(cell_ch->get() + 1) == 0)
+	    {
+	      /* Full CH:CL overflow */
+	      cell_ccon->set(cell_ccon->get() | bmCF);
+	      for (int i= 0; i < n_modules; i++)
+		do_pca_module(i);
+	    }
+	}
+
+      /* 16-bit compare/match: check {CH,CL} == {CCAPnH,CCAPnL}.
+	 CH is already updated if CL just wrapped. */
       {
 	t_mem ch_val= cell_ch->get();
 	for (int i= 0; i < n_modules; i++)
@@ -153,22 +172,6 @@ cl_pca_stc12::do_pca_counter(int cycles)
 	      }
 	  }
       }
-
-      if (cl_val == 0)
-	{
-	  /* CL wrapped: reload CCAPnL from CCAPnH for PWM modules */
-	  for (int i= 0; i < n_modules; i++)
-	    if (ccapm[i] & bmPWM)
-	      cell_ccapl[i]->set(cell_ccaph[i]->get());
-
-	  if (cell_ch->set(cell_ch->get() + 1) == 0)
-	    {
-	      /* Full CH:CL overflow */
-	      cell_ccon->set(cell_ccon->get() | bmCF);
-	      for (int i= 0; i < n_modules; i++)
-		do_pca_module(i);
-	    }
-	}
     }
 }
 
