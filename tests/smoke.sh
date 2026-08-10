@@ -162,6 +162,20 @@ echo "[26] STC15W no Timer 1"
 OUT=$(printf 'conf\nquit\n' | $UCSIM -t STC15W 2>&1)
 echo "$OUT" | grep -q "timer1" && fail "STC15W should not have timer1" || pass "STC15W correctly lacks timer1"
 
+# 27. stc12_trace terminates on 10-live-firmware (regression for 10-hour hang)
+echo "[27] stc12_trace terminates on 10-live-firmware"
+TRACE_BIN=ucsim/src/sims/s51.src/stc12_trace
+MONITOR_HEX=/mnt/volume1/code/stc/build/stc12c5a60s2/10-live-firmware/10-live-firmware.hex
+if [ -x "$TRACE_BIN" ] && [ -f "$MONITOR_HEX" ]; then
+    if timeout 10 "$TRACE_BIN" -t STC12 -fosc 11059200 -until-ns 1000000 "$MONITOR_HEX" > /dev/null 2>&1; then
+        pass "stc12_trace terminates on monitor firmware (1ms)"
+    else
+        fail "stc12_trace hung or failed on monitor firmware"
+    fi
+else
+    echo "  SKIP: trace binary or monitor hex not available"
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ $FAIL -eq 0 ] && exit 0 || exit 1
