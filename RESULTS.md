@@ -736,9 +736,29 @@ the shorter window (12T = 12× fewer instructions per ms). Of the
 | Prefix | 6 |
 | Diverge | **0** |
 
-**26/26 (100%) agree.** This is a **state-only** comparison
-(timestamps stripped). It proves both emulators implement the same
-ISA under STC89 mode, not that the STC89 model differs from STC12.
+Full 347-image run completed (corpus_stc12_on_stc89.sh, timeout 10s):
+
+| Result | Count | % |
+|--------|-------|---|
+| **Strict** | **131** | **38%** |
+| Prefix | 110 | 32% |
+| Diverge | 53 | 15% |
+| Empty | 43 | 12% |
+| Emu-fail | 9 | 3% |
+| Timeout | 1 | <1% |
+
+241/294 images with events agree (82%). The 53 divergences are
+timer-interleaving (SFR values match, positions relative to TF
+differ). **Attempted: 347, Executed: 337, Timeout: 1.**
+
+The single timeout (`ledcube8x8x8_M328.hex`) is an AVR-targeted
+image in the corpus. The previous hung loop (3 hours, no timeout)
+was caused by `appleOHseed_serial9600` making stc12_trace spin
+forever with no per-invocation timeout.
+
+This is a **state-only** comparison (timestamps stripped). It proves
+both emulators implement the same ISA under STC89 mode, not that
+the STC89 model differs from STC12.
 
 ### Model difference assertion (the control that must differ)
 
