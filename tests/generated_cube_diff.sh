@@ -12,7 +12,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 STC12_TRACE="${STC12_TRACE:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/stc12_trace}"
 EMU_TRACE="${EMU_TRACE:-$(command -v emu_trace 2>/dev/null || echo "")}"
-SB3="${1:-/mnt/volume1/code/sb3-creator}"
+SB3="${1:-../sb3-creator}"
 UNTIL_NS="${2:-100000000}"
 FOSC=11059200
 

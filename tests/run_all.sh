@@ -27,7 +27,7 @@ run_suite "Model difference (STC12 vs STC89)" ./tests/rung_model_diff.sh
 run_suite "Baud divergence (BRT vs T2)" ./tests/rung_baud.sh
 
 # Cross-emulator tests (require emu_trace)
-EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
+EMU_TRACE="${EMU_TRACE:-../emu8051-stc/emu_trace}"
 if [ -x "$EMU_TRACE" ]; then
     run_suite "Example differentials" ./tests/examples_diff.sh
     EMU_TRACE="$EMU_TRACE" run_suite "Boundary D ladder" ./tests/run_control_diff.sh

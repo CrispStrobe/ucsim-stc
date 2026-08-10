@@ -1,6 +1,6 @@
 # Notes on DEBUG-CONTROL-MODEL.md (boundary D) — before building
 
-Read from `/mnt/volume1/code/stc/docs/DEBUG-CONTROL-MODEL.md`.
+Read from `../stc/docs/DEBUG-CONTROL-MODEL.md`.
 These are notes, not proposed changes; the spec is upstream.
 
 ## What is clear and right

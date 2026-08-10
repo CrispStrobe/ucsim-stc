@@ -2,7 +2,7 @@
 # corpus_stc12_on_stc89.sh — run the STC12 corpus through both emulators
 # as STC89. Per-invocation timeout of 10s. Reports Timeout as a sixth outcome.
 #
-# REQUIRES a local corpus directory (default: /mnt/volume1/code/stc-research/hex)
+# REQUIRES a local corpus directory (default: ../stc-research/hex)
 # that is NOT distributed with this repository. The corpus contains third-party
 # firmware images that are local-only by policy. Without it, this script does
 # nothing — it is not reproducible from the public repo alone.
@@ -12,8 +12,8 @@ set -e
 cd "$(dirname "$0")/.."
 
 TRACE="./ucsim/src/sims/s51.src/stc12_trace"
-EMU="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
-CORPUS="${1:-/mnt/volume1/code/stc-research/hex}"
+EMU="${EMU_TRACE:-../emu8051-stc/emu_trace}"
+CORPUS="${1:-../stc-research/hex}"
 UNTIL_NS="${2:-2000000}"
 FOSC=11059200
 INVOC_TIMEOUT=10

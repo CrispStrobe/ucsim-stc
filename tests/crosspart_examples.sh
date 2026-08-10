@@ -11,7 +11,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 TRACE="./ucsim/src/sims/s51.src/stc12_trace"
-EXAMPLES="${1:-/mnt/volume1/code/stc/examples}"
+EXAMPLES="${1:-../stc/examples}"
 FOSC=11059200
 UNTIL_NS=2000000
 

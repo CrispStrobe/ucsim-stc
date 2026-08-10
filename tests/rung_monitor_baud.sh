@@ -7,14 +7,14 @@
 #   2. STC15 build: AUXR=0x15 after uart_init() (T2 running)
 #   3. Both builds produce the same baud rate (115200)
 #
-# Requires: stc repo at /mnt/volume1/code/stc with 10-live-firmware built.
+# Requires: stc repo at ../stc with 10-live-firmware built.
 #
 # Usage: ./tests/rung_monitor_baud.sh
 set -e
 cd "$(dirname "$0")/.."
 
 UCSIM="./ucsim/src/sims/s51.src/ucsim_51"
-STC_DIR="/mnt/volume1/code/stc"
+STC_DIR="../stc"
 STC12_HEX="$STC_DIR/build/stc12c5a60s2/10-live-firmware/10-live-firmware.hex"
 STC15_HEX="$STC_DIR/build/stc15f2k60s2/10-live-firmware/10-live-firmware.hex"
 

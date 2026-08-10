@@ -9,7 +9,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 STC12_TRACE="${STC12_TRACE:-$SCRIPT_DIR/../ucsim/src/sims/s51.src/stc12_trace}"
-EMU_TRACE="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
+EMU_TRACE="${EMU_TRACE:-../emu8051-stc/emu_trace}"
 HEXDIR="${1:?Usage: $0 /path/to/hex-dir [until_ns]}"
 UNTIL_NS="${2:-2000000}"
 FOSC=11059200

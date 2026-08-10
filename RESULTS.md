@@ -135,8 +135,8 @@ If `diff` produces no output, the event sequences are identical.
 ./tests/diff_test.sh firmware.hex 10000000
 ```
 
-Runs both emulators and reports PASS/FAIL.  Requires `emu_trace` at
-`/mnt/volume1/code/emu8051-stc/emu_trace` (or set `EMU_TRACE`).
+Runs both emulators and reports PASS/FAIL.  Requires `emu_trace`
+from emu8051-stc (set `EMU_TRACE` to its path).
 
 ## Example bundles (9/9 verified)
 
@@ -197,8 +197,9 @@ of scope per the peripheral model spec §8.
 
 ## Corpus run: 349 real firmware images
 
-Ran both emulators on 349 third-party firmware images from
-`stc-research/hex/` (2 ms simulated time, FOSC = 11,059,200 Hz).
+Ran both emulators on 349 third-party firmware images from a
+local corpus not distributed with this repo
+(2 ms simulated time, FOSC = 11,059,200 Hz).
 
 | Result | Count | % |
 |--------|-------|---|
@@ -691,8 +692,10 @@ overlap, every SFR value and event type is identical.
 ### STC89 firmware corpus (27 images)
 
 Sourced from GitHub: `treideme/stc89c52-demos` (16 programs, compiled
-with SDCC), `chenjr15/STC89C52RC` (5 hex files), `MangnimitMCU/STC89C52RC`
-(3 hex files). Stored in `corpus/stc89/` (non-committed, unlicensed).
+with SDCC, Apache-2.0 licence), `chenjr15/STC89C52RC` (5 hex files),
+`MangnimitMCU/STC89C52RC` (3 hex files). Stored in `corpus/stc89/`
+(non-committed). The 16 treideme programs were compiled and measured
+against, not derived from — no code from them appears in this repo.
 
 Cross-emulator differential (2 ms, FOSC = 11,059,200 Hz):
 

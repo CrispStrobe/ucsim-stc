@@ -10,7 +10,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 TRACE="./ucsim/src/sims/s51.src/stc12_trace"
-EMU="${EMU_TRACE:-/mnt/volume1/code/emu8051-stc/emu_trace}"
+EMU="${EMU_TRACE:-../emu8051-stc/emu_trace}"
 CORPUS="${1:-corpus/stc15w}"
 UNTIL_NS="${2:-2000000}"
 FOSC=11059200
