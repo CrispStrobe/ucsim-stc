@@ -85,8 +85,44 @@ SFR events on the watched list, IAP reads/writes don't affect timer or port
 behavior, and multiprocessor addressing doesn't affect UART byte delivery.
 
 The ABSENT peripherals (SPI, comparator, power modes) would need new hardware
-element classes. SPI is the most impactful — several firmware images in the
-corpus use it.
+element classes. None are exercised by emitted code or the 347-image corpus.
+
+## Emitted code vs model: what is verified, what is merely executed
+
+Crossed the emitter's lowerings against model status. A program whose
+SFR writes land on cells-only registers has been *executed*, not
+*verified* — and "verified under emulation" in a commit message does
+not distinguish the two. Per `stc/docs/EVIDENCE-CATEGORIES.md`, a
+program verified against a modelled peripheral is at best category 2b;
+a program merely executed against SFR cells is not evidence at all.
+
+| Emitted code path | SFRs | Model | Verifiable? |
+|---|---|---|---|
+| Pin set/clear/toggle | Px, PxM0/M1 | **Modelled** | Yes — port data + mode tracked |
+| Port write | Px | **Modelled** | Yes |
+| Timer 0 (bw_tick, delay_ms) | TMOD, TH0/TL0, TCON, AUXR | **Modelled** | Yes — 1T/12T prescaler |
+| Timer 1 (TONE pin) | TMOD, TH1/TL1, TCON | **Modelled** | Yes |
+| ADC read | P1ASF, ADC_CONTR/RES/RESL | **Modelled** | Yes — power/start/flag cycle |
+| PWM set (PCA) | CMOD, CCON, CCAPnH, PCA_PWMn | **Modelled** | Yes — 25/50/75% verified at pin |
+| LED cube scan | P0, P2 | **Modelled** | Yes — 124.1 Hz measured |
+| 74HC595 shift register | Px_n bit writes | **Modelled** | Yes — bit-bang, order-only |
+| Interrupt enable/disable | IE, IP | **Modelled** | Yes — standard 8051 dispatch |
+| **UART TX (uart_putc)** | SCON, SBUF, TI | **Cells only** ⚠ | **No** — TI polled but no byte transmitted |
+| **UART RX (uart_getc)** | SCON, SBUF, RI | **Cells only** ⚠ | **No** — RI never rises, RX hangs |
+| **BRT baud (STC12)** | BRT, AUXR | **Cells only** ⚠ | **No** — no overflow, no baud clock |
+| **Serial print (bw_print)** | SCON, SBUF | **Cells only** ⚠ | **No** — same as UART TX |
+
+**9 of 13 emitted paths are modelled** and verifiable under emulation.
+**4 of 13 are UART/serial** — the registers accept writes but no bytes
+are transmitted, no baud clock is generated, and no receive data arrives.
+A test asserting "the program ran" passes; a test asserting "the UART
+sent the right byte at the right rate" cannot be written.
+
+The UART gap matters because `10-live-firmware` (the on-chip debug
+monitor) is entirely UART-driven. It runs, its timer setup is verified
+(baud reload table), but its protocol — HELLO, POS, REGS, READ — has
+only been verified on emu8051-stc, which delivers bytes regardless of
+baud. Neither emulator can detect a baud mismatch on the wire.
 
 ## Cross-model agreement: PWM edge rate
 
