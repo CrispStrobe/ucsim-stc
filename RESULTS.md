@@ -917,7 +917,7 @@ Categories defined there; referenced here, not restated.
 | Port modes (PxM0/PxM1) | Current measurement in each mode |
 | ADC register sequence | Voltage → ADC reading on silicon |
 | PCA PWM 25/50/75% duty | Frequency counter on CEX0 pin |
-| BRT / T2H:T2L baud (both 115200) | Logic analyser on UART TX |
+| BRT / T2H:T2L reload (divisor 3 → 115200 derived) | Logic analyser on UART TX |
 
 **Category 3 (single-implementation):**
 
@@ -963,6 +963,12 @@ Specifically unverified on silicon:
 - Power modes (not modelled)
 
 ### Baud reload table for 10-live-firmware
+
+**These are derivations, not measurements.** The divisor corresponds
+to the stated baud at the stated FOSC by arithmetic. Nothing has timed
+a bit on a wire — the UART has no behavioral model (PARITY-GAPS §emitter
+vs model). The 5-baud naive-port finding survives fully, because it
+compares two derivations and that is what a derivation can catch.
 
 At FOSC = 11,059,200 Hz, BRTx12=1 / T2x12=1 (1T mode), SMOD=0:
 
