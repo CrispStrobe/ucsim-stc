@@ -121,6 +121,39 @@ cl_pca_stc12::do_pca_counter(int cycles)
 	  }
       }
 
+      /* 16-bit compare/match: check {CH,CL} == {CCAPnH,CCAPnL}
+	 on every CL tick when MAT is set and PWM is not. */
+      {
+	t_mem ch_val= cell_ch->get();
+	for (int i= 0; i < n_modules; i++)
+	  {
+	    if ((ccapm[i] & bmECOM) && (ccapm[i] & bmMAT) &&
+		!(ccapm[i] & bmPWM))
+	      {
+		t_mem ccapl= cell_ccapl[i]->get();
+		t_mem ccaph= cell_ccaph[i]->get();
+		if (cl_val == ccapl && ch_val == ccaph)
+		  {
+		    /* Match: set CCFn flag */
+		    static const t_mem ccf_masks[] = {0x01, 0x02, 0x04};
+		    if (i < 3)
+		      cell_ccon->set(cell_ccon->get() | ccf_masks[i]);
+		    /* TOG: toggle the CEX pin */
+		    if (ccapm[i] & bmTOG)
+		      {
+			class cl_address_space *s= uc->address_space(MEM_SFR_ID);
+			if (s)
+			  {
+			    static const u8_t cex_mask[] = {0x08, 0x10, 0x20};
+			    t_mem p1= s->get(0x90);
+			    s->set(0x90, p1 ^ cex_mask[i]);
+			  }
+		      }
+		  }
+	      }
+	  }
+      }
+
       if (cl_val == 0)
 	{
 	  /* CL wrapped: reload CCAPnL from CCAPnH for PWM modules */
