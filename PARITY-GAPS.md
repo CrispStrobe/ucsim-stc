@@ -107,13 +107,15 @@ a program merely executed against SFR cells is not evidence at all.
 | LED cube scan | P0, P2 | **Modelled** | Yes — 124.1 Hz measured |
 | 74HC595 shift register | Px_n bit writes | **Modelled** | Yes — bit-bang, order-only |
 | Interrupt enable/disable | IE, IP | **Modelled** | Yes — standard 8051 dispatch |
-| **UART TX (uart_putc)** | SCON, SBUF, TI | **Cells only** ⚠ | **No** — TI polled but no byte transmitted |
+| **UART TX (uart_putc)** | SCON, SBUF, TI | **Modelled** | Yes — TI fires after frame time from BRT/T2 baud clock |
 | **UART RX (uart_getc)** | SCON, SBUF, RI | **Cells only** ⚠ | **No** — RI never rises, RX hangs |
-| **BRT baud (STC12)** | BRT, AUXR | **Cells only** ⚠ | **No** — no overflow, no baud clock |
+| **BRT baud (STC12)** | BRT, AUXR | **Modelled** | Yes — 8-bit auto-reload, overflows feed serial port |
 | **Serial print (bw_print)** | SCON, SBUF | **Cells only** ⚠ | **No** — same as UART TX |
 
-**9 of 13 SFR-touching paths are modelled** and verifiable.
-**4 of 13 are UART/serial** — registers accept writes, no bytes move.
+**11 of 13 SFR-touching paths are modelled** and verifiable.
+**2 of 13 remain cells-only** — UART RX (RI never rises) and
+serial print (uses TX, which now has timing, but the print
+function itself is a no-op wrapper).
 
 ### BW_STUB: device helpers that compile but do nothing on hardware
 
@@ -145,10 +147,10 @@ for any program that uses a device helper.
 
 | Tier | Count | What it is | Emulator status |
 |------|-------|-----------|----------------|
-| **Real SFR work** | 9 | Pins, timers, ADC, PCA, cube, 74HC595, interrupts | **Modelled** — verifiable |
-| **UART/serial** | 4 | TX, RX, BRT baud, print | **Cells only** — executed, not verified |
+| **Real SFR work** | 11 | Pins, timers, ADC, PCA, cube, 74HC595, interrupts, UART TX, BRT | **Modelled** — verifiable |
+| **UART/serial** | 2 | RX, print | **Cells only** — executed, not verified |
 | **BW_STUB** | 31 | Device helpers (servo, motor, LCD, sensors…) | **No-op / return 0** — compiles, does nothing |
-| **Total** | 44 | | 9 verifiable, 4 executed-only, 31 stubs |
+| **Total** | 44 | | 11 verifiable, 2 executed-only, 31 stubs |
 
 The UART gap matters because `10-live-firmware` (the on-chip debug
 monitor) is entirely UART-driven. It runs, its timer setup is verified
