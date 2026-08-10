@@ -24,3 +24,6 @@ corpus/
 *.rel
 *.rst
 *.sym
+
+# Agent working notes: local context, not documentation.
+CLAUDE.md
