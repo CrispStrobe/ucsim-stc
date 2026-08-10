@@ -938,11 +938,14 @@ Measured under ucsim:
 | Per-layer dwell | ~1 ms | 1005.4 µs | — |
 | Frame jitter | — | < 724 ns | — |
 
-This is category 2b (same-source): the driver and the timer model
-both derive from the same datasheet. Agreement catches transcription,
-not a shared misreading. What would move it to category 1: a
-flicker-rate measurement on a real cube with a photodiode or
-high-speed camera.
+Category 2b (same-source): the driver and the timer model both
+derive from the same datasheet. 124.1 Hz confirms the derivation
+is self-consistent — nobody fat-fingered the timer reload or the
+layer dwell. **The prediction remains open until silicon.** Only
+a physical measurement can discharge a pre-registered prediction;
+re-deriving the number in an emulator checks transcription, not
+hardware behaviour. What would move it to category 1: a photodiode
+or high-speed camera on a real cube.
 
 ### NOT confirmed on silicon
 
