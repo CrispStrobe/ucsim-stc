@@ -173,6 +173,12 @@ the same PCA period (256 counts), and arrive at 921600/256 = 3600 Hz
 it confirms bw-board's 1.1×-real-time headroom figure was computed
 against a realistic edge rate.
 
+**Re-verified after PCA CL-wrap fix** (`4c8cc3e`): PWM period
+unchanged at 277,561 ns to the nanosecond. The 8-bit PWM path
+compares `CL` vs `CCAPnL` only, never reads `CH` — the
+wrap-ordering fix is in a disjoint code path (16-bit compare
+with `bmMAT && !bmPWM`). 7.2K edges/sec is re-earned.
+
 **Caveat:** two models agreeing is not silicon agreeing. Both derive
 from the same datasheet section (§10, PCA clock = SYSclk/12 when
 `CMOD.CPS2:1:0 = 000`). A shared misreading would produce exactly
