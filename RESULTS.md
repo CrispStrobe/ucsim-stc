@@ -926,6 +926,24 @@ Categories defined there; referenced here, not restated.
 | STC15W no Timer 1 | Model-diff rung (ucsim only) |
 | Naive STC15 baud = 5 baud | Baud rung (ucsim only — emu8051 doesn't model baud) |
 
+### Pre-registered bench prediction: cube refresh rate
+
+`stc/docs/BENCH-SESSION.md` predicts 124 Hz for `src/20-ledcube/main.c`.
+Measured under ucsim:
+
+| Quantity | Predicted | Measured | Error |
+|----------|-----------|----------|-------|
+| Refresh rate | 124 Hz | **124.1 Hz** | 0.1% |
+| Frame period | ~8 ms | 8.059 ms | — |
+| Per-layer dwell | ~1 ms | 1005.4 µs | — |
+| Frame jitter | — | < 724 ns | — |
+
+This is category 2b (same-source): the driver and the timer model
+both derive from the same datasheet. Agreement catches transcription,
+not a shared misreading. What would move it to category 1: a
+flicker-rate measurement on a real cube with a photodiode or
+high-speed camera.
+
 ### NOT confirmed on silicon
 
 **Everything.** See `stc/docs/EVIDENCE-CATEGORIES.md`:
