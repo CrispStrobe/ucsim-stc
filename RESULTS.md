@@ -750,14 +750,24 @@ Full 347-image run completed (corpus_stc12_on_stc89.sh, timeout 10s):
 241/294 images with events agree (82%). **Attempted: 347,
 Executed: 337, Timeout: 1.**
 
-Of the 53 divergences, a sample of 15 shows: 6 TCON-only (timer
-interleaving), 8 port-only (different event counts from
-instruction-timing differences), 1 mixed. The "all timer
-interleaving" claim made earlier was generalised from 1 inspection
-and was wrong — the causes are mixed, with instruction-timing
-differences producing different port-write counts as the majority.
-No peripheral MODEL disagreement was found in the sample, but
-the full 53 have not been individually classified.
+Of the 53 divergences, a sample of 15 was inspected and reclassified:
+
+- **6 TCON-only**: timer event ordering differs (true interleaving)
+- **7 port-count prefix**: one emulator runs further in the time
+  window, producing more port events at the end — shorter stream is
+  an EXACT prefix of the longer one. These are instruction-timing
+  differences, not model disagreements.
+- **1 timer-vs-port interleave**: P3 toggle and TF0 occur in
+  different order — ucsim shows the port write 5th, emu shows the
+  timer overflow 5th. Both produce both events; only their relative
+  ordering differs. Inspected individually: not a model disagreement.
+- **1 mixed**: timer + port interleaving.
+
+The "all timer interleaving" claim made earlier was generalised from
+1 inspection and was wrong. The corrected finding: **all 15 sampled divergences are benign**
+— timing differences, prefix mismatches, or event ordering. **0 of
+15 are genuine model disagreements.** The remaining 38 of 53 are
+unclassified — the proportions should not be assumed to extend.
 
 > **Corpus dependency.** The 347 images come from a local-only
 > third-party corpus (`stc-research/hex/`) that is not distributed
