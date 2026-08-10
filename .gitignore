@@ -14,3 +14,13 @@ Makefile.dep
 ucsim/src/apps/ucsim.src/ucsim
 stc-research/
 corpus/
+
+# SDCC build artefacts (from compiling test fixtures)
+*.asm
+*.lk
+*.lst
+*.map
+*.mem
+*.rel
+*.rst
+*.sym
