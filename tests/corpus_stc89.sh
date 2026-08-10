@@ -25,21 +25,27 @@ if [ ! -x "$EMU" ]; then echo "SKIP: emu_trace not found" >&2; exit 0; fi
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-STRICT=0; PREFIX=0; DIVERGE=0; EMPTY=0; LOAD_FAIL=0; ERROR=0; TOTAL=0
+STRICT=0; PREFIX=0; DIVERGE=0; EMPTY=0; LOAD_FAIL=0; ERROR=0; TMOUT=0; TOTAL=0
+INVOC_TIMEOUT=10
 
-echo "=== STC89 cross-emulator corpus ($CORPUS, ${UNTIL_NS}ns) ==="
+echo "=== STC89 cross-emulator corpus ($CORPUS, ${UNTIL_NS}ns, timeout ${INVOC_TIMEOUT}s) ==="
 
 for hex in "$CORPUS"/*.ihx "$CORPUS"/*.hex; do
     [ -f "$hex" ] || continue
     TOTAL=$((TOTAL+1))
     name=$(basename "$hex")
 
-    # Capture stderr to detect load failures — do NOT discard it.
-    # The 3>&1 1>&2 2>&3 trick swaps stdout and stderr so $() captures stderr.
-    U_ERR=$("$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
-        3>&1 1>"$TMP/ucsim_raw.ev" 2>&3)
-    E_ERR=$("$EMU" -part STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
-        3>&1 1>"$TMP/emu_raw.ev" 2>&3)
+    # Per-invocation timeout + stderr capture for load failure detection.
+    if ! timeout $INVOC_TIMEOUT "$TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
+        3>&1 1>"$TMP/ucsim_raw.ev" 2>&3 > "$TMP/u_err.txt"; then
+        TMOUT=$((TMOUT+1)); echo "  TIMEOUT(ucsim) $name"; continue
+    fi
+    U_ERR=$(cat "$TMP/u_err.txt" 2>/dev/null)
+    if ! timeout $INVOC_TIMEOUT "$EMU" -part STC89 -fosc $FOSC -until-ns $UNTIL_NS "$hex" \
+        3>&1 1>"$TMP/emu_raw.ev" 2>&3 > "$TMP/e_err.txt"; then
+        TMOUT=$((TMOUT+1)); echo "  TIMEOUT(emu)   $name"; continue
+    fi
+    E_ERR=$(cat "$TMP/e_err.txt" 2>/dev/null)
 
     # Check for load failures:
     # - ucsim: "Read error" or "0 words read" (silently skipped bad records)
