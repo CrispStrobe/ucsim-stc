@@ -112,11 +112,43 @@ a program merely executed against SFR cells is not evidence at all.
 | **BRT baud (STC12)** | BRT, AUXR | **Cells only** ⚠ | **No** — no overflow, no baud clock |
 | **Serial print (bw_print)** | SCON, SBUF | **Cells only** ⚠ | **No** — same as UART TX |
 
-**9 of 13 emitted paths are modelled** and verifiable under emulation.
-**4 of 13 are UART/serial** — the registers accept writes but no bytes
-are transmitted, no baud clock is generated, and no receive data arrives.
-A test asserting "the program ran" passes; a test asserting "the UART
-sent the right byte at the right rate" cannot be written.
+**9 of 13 SFR-touching paths are modelled** and verifiable.
+**4 of 13 are UART/serial** — registers accept writes, no bytes move.
+
+### BW_STUB: device helpers that compile but do nothing on hardware
+
+In addition to the 13 SFR-touching paths above, `generateC()` emits
+**31 device-helper stubs** (grep `BW_STUB:` in generated C). These
+compile and the program runs, but on hardware they do nothing — the
+real work would be an I2C/SPI/PWM protocol to an external device
+that the emitter has not lowered to SFR writes.
+
+| Category | Count | What happens |
+|----------|-------|-------------|
+| Actuator no-ops | 15 | `void` → empty body. Servo, motor, relay, LCD, RGB, matrix, neopixel calls vanish. |
+| Reporter fabrications | 16 | `return 0`. Temperature, distance, light, force, IR, pressed, motion sensors always read 0. |
+
+A program that calls `bw_servo_set(0, 90)` compiles, runs under the
+emulator, and produces no visible effect anywhere. A program that
+reads `bw_temperature(0)` compiles, runs, and always gets 0 — a
+plausible temperature. Neither the emulator nor the hardware can
+distinguish "sensor returned 0" from "sensor not connected."
+
+**This is not an emulator gap — these stubs are by design.** The
+emitter documents them: *"The stubs make the code compile and record
+the call for the simulator."* The simulator (bw-board + bw-circuit-ui)
+is the intended consumer, not the emulator. But the stubs mean that
+"compiles and runs under emulation" is strictly weaker than "works"
+for any program that uses a device helper.
+
+**The full inventory of what `generateC()` emits:**
+
+| Tier | Count | What it is | Emulator status |
+|------|-------|-----------|----------------|
+| **Real SFR work** | 9 | Pins, timers, ADC, PCA, cube, 74HC595, interrupts | **Modelled** — verifiable |
+| **UART/serial** | 4 | TX, RX, BRT baud, print | **Cells only** — executed, not verified |
+| **BW_STUB** | 31 | Device helpers (servo, motor, LCD, sensors…) | **No-op / return 0** — compiles, does nothing |
+| **Total** | 44 | | 9 verifiable, 4 executed-only, 31 stubs |
 
 The UART gap matters because `10-live-firmware` (the on-chip debug
 monitor) is entirely UART-driven. It runs, its timer setup is verified
