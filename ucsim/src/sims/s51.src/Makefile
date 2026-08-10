@@ -31,3 +31,9 @@ local_uninstall:
 
 
 # End of simulator Makefile
+
+# STC12 differential trace binary (appended from Makefile.in)
+TRACE_OBJS = stc12_trace.o $(filter-out s51.o,$(OBJECTS))
+
+stc12_trace: $(TRACE_OBJS) $(UCSIM_LIB_PREREQUES)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TRACE_OBJS) -L$(top_builddir) $(UCSIM_LIBS) -o $@
