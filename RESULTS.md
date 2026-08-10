@@ -769,6 +769,19 @@ more time.
 
 **Zero genuine model disagreements found** across all 347 images.
 
+**Why this is the strongest evidence in the campaign.** ucsim-stc
+descends from SDCC's ucsim (Drotos Daniel, GPL, C++, ~1999) and
+emu8051-stc descends from jarikomppa/emu8051 (Jari Komppa, MIT, C,
+~2012). The two upstream projects were written by different people,
+in different languages, years apart, implementing the 8051 from
+different references. This is **independent-source agreement** —
+two implementations whose core 8051 logic has no shared ancestry.
+The STC12-specific peripheral layers (timers, ADC, PCA, port modes)
+were added by agents in this campaign from the same datasheet, so
+those layers are same-source. But the instruction execution, the
+SFR bus, the interrupt dispatch, and the timer counting logic are
+independent — and it is those that the corpus sweep exercises.
+
 > **Corpus dependency.** The 347 images come from a local-only
 > third-party corpus (`stc-research/hex/`) that is not distributed
 > with this repository. These tests cannot be reproduced by anyone
@@ -884,27 +897,46 @@ generates STC12 code regardless of the API `target` parameter.
 
 ## Close-out: what is verified and what is not
 
-### What is verified under emulation (two independent emulators agree)
+### Evidence classified by source independence
+
+**Category 1 — Independent-source agreement.** Two implementations
+whose core logic has no shared ancestry. This catches misreadings,
+not just transcription errors.
+
+| Claim | Evidence | Sources |
+|-------|---------|---------|
+| 8051 ISA execution on 347 real firmware images | 131 strict + 110 prefix + 20 interleave + 33 timing-count, 0 genuine disagreements | ucsim (Drotos, GPL, C++) vs emu8051 (Komppa, MIT, C) — independent upstream 8051 cores |
+| Timer 0 overflow at FOSC/12 | 9/9 examples identical cross-emu | Independent timer implementations |
+| STC89 12T core rate | Both show 1085 ns/NOP (12×) | Independent instruction dispatch |
+
+**Category 2 — Same-source agreement.** Both implementations derived
+from the same STC12 datasheet (2011-07-15). Catches transcription
+slips and arithmetic errors. **Cannot catch a misreading of the
+source.**
+
+| Claim | Evidence | Shared source |
+|-------|---------|--------------|
+| AUXR.7 switches Timer 0 to 1T | Model-diff: 84 µs vs 1013 µs | Datasheet §3.1 |
+| Port modes (PxM0/PxM1) | 9/9 examples, writes traced | Datasheet §4.6 |
+| ADC register sequence | Cross-emu identical | Datasheet §10 |
+| PCA 8 clock sources, PWM | Smoke + periph_test | Datasheet §10.3 |
+| BRT / T2H:T2L baud reload | BRT=0xFD, T2=0xFFFD, both 115200 | Datasheet §7 |
+| PWM duty: 25%→25.0%, 50%→50.0%, 75%→75.0% | PIN events measured | Datasheet §10.3.4 |
+
+**Category 3 — Single-implementation.** One model, no cross-check.
 
 | Claim | Evidence |
 |-------|---------|
-| Timer 0 at FOSC/12 produces 1 ms overflows at 11.0592 MHz | STC12×emu8051: 9/9 examples identical; STC89: 43/43 prefix match |
-| AUXR.7=1 switches Timer 0 to FOSC (1T) on STC12/STC15 | Model-diff rung: 84 µs post-AUXR vs 1013 µs on STC89 |
-| AUXR has no peripheral effect on STC89 (standard 8052) | STC89 timer stays at FOSC/12 regardless of AUXR writes |
-| STC89 core runs at 12T (12 osc clocks per NOP) | Timing rung: 1085 ns/NOP vs 90 ns on STC12, ratio 12.0 |
-| STC15W has no Timer 1 | Model-diff rung: TF1 fires on STC15F, never on STC15W |
-| Port mode registers set pin direction on STC12/STC15 | 9/9 examples, PxM0/PxM1 writes traced |
-| ADC power/start/flag/clear sequence is self-consistent | Cross-emu identical on 02-adc register sequence |
-| PCA counter runs at all 8 clock sources | Smoke test, periph_test differential |
-| STC12 BRT and STC15 T2H/T2L produce identical 115200 baud | Baud rung: BRT=0xFD and T2=0xFFFD, divisor 3, 0.000% error |
-| Naive STC15 port (BRT written, T2 untouched) gives 5 baud | Baud rung: T2H=0x00 after init, 23040× too slow |
+| STC15W has no Timer 1 | Model-diff rung (ucsim only, emu8051 not tested for this) |
+| Naive STC15 baud port gives 5 baud | Baud rung (ucsim only — emu8051 doesn't model baud) |
 
 ### What is verified ONLY under emulation — NOT confirmed on silicon
 
 **Everything.** No part of this campaign has run on real hardware.
-Both emulators implement the same datasheet. A shared misreading
-produces exactly this agreement. The strongest evidence available
-short of a bench session — but not a substitute for one.
+Silicon is the only source independent of every document we have
+read. A shared misreading of the datasheet produces exactly the
+agreement we observe — and that is the reason the bench session
+exists, not a disclaimer to bury at the end.
 
 Specifically unverified on silicon:
 - ADC analog path (voltage → correct number)
