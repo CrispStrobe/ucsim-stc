@@ -76,6 +76,10 @@ public:
   virtual void happen(class cl_hw *where, enum hw_event he, void *params);
   
   virtual void print_info(class cl_console_base *con);
+
+  /* Inject a byte into the RX path from outside (e.g. -inject flag).
+     The serial model counts bit periods before raising RI. */
+  void inject_byte(unsigned char b) { input= b; input_avail= true; }
 };
 
 

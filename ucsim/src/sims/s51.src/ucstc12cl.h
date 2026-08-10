@@ -99,6 +99,7 @@ public:
 
   /* Trace API */
   void trace_start(FILE *f, unsigned long fosc, unsigned long long until_ns);
+  unsigned long long trace_time_ns(void) { return trace_osc_clocks * 1000000000ULL / trace_fosc; }
 
   /* Debug target API (boundary D §7) */
   void debug_set_bw_ms(t_addr iram_addr);

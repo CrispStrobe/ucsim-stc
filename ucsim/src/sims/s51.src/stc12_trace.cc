@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "sim51cl.h"
 #include "ucstc12cl.h"
+#include "serialcl.h"
 #include "portcl.h"
 
 #include <stdio.h>
@@ -29,6 +30,33 @@ main(int argc, char *argv[])
   unsigned long long until_ns= 2000000;
   bool have_fosc= false, have_until= false;
 
+  /* -inject TIME_NS,BYTE — schedule a byte delivery to the UART RX.
+   *
+   * Multiple -inject flags are allowed; they are processed in order.
+   * At the specified simulated time (nanoseconds), the byte is made
+   * available to the serial model's RX path. The serial model then
+   * counts bit periods (using the BRT/T2 baud clock) before raising
+   * RI, so the byte arrives at the firmware at TIME_NS plus one
+   * frame time (~87 µs at 115200).
+   *
+   * WHAT THIS MODELS: byte delivery at a scheduled point in simulated
+   * time, with the serial model's own bit-period counting for the
+   * RI delay.
+   *
+   * WHAT THIS DOES NOT MODEL: wire-level start/stop/parity bits,
+   * baud-rate mismatch detection, or electrical signal levels. An
+   * injected byte always arrives intact regardless of the baud
+   * configuration — a wrong divisor will not corrupt it. The
+   * idle-timeout resync path IS reachable (the gap between injections
+   * is real simulated time), but baud errors are not.
+   *
+   * Usage: stc12_trace -inject 0,0x7E -inject 87000,0x03 ... firmware.hex
+   */
+#define MAX_INJECT 64
+  struct { unsigned long long time_ns; unsigned char byte; } inject[MAX_INJECT];
+  int n_inject= 0;
+  int inject_next= 0;
+
   /* Scan for our flags before passing to ucsim's init.
      ucsim ignores unknown flags gracefully. */
   for (int i= 1; i < argc; i++)
@@ -37,6 +65,17 @@ main(int argc, char *argv[])
 	{ fosc= strtoul(argv[i+1], NULL, 0); have_fosc= true; }
       else if (strcmp(argv[i], "-until-ns") == 0 && i + 1 < argc)
 	{ until_ns= strtoull(argv[i+1], NULL, 0); have_until= true; }
+      else if (strcmp(argv[i], "-inject") == 0 && i + 1 < argc)
+	{
+	  unsigned long long t;
+	  unsigned int b;
+	  if (sscanf(argv[++i], "%llu,%i", &t, &b) == 2 && n_inject < MAX_INJECT)
+	    {
+	      inject[n_inject].time_ns= t;
+	      inject[n_inject].byte= (unsigned char)b;
+	      n_inject++;
+	    }
+	}
     }
 
   /* Strip our flags from argv so ucsim doesn't choke on them */
@@ -45,7 +84,8 @@ main(int argc, char *argv[])
   for (int i= 0; i < argc; i++)
     {
       if ((strcmp(argv[i], "-fosc") == 0 ||
-	   strcmp(argv[i], "-until-ns") == 0) && i + 1 < argc)
+	   strcmp(argv[i], "-until-ns") == 0 ||
+	   strcmp(argv[i], "-inject") == 0) && i + 1 < argc)
 	{ i++; continue; } /* skip flag and its value */
       new_argv[new_argc++]= argv[i];
     }
@@ -118,12 +158,36 @@ main(int argc, char *argv[])
      repeatedly without PC changing. */
   uc->stop_selfjump= false;
 
+  /* Find the serial hw for byte injection */
+  class cl_serial *serial_hw= NULL;
+  if (n_inject > 0)
+    {
+      class cl_hw *hw= uc->get_hw(HW_UART, 0, 0);
+      serial_hw= dynamic_cast<class cl_serial *>(hw);
+      if (!serial_hw)
+	fprintf(stderr, "Warning: -inject requires UART hw (not found)\n");
+    }
+
   /* Enable trace to stdout */
   uc->trace_start(stdout, fosc, until_ns);
 
   /* Run until the time limit */
   for (;;)
     {
+      /* Inject bytes at their scheduled times */
+      if (serial_hw && inject_next < n_inject)
+	{
+	  unsigned long long t_ns= uc->trace_time_ns();
+	  while (inject_next < n_inject && t_ns >= inject[inject_next].time_ns)
+	    {
+	      serial_hw->inject_byte(inject[inject_next].byte);
+	      fprintf(stderr, "inject: %llu ns byte 0x%02X\n",
+		      (unsigned long long)inject[inject_next].time_ns,
+		      (unsigned)inject[inject_next].byte);
+	      inject_next++;
+	    }
+	}
+
       int res= uc->do_inst();
       /* resSTOP from our do_inst override means time limit reached.
 	 Everything else (resGO, resSELFJUMP, etc.) means keep going. */
