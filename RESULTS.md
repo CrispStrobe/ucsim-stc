@@ -897,46 +897,39 @@ generates STC12 code regardless of the API `target` parameter.
 
 ## Close-out: what is verified and what is not
 
-### Evidence classified by source independence
+### Evidence classified per `stc/docs/EVIDENCE-CATEGORIES.md`
 
-**Category 1 — Independent-source agreement.** Two implementations
-whose core logic has no shared ancestry. This catches misreadings,
-not just transcription errors.
+Categories defined there; referenced here, not restated.
 
-| Claim | Evidence | Sources |
-|-------|---------|---------|
-| 8051 ISA execution on 347 real firmware images | 131 strict + 110 prefix + 20 interleave + 33 timing-count, 0 genuine disagreements | ucsim (Drotos, GPL, C++) vs emu8051 (Komppa, MIT, C) — independent upstream 8051 cores |
-| Timer 0 overflow at FOSC/12 | 9/9 examples identical cross-emu | Independent timer implementations |
-| STC89 12T core rate | Both show 1085 ns/NOP (12×) | Independent instruction dispatch |
-
-**Category 2 — Same-source agreement.** Both implementations derived
-from the same STC12 datasheet (2011-07-15). Catches transcription
-slips and arithmetic errors. **Cannot catch a misreading of the
-source.**
-
-| Claim | Evidence | Shared source |
-|-------|---------|--------------|
-| AUXR.7 switches Timer 0 to 1T | Model-diff: 84 µs vs 1013 µs | Datasheet §3.1 |
-| Port modes (PxM0/PxM1) | 9/9 examples, writes traced | Datasheet §4.6 |
-| ADC register sequence | Cross-emu identical | Datasheet §10 |
-| PCA 8 clock sources, PWM | Smoke + periph_test | Datasheet §10.3 |
-| BRT / T2H:T2L baud reload | BRT=0xFD, T2=0xFFFD, both 115200 | Datasheet §7 |
-| PWM duty: 25%→25.0%, 50%→50.0%, 75%→75.0% | PIN events measured | Datasheet §10.3.4 |
-
-**Category 3 — Single-implementation.** One model, no cross-check.
+**Category 1 (independent-source):**
 
 | Claim | Evidence |
 |-------|---------|
-| STC15W has no Timer 1 | Model-diff rung (ucsim only, emu8051 not tested for this) |
-| Naive STC15 baud port gives 5 baud | Baud rung (ucsim only — emu8051 doesn't model baud) |
+| 8051 ISA on 347 images | 0 genuine disagreements (ucsim vs emu8051, independent upstream cores) |
+| Timer 0 overflow at FOSC/12 | 9/9 examples identical cross-emu |
+| STC89 12T core rate | Both show 1085 ns/NOP (12×) |
 
-### What is verified ONLY under emulation — NOT confirmed on silicon
+**Category 2 (same-source — datasheet 2011-07-15):**
 
-**Everything.** No part of this campaign has run on real hardware.
-Silicon is the only source independent of every document we have
-read. A shared misreading of the datasheet produces exactly the
-agreement we observe — and that is the reason the bench session
-exists, not a disclaimer to bury at the end.
+| Claim | What would move it to cat. 1 |
+|-------|------------------------------|
+| AUXR.7 switches Timer 0 (84 µs vs 1013 µs) | Scope trace of timer overflow pin |
+| Port modes (PxM0/PxM1) | Current measurement in each mode |
+| ADC register sequence | Voltage → ADC reading on silicon |
+| PCA PWM 25/50/75% duty | Frequency counter on CEX0 pin |
+| BRT / T2H:T2L baud (both 115200) | Logic analyser on UART TX |
+
+**Category 3 (single-implementation):**
+
+| Claim | Evidence |
+|-------|---------|
+| STC15W no Timer 1 | Model-diff rung (ucsim only) |
+| Naive STC15 baud = 5 baud | Baud rung (ucsim only — emu8051 doesn't model baud) |
+
+### NOT confirmed on silicon
+
+**Everything.** See `stc/docs/EVIDENCE-CATEGORIES.md`:
+*"Silicon remains the only source independent of every document."*
 
 Specifically unverified on silicon:
 - ADC analog path (voltage → correct number)
