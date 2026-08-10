@@ -82,6 +82,35 @@ cl_interrupt::added_to_uc(void)
 					0x0013, true, false,
 					"external #1", 3));
   is->init();
+
+  /* PCA/CCP interrupt: IE bit 6 (EC), vector 0x0033.
+     The flag check needs ANY of CCF0-CCF4 or CF set in CCON.
+     cl_it_src checks (cell & mask) == value, so we use mask=0x01
+     for CCF0 — one source per module. The ISR clears the flag. */
+  if (sfr->get_cell(CCON))
+    {
+      /* CCF0 */
+      uc->it_sources->add(is= new cl_it_src(uc, 0x40,
+					    sfr->get_cell(IE), 0x40,
+					    sfr->get_cell(CCON), 0x01,
+					    0x0033, false, false,
+					    "PCA_CCF0", 6));
+      is->init();
+      /* CCF1 */
+      uc->it_sources->add(is= new cl_it_src(uc, 0x40,
+					    sfr->get_cell(IE), 0x40,
+					    sfr->get_cell(CCON), 0x02,
+					    0x0033, false, false,
+					    "PCA_CCF1", 6));
+      is->init();
+      /* CF (counter overflow) */
+      uc->it_sources->add(is= new cl_it_src(uc, 0x40,
+					    sfr->get_cell(IE), 0x40,
+					    sfr->get_cell(CCON), 0x80,
+					    0x0033, false, false,
+					    "PCA_CF", 6));
+      is->init();
+    }
 }
 
 void
