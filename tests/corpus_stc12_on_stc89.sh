@@ -2,6 +2,11 @@
 # corpus_stc12_on_stc89.sh — run the STC12 corpus through both emulators
 # as STC89. Per-invocation timeout of 10s. Reports Timeout as a sixth outcome.
 #
+# REQUIRES a local corpus directory (default: /mnt/volume1/code/stc-research/hex)
+# that is NOT distributed with this repository. The corpus contains third-party
+# firmware images that are local-only by policy. Without it, this script does
+# nothing — it is not reproducible from the public repo alone.
+#
 # Usage: ./tests/corpus_stc12_on_stc89.sh [corpus_dir] [until_ns]
 set -e
 cd "$(dirname "$0")/.."

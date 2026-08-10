@@ -1,8 +1,9 @@
 #!/bin/bash
 # corpus_stc89.sh — cross-emulator differential on STC89 firmware corpus.
 #
-# Runs all hex/ihx files in corpus/stc89/ through both emulators as STC89
-# and compares SFR+TF events (timestamps stripped).
+# REQUIRES a local corpus directory (default: corpus/stc89/) that is NOT
+# distributed with this repository. The corpus is gitignored and contains
+# third-party firmware. Without it, this script does nothing.
 #
 # LOAD FAILURES ARE REPORTED, NOT SILENTLY COUNTED AS EMPTY.
 # Per fleet-silent-degradation rule: a fallback silently worse than the

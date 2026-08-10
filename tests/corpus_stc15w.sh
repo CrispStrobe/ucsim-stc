@@ -1,6 +1,10 @@
 #!/bin/bash
 # corpus_stc15w.sh — cross-emulator differential on STC15W firmware corpus.
 #
+# REQUIRES a local corpus directory (default: corpus/stc15w/) that is NOT
+# distributed with this repository. The corpus is gitignored and contains
+# third-party firmware. Without it, this script does nothing.
+#
 # Usage: ./tests/corpus_stc15w.sh [corpus_dir] [until_ns]
 set -e
 cd "$(dirname "$0")/.."

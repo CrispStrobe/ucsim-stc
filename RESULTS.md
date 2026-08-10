@@ -747,14 +747,30 @@ Full 347-image run completed (corpus_stc12_on_stc89.sh, timeout 10s):
 | Emu-fail | 9 | 3% |
 | Timeout | 1 | <1% |
 
-241/294 images with events agree (82%). The 53 divergences are
-timer-interleaving (SFR values match, positions relative to TF
-differ). **Attempted: 347, Executed: 337, Timeout: 1.**
+241/294 images with events agree (82%). **Attempted: 347,
+Executed: 337, Timeout: 1.**
 
-The single timeout (`ledcube8x8x8_M328.hex`) is an AVR-targeted
-image in the corpus. The previous hung loop (3 hours, no timeout)
-was caused by `appleOHseed_serial9600` making stc12_trace spin
-forever with no per-invocation timeout.
+Of the 53 divergences, a sample of 15 shows: 6 TCON-only (timer
+interleaving), 8 port-only (different event counts from
+instruction-timing differences), 1 mixed. The "all timer
+interleaving" claim made earlier was generalised from 1 inspection
+and was wrong — the causes are mixed, with instruction-timing
+differences producing different port-write counts as the majority.
+No peripheral MODEL disagreement was found in the sample, but
+the full 53 have not been individually classified.
+
+> **Corpus dependency.** The 347 images come from a local-only
+> third-party corpus (`stc-research/hex/`) that is not distributed
+> with this repository. These tests cannot be reproduced by anyone
+> without that corpus. The measurements above are facts about
+> emulator behaviour; the images themselves are not committed or
+> published. See the project's `stc-research/README.md` for the
+> provenance and restrictions on that material.
+
+The single timeout is an AVR-targeted image misplaced in the
+8051 corpus. The previous hung loop (3 hours, no timeout) was
+caused by a UART-polling program making stc12_trace spin forever
+waiting for serial input that never arrives.
 
 This is a **state-only** comparison (timestamps stripped). It proves
 both emulators implement the same ISA under STC89 mode, not that
