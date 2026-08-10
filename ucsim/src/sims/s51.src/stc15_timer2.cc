@@ -24,6 +24,8 @@ cl_timer2_stc15::cl_timer2_stc15(class cl_uc *auc):
   cl_hw(auc, HW_TIMER, 12, "stc15_timer2")
 {
   prescaler= 0;
+  reload_h= 0;
+  reload_l= 0;
 }
 
 int
@@ -36,7 +38,11 @@ cl_timer2_stc15::init(void)
       cell_auxr= register_cell(sfr, AUXR);
       cell_t2l= sfr->get_cell(STC15_T2L);
       cell_t2h= sfr->get_cell(STC15_T2H);
+      reload_h= cell_t2h->get();
+      reload_l= cell_t2l->get();
     }
+  /* Register the serial port as a partner for overflow events. */
+  make_partner(HW_UART, 0);
   return 0;
 }
 
@@ -79,12 +85,21 @@ cl_timer2_stc15::tick(int cycles)
       val++;
       if (val > 0xFFFF)
 	{
-	  /* Overflow: auto-reload.
-	     T2H/T2L auto-reload from themselves — the current
-	     values ARE the reload value. On overflow, the counter
-	     wraps to 0 and the next period starts from whatever
-	     software wrote to T2H/T2L. */
-	  val= 0; /* wrap to 0 (reload is T2H/T2L's current value) */
+	  /* Overflow: auto-reload. T2H/T2L serves as both counter and
+	     reload register. On overflow, reload from the values that
+	     were present BEFORE the counting started this period. We
+	     saved them in reload_h/reload_l at the previous overflow
+	     (or at init). */
+	  val= (reload_h << 8) | reload_l;
+	  /* Save current T2H/T2L as reload for NEXT period (software
+	     may have written new values since the last overflow). */
+	  reload_h= cell_t2h->get();
+	  reload_l= cell_t2l->get();
+	  /* Notify serial port — AUXR.S1ST2 (bit 0) selects Timer 2
+	     as the UART1 baud source on the STC15. */
+	  t_mem a= cell_auxr->get();
+	  if (a & 0x01) /* S1ST2 */
+	    inform_partners(EV_OVERFLOW, 0);
 	}
       cell_t2l->set(val & 0xFF);
       cell_t2h->set((val >> 8) & 0xFF);

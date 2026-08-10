@@ -368,10 +368,24 @@ cl_serial::happen(class cl_hw *where, enum hw_event he, void *params)
     {
       if (where->id == 1)
 	{
+	  /* Timer 1 baud — skip if BRT or Timer 2 is the baud source.
+	     AUXR.S1BRS (bit 0) selects BRT on STC12; AUXR.S1ST2 (bit 0)
+	     selects Timer 2 on STC15. Both use the same bit. */
+	  class cl_address_space *s= uc->address_space(MEM_SFR_ID);
+	  t_mem auxr= s ? s->get(AUXR) : 0;
+	  if (!(auxr & 0x01)) /* S1BRS/S1ST2 not set → Timer 1 is baud source */
+	    {
+	      s_rec_t1++;
+	      s_tr_t1++;
+	    }
+	}
+      if (where->id == 3 /* STC12 BRT */)
+	{
 	  s_rec_t1++;
 	  s_tr_t1++;
 	}
-      if (where->id == 2 /*&& there_is_t2*/)
+      if (where->id == 2 /*&& there_is_t2*/ ||
+	  where->id == 12 /* STC15 Timer 2 at T2H/T2L */)
 	{
 	  switch (he)
 	    {

@@ -22,6 +22,7 @@ protected:
   class cl_memory_cell *cell_t2l;
   class cl_memory_cell *cell_t2h;
   int prescaler;
+  unsigned char reload_h, reload_l; /* captured on T2R rising edge */
 public:
   cl_timer2_stc15(class cl_uc *auc);
   virtual int init(void);

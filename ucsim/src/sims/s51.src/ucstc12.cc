@@ -25,6 +25,7 @@
 #include "stc15_timer2cl.h"
 #include "portcl.h"
 #include "stc12_pcacl.h"
+#include "stc12_brtcl.h"
 #include "serialcl.h"
 #include "dregcl.h"
 #include "port_hwcl.h"
@@ -433,6 +434,15 @@ cl_uc_stc12::mk_hw_elements(void)
   h= new cl_serial(this);
   h->init();
   add_hw(h);
+
+  /* BRT (baud rate timer) — STC12 only. On the STC15, Timer 2 does
+     this job; on the STC89, Timer 1 does it (standard 8052 path). */
+  if (stc_part == STC_PART_STC12)
+    {
+      h= new cl_stc12_brt(this);
+      h->init();
+      add_hw(h);
+    }
 
   /* Debug display */
   add_hw(h= new cl_dreg(this, 0, "dreg"));
