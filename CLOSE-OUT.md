@@ -69,11 +69,14 @@ source independent of every document."*
 ## What I would pick up next
 
 The UART RX path — RI never rises without external stimulus. With the BRT
-and TX timing now modelled, adding RX means driving bytes into SBUF from
-outside (the emulator already has IO infrastructure for this). That would
-let `10-live-firmware`'s full HELLO/POS/REGS/READ protocol be tested under
-ucsim with timed byte delivery, closing the last cells-only path that
-generated code exercises (11 of 13 are now modelled; RX and print remain).
+and TX timing now modelled, RX byte injection is implemented via
+`-inject TIME_NS,BYTE` (a81091e). bw-board is unblocked for the
+serial DebugTarget e2e test. Idle-timeout resync IS reachable.
+
+**After initial close-out:**
+- `-inject` flag (a81091e): timed RX byte delivery, unblocks bw-board
+- `rung_neopixel.sh` (f6f35b9): runnable spec-window test, 4/4 pass
+- Regression test for stc12_trace hang on 10-live-firmware (8839220)
 
 ## Standing caveats
 
