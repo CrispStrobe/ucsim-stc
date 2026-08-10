@@ -45,17 +45,17 @@ source independent of every document."*
 
 | Defect | Found by | Fixed in | How long it was green |
 |---|---|---|---|
-| PCA vector 0x0033 (LVD slot, should be 0x003B) | ucsim-stc bfecadc | ucsim-stc 6f8ab39 | ~2 hours |
-| IE.6 = ELVD, not EC (no PCA enable in IE) | ucsim-stc c162861, bw-board 4f14c35 | stc e9a3f02 | Entire campaign — in the shared contract |
-| PCA CL-wrap: CH read before increment, 256-count miss | ucsim-stc 4c8cc3e | ucsim-stc 4c8cc3e | Since PCA 16-bit compare was added |
-| NeoPixel DPL vs ACC: all bytes sent as zero | ucsim-stc 06dc028 | sb3-creator 7d38a0d | Since driver was written |
-| NeoPixel R7 collision: only 1 of 9 bytes sent | ucsim-stc c9ee7bb | sb3-creator 261a527 | Since DPL fix |
-| HC-SR04 trigger 4.7 µs (busy loop, 1T/12T trap) | ucsim-stc f297076 | sb3-creator 2bfdd98 | Since driver was written |
+| PCA vector 0x0033 (LVD slot, should be 0x003B) | ucsim-stc 9a7efe5 | ucsim-stc 35e2d24 | ~2 hours |
+| IE.6 = ELVD, not EC (no PCA enable in IE) | ucsim-stc a8e2bf4, bw-board 74671d5 | stc 02dd84e | Entire campaign — in the shared contract |
+| PCA CL-wrap: CH read before increment, 256-count miss | ucsim-stc f531860 | ucsim-stc f531860 | Since PCA 16-bit compare was added |
+| NeoPixel DPL vs ACC: all bytes sent as zero | ucsim-stc 398d1f6 | sb3-creator 48e16a0 | Since driver was written |
+| NeoPixel R7 collision: only 1 of 9 bytes sent | ucsim-stc 411df2b | sb3-creator 191139a | Since DPL fix |
+| HC-SR04 trigger 4.7 µs (busy loop, 1T/12T trap) | ucsim-stc 4cccac0 | sb3-creator 44daaba | Since driver was written |
 | Corpus test silent degradation (load fails counted as empty) | fleet note | ucsim-stc corpus_stc89.sh | Since corpus was built |
 | 347-image sweep no per-invocation timeout (3-hour hang) | coordinator kill | ucsim-stc corpus_stc12_on_stc89.sh | One run |
-| "278 µs ISR overhead" was CL-wrap bug, not hardware | ucsim-stc self-retracted | 4c8cc3e | ~1 hour |
-| stc ROADMAP.md "proven on real hardware" — nothing ran on silicon | coordinator | stc b4f4bb1 | Unknown |
-| stc PERIPHERAL-MODEL "IE.EC enables PCA" — no EC exists | coordinator 251ac24 | stc e9a3f02 | Since document was written |
+| "278 µs ISR overhead" was CL-wrap bug, not hardware | ucsim-stc self-retracted | f531860 | ~1 hour |
+| stc ROADMAP.md "proven on real hardware" — nothing ran on silicon | coordinator | stc 4eaa84f | Unknown |
+| stc PERIPHERAL-MODEL "IE.EC enables PCA" — no EC exists | coordinator f7d36f7 | stc 02dd84e | Since document was written |
 
 ## What is open (bench IDs)
 
@@ -70,13 +70,13 @@ source independent of every document."*
 
 The UART RX path — RI never rises without external stimulus. With the BRT
 and TX timing now modelled, RX byte injection is implemented via
-`-inject TIME_NS,BYTE` (a81091e). bw-board is unblocked for the
+`-inject TIME_NS,BYTE` (ccc3e9d). bw-board is unblocked for the
 serial DebugTarget e2e test. Idle-timeout resync IS reachable.
 
 **After initial close-out:**
-- `-inject` flag (a81091e): timed RX byte delivery, unblocks bw-board
-- `rung_neopixel.sh` (f6f35b9): runnable spec-window test, 4/4 pass
-- Regression test for stc12_trace hang on 10-live-firmware (8839220)
+- `-inject` flag (ccc3e9d): timed RX byte delivery, unblocks bw-board
+- `rung_neopixel.sh` (a69e856): runnable spec-window test, 4/4 pass
+- Regression test for stc12_trace hang on 10-live-firmware (ee4fe86)
 
 ## Standing caveats
 

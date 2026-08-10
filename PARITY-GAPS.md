@@ -164,7 +164,7 @@ Two independent models arrive at the same physical quantity:
 
 | Source | Derivation | Result |
 |--------|-----------|--------|
-| **ucsim-stc** (7e3cee2) | `pwm_set(0, 50)` → PCA at SYSclk/12, period measured at PIN events | **277.6 µs** = 3.60 kHz = **7.2 K edges/sec** |
+| **ucsim-stc** (d4701f2) | `pwm_set(0, 50)` → PCA at SYSclk/12, period measured at PIN events | **277.6 µs** = 3.60 kHz = **7.2 K edges/sec** |
 | **bw-board** (PARTS-TO-BLOCKS.md) | Performance budget measurement, PWM at `CMOD=0x00` | **7.2 K edges/sec** |
 
 Both use the same clock source (SYSclk/12 = 11059200/12 = 921600 Hz),
@@ -173,7 +173,7 @@ the same PCA period (256 counts), and arrive at 921600/256 = 3600 Hz
 it confirms bw-board's 1.1×-real-time headroom figure was computed
 against a realistic edge rate.
 
-**Re-verified after PCA CL-wrap fix** (`4c8cc3e`): PWM period
+**Re-verified after PCA CL-wrap fix** (`f531860`): PWM period
 unchanged at 277,561 ns to the nanosecond. The 8-bit PWM path
 compares `CL` vs `CCAPnL` only, never reads `CH` — the
 wrap-ordering fix is in a disjoint code path (16-bit compare

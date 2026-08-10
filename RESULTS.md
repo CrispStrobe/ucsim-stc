@@ -255,7 +255,7 @@ Reproducible: `EMU_TRACE=… ./tests/run_control_diff.sh`
 - **PCA 2-module bug** (rung 7): ucsim's base cl_pca fired
   do_pca_module(0..4) on overflow, setting spurious CCF2-CCF4 flags.
   STC12 has only 2 modules. Found by 1-second periph_test differential.
-  Fixed in commit `e13ee4f`.
+  Fixed in commit `43ef761`.
 
 - **ADC_START clear timing** (rung 7): ucsim cleared ADC_START on
   write; emu8051 cleared it at conversion completion (matching the
@@ -406,7 +406,7 @@ Polarity: generated kernel uses `BW_CUBE_ACTIVE_HIGH = 1`,
 matching the spec and `bw-circuit-ui`.
 
 Independently reproduced from a cold invocation (`sb3-creator`
-`8a2fde1`, two commits newer than the original `9673f21`):
+`d3cf813`, two commits newer than the original `48efafd`):
 **101/101 strictly identical, 0 ns difference.**  No edits to the
 generated C.  The kernel is stable across emitter changes — the
 harness caught its first non-regression.

@@ -10,13 +10,13 @@ and had to be killed. The hung image was a UART-polling program
 
 ## Root cause
 
-The background task (`bt3p0c893`) was launched BEFORE commit `7669344`
+The background task (`bt3p0c893`) was launched BEFORE commit `f42a1fd`
 which fixed `tick_hw()` to multiply by `clock_per_cycle()`. The stale
 binary accumulated machine cycles instead of oscillator clocks in
 `trace_osc_clocks`:
 
 ```cpp
-// OLD (before 7669344):
+// OLD (before f42a1fd):
 trace_osc_clocks += cycles;           // wrong on 12T: adds MC, not osc
 
 // FIXED:
