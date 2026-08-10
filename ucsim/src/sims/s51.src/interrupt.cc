@@ -83,34 +83,36 @@ cl_interrupt::added_to_uc(void)
 					"external #1", 3));
   is->init();
 
-  /* PCA/CCP interrupt: IE bit 6 (EC), vector 0x003B.
-     0x0003 + 8*7 = 0x003B. NOT 0x0033 (that is LVD, interrupt 6).
-     SDCC __interrupt(7) generates the ISR at 0x003B. */
+  /* PCA/CCP interrupt: vector 0x003B (0x0003 + 8*7).
+     There is NO global EC bit in IE on the STC12. IE bit 6 is ELVD (Low
+     Voltage Detection), NOT PCA. The PCA interrupt is enabled per-module:
+       CCAPMn.ECCF0 (bit 0) enables the per-module match/capture interrupt.
+       CMOD.ECF (bit 0) enables the counter overflow interrupt.
+     Both share vector 0x003B. The ISR reads CCON to determine the source.
+     This is a named trap: there is no single "EC" enable bit. */
   {
-    /* PCA/CCP interrupt sources — CCF0, CCF1, CF.
-       Always register; on parts without PCA the flags never set. */
-    /* CCF0 */
+    /* CCF0: enabled by CCAPM0 bit 0 (ECCF0) */
     uc->it_sources->add(is= new cl_it_src(uc, 0x40,
-					    sfr->get_cell(IE), 0x40,
-					    sfr->get_cell(CCON), 0x01,
-					    0x003B, false, false,
-					    "PCA_CCF0", 7));
-      is->init();
-      /* CCF1 */
-      uc->it_sources->add(is= new cl_it_src(uc, 0x41,
-					    sfr->get_cell(IE), 0x40,
-					    sfr->get_cell(CCON), 0x02,
-					    0x003B, false, false,
-					    "PCA_CCF1", 7));
-      is->init();
-      /* CF (counter overflow) */
-      uc->it_sources->add(is= new cl_it_src(uc, 0x42,
-					    sfr->get_cell(IE), 0x40,
-					    sfr->get_cell(CCON), 0x80,
-					    0x003B, false, false,
-					    "PCA_CF", 6));
-      is->init();
-    }
+					  sfr->get_cell(CCAPM0), 0x01,
+					  sfr->get_cell(CCON), 0x01,
+					  0x003B, false, false,
+					  "PCA_CCF0", 7));
+    is->init();
+    /* CCF1: enabled by CCAPM1 bit 0 (ECCF1) */
+    uc->it_sources->add(is= new cl_it_src(uc, 0x41,
+					  sfr->get_cell(CCAPM1), 0x01,
+					  sfr->get_cell(CCON), 0x02,
+					  0x003B, false, false,
+					  "PCA_CCF1", 7));
+    is->init();
+    /* CF: enabled by CMOD bit 0 (ECF) */
+    uc->it_sources->add(is= new cl_it_src(uc, 0x42,
+					  sfr->get_cell(CMOD), 0x01,
+					  sfr->get_cell(CCON), 0x80,
+					  0x003B, false, false,
+					  "PCA_CF", 7));
+    is->init();
+  }
 }
 
 void
