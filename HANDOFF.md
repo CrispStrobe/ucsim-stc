@@ -20,6 +20,7 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 - **README rewritten**: 4 parts, 8 suites, measurements with categories, what is NOT done.
 - **Spec-update convention adopted** (session start scan, not every task).
 - **NeoPixel cross-emu**: ran `neo_v3.ihx` through both `stc12_trace` and `emu_trace` (post-CLR/SETB fix `6cb9bc7`). 144 edges compared, max diff 1 ns (clock rounding), all 4 timing windows pass on both. Category 2b → **category 1**. Test: `tests/rung_neopixel_cross.sh`.
+- **AVR oracle (in progress)**: ucsim_avr binary works and executes the hand-assembled 6-word blink from `bw-board/test/avr8js-adapter.test.js`. Cycle counts match avr8js exactly: SBI=2, DEC=1, BRNE-taken=2, LDI=1, RJMP=2. Toggle period = 769 cycles = 48062.5 ns at 16 MHz, confirmed 1540 ticks for 2 complete toggles. Test: `tests/rung_avr_blink.sh`. Compiled blink from AVR endpoint loads and toggles PORTB correctly. **Not yet done**: full PORTB trace comparison (word-0 clobber bug requires manual patch), compiled blink cycle-count comparison, disassembler register-name bugs (r24 shown as r0/r5), AT90S vs ATmega328P IO register map difference (IO addresses differ, names wrong, but execution is correct).
 
 ## In flight
 
