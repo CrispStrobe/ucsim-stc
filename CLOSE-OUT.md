@@ -13,6 +13,7 @@ source independent of every document."*
 |---|---|---|
 | 8051 ISA on 347 real firmware images | 131 strict + 110 prefix + 20 interleave + 33 timing-count, **0 genuine disagreements** | ucsim (Drotos, GPL, C++) vs emu8051 (Komppa, MIT, C) — independent upstream cores |
 | STC89 12T core rate | 1085 ns/NOP (12×) on both emulators | Independent instruction dispatch |
+| WS2812 NeoPixel timing | T0H=362, T1H=814, T0L=814, T1L=452 — all 4 in spec, 144 edges, max diff 1 ns | ucsim vs emu8051 (after CLR/SETB fix `6cb9bc7`), `rung_neopixel_cross.sh` |
 
 ### Category 2b — same-source (datasheet 2011-07-15)
 
@@ -28,7 +29,7 @@ source independent of every document."*
 | Baud reload table | Divisor 3 → 115200 at 11.0592 MHz, 0.000% error | `BENCH-UART` |
 | Naive STC15 port | 5 baud (23,040× wrong) — T2H=0x00, BRT written to wrong addr | `BENCH-UART` |
 | Cube refresh | 124.1 Hz, 8.059 ms frame, 1005.4 µs/layer, jitter < 724 ns | `BENCH-CUBE` |
-| WS2812 NeoPixel | T0H=362, T1H=814, T0L=814, T1L=452 — all 4 in WS2812 spec windows | `BENCH-PWM` |
+| WS2812 NeoPixel | T0H=362, T1H=814, T0L=814, T1L=452 — all 4 in WS2812 spec windows | `BENCH-PWM` (promoted to cat 1, see above) |
 | Relay P2.0 active-low | Pin LOW = ON, pin HIGH = OFF, no spurious interrupt | — |
 | Button P3.2 GPIO read | Reads 1 (pull-up), INT0 NOT enabled | — |
 | ADC register sequence | START→FLAG→clear per §4, result 512 (synthetic) | `BENCH-ADC` |

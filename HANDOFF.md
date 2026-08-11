@@ -19,10 +19,10 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 - **Path sweep**: 0 `/mnt/volume1` in tracked files. 22 configure-generated Makefiles untracked.
 - **README rewritten**: 4 parts, 8 suites, measurements with categories, what is NOT done.
 - **Spec-update convention adopted** (session start scan, not every task).
+- **NeoPixel cross-emu**: ran `neo_v3.ihx` through both `stc12_trace` and `emu_trace` (post-CLR/SETB fix `6cb9bc7`). 144 edges compared, max diff 1 ns (clock rounding), all 4 timing windows pass on both. Category 2b → **category 1**. Test: `tests/rung_neopixel_cross.sh`.
 
 ## In flight
 
-- **NeoPixel cross-emu**: the ledger (`stc 844966a`) notes this is the cheapest open move — emu8051's CLR/SETB fix means the two emulators should now agree on WS2812 timing. Was about to start when context saturated. Next step: compile `neo_v3.ihx` equivalent for emu8051, run through `emu_trace`, compare T0H/T1H/T0L/T1L. If they agree, row moves from cat 3 to cat 1.
 - **LCD I2C full protocol**: SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measurement was blocked by SDCC init taking >100ms. Next step: use `-until-ns 500000000` or longer, or set a breakpoint past init.
 
 ## Learned but not in a spec-update
