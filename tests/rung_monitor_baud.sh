@@ -63,7 +63,7 @@ echo ""
 echo "[2] STC12 monitor: AUXR after uart_init"
 AUXR12=$(printf "break 0x$MAIN12\nrun\nstep 500\ndump sfr 0x8E 0x8E\nquit\n" | \
     timeout 15 "$UCSIM" -t STC12 -b "$STC12_HEX" 2>&1 | \
-    grep "^0x8e" | grep -oP '0x[0-9a-f]{2}' | tail -1)
+    grep "^0x8e" | grep -Eo '0x[0-9a-f]{2}' | tail -1)
 echo "    AUXR = $AUXR12 (expect 0x15)"
 if [ "$AUXR12" = "0x15" ]; then
     echo "    PASS: BRTR=1, BRTx12=1, S1BRS=1"
@@ -78,7 +78,7 @@ echo ""
 echo "[3] STC15 monitor: AUXR after uart_init"
 AUXR15=$(printf "break 0x$MAIN15\nrun\nstep 500\ndump sfr 0x8E 0x8E\nquit\n" | \
     timeout 15 "$UCSIM" -t STC15 -b "$STC15_HEX" 2>&1 | \
-    grep "^0x8e" | grep -oP '0x[0-9a-f]{2}' | tail -1)
+    grep "^0x8e" | grep -Eo '0x[0-9a-f]{2}' | tail -1)
 echo "    AUXR = $AUXR15 (expect 0x15)"
 if [ "$AUXR15" = "0x15" ]; then
     echo "    PASS: T2R=1, T2x12=1, S1ST2=1"

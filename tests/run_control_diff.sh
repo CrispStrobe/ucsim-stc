@@ -19,6 +19,9 @@ SCHED="$SCRIPT_DIR/fixtures/scheduled_gen.ihx"
 SYMBOLS="$SCRIPT_DIR/fixtures/scheduled_gen.symbols.json"
 PASS=0; FAIL=0; SKIP=0
 
+TMP=$(mktemp -d)
+trap "rm -rf $TMP" EXIT
+
 pass() { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
 skip() { echo "  SKIP: $1"; SKIP=$((SKIP+1)); }
@@ -30,7 +33,9 @@ if [ -z "$EMU_TRACE" ] || [ ! -x "$EMU_TRACE" ]; then
 fi
 
 # Compile blink (interrupts masked — EA never set)
-cat > /tmp/blink_rc.c << 'CEOF'
+BLINK_SRC="$TMP/blink_rc.c"
+BLINK="$TMP/blink_rc.ihx"
+cat > "$BLINK_SRC" << 'CEOF'
 #include <stc12.h>
 #define FOSC_HZ 11059200UL
 #define T0_RELOAD (65536UL - FOSC_HZ / 12UL / 1000UL)
@@ -45,8 +50,7 @@ void main(void) {
     }
 }
 CEOF
-sdcc -mmcs51 --model-small -o /tmp/blink_rc.ihx /tmp/blink_rc.c 2>/dev/null
-BLINK=/tmp/blink_rc.ihx
+sdcc -mmcs51 --model-small -o "$BLINK" "$BLINK_SRC" 2>/dev/null
 
 # Read symbol table
 BP_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['func_addr'])")
@@ -56,9 +60,6 @@ for y in d['scheduler']['tasks'][0]['yields']:
     if y['state']==3: print(y['addr']); break")
 BW_MS_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['bw_ms']['addr'])")
 T0_STATE_ADDR=$(python3 -c "import json; print(json.load(open('$SYMBOLS'))['scheduler']['tasks'][0]['state']['addr'])")
-
-TMP=$(mktemp -d)
-trap "rm -rf $TMP" EXIT
 
 echo "=== DEBUG-CONTROL-MODEL §8 acceptance ladder ==="
 echo ""
@@ -94,10 +95,10 @@ EMU_REGS=$(echo "$EMU_R4" | grep "^REGS")
 
 # ucsim
 UCSIM_R4=$(printf "break 0x$(printf '%04x' $BP_ADDR)\nrun\ndump sfr 0xe0 0xe0\ndump sfr 0xf0 0xf0\ndump sfr 0x82 0x83\ndump sfr 0x81 0x81\ndump sfr 0xd0 0xd0\npc\nquit\n" | $UCSIM -t STC12 "$SCHED" 2>/dev/null)
-UCSIM_ACC=$(echo "$UCSIM_R4" | grep "0xe0 ACC:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
-UCSIM_B=$(echo "$UCSIM_R4" | grep "0xf0 B:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
-UCSIM_SP=$(echo "$UCSIM_R4" | grep "0x81 SP:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
-UCSIM_PSW=$(echo "$UCSIM_R4" | grep "0xd0 PSW:" | grep -oP '0x[0-9a-fA-F]{2}\b' | tail -1)
+UCSIM_ACC=$(echo "$UCSIM_R4" | grep "0xe0 ACC:" | grep -Eo '0x[0-9a-fA-F]{2}' | tail -1)
+UCSIM_B=$(echo "$UCSIM_R4" | grep "0xf0 B:" | grep -Eo '0x[0-9a-fA-F]{2}' | tail -1)
+UCSIM_SP=$(echo "$UCSIM_R4" | grep "0x81 SP:" | grep -Eo '0x[0-9a-fA-F]{2}' | tail -1)
+UCSIM_PSW=$(echo "$UCSIM_R4" | grep "0xd0 PSW:" | grep -Eo '0x[0-9a-fA-F]{2}' | tail -1)
 
 echo "  emu:   HALT PC=$EMU_PC $EMU_REGS"
 echo "  ucsim: A=$UCSIM_ACC B=$UCSIM_B SP=$UCSIM_SP PSW=$UCSIM_PSW"
@@ -106,9 +107,9 @@ echo "  ucsim: A=$UCSIM_ACC B=$UCSIM_B SP=$UCSIM_SP PSW=$UCSIM_PSW"
 BP_HEX=$(printf '%04X' $BP_ADDR)
 if [ "$EMU_PC" = "$BP_HEX" ] && echo "$UCSIM_R4" | grep -qi "$(printf '%04x' $BP_ADDR)"; then
     # Compare registers
-    EMU_A=$(echo "$EMU_REGS" | grep -oP 'A=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
-    EMU_SP_V=$(echo "$EMU_REGS" | grep -oP 'SP=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
-    EMU_PSW_V=$(echo "$EMU_REGS" | grep -oP 'PSW=\K[0-9A-Fa-f]+' | tr 'a-f' 'A-F')
+    EMU_A=$(echo "$EMU_REGS" | sed -n 's/.*A=\([0-9A-Fa-f]*\).*/\1/p' | head -1 | tr 'a-f' 'A-F')
+    EMU_SP_V=$(echo "$EMU_REGS" | sed -n 's/.*SP=\([0-9A-Fa-f]*\).*/\1/p' | head -1 | tr 'a-f' 'A-F')
+    EMU_PSW_V=$(echo "$EMU_REGS" | sed -n 's/.*PSW=\([0-9A-Fa-f]*\).*/\1/p' | head -1 | tr 'a-f' 'A-F')
     # ucsim values already in 0xHH form — strip prefix, uppercase
     UCSIM_A_V=$(echo "$UCSIM_ACC" | sed 's/0x//' | tr 'a-f' 'A-F')
     UCSIM_SP_V=$(echo "$UCSIM_SP" | sed 's/0x//' | tr 'a-f' 'A-F')
@@ -120,7 +121,7 @@ if [ "$EMU_PC" = "$BP_HEX" ] && echo "$UCSIM_R4" | grep -qi "$(printf '%04x' $BP
         fail "PC matches but registers differ"
     fi
 else
-    fail "PC mismatch: emu=$EMU_PC ucsim=$(echo $UCSIM_R4 | grep -oP '0x[0-9a-f]+'| tail -1)"
+    fail "PC mismatch: emu=$EMU_PC ucsim=$(echo $UCSIM_R4 | grep -Eo '0x[0-9a-f]+'| tail -1)"
 fi
 
 # ─── RUNG 5: yield breakpoint, same (task, state, bw_ms) ───

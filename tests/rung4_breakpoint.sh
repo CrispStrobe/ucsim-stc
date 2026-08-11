@@ -28,10 +28,10 @@ echo "Rung 4: code breakpoint at bw_task0 (0x$BP_HEX)"
 OUT=$(printf "break 0x$BP_HEX\nrun\ndump sfr 0xe0 0xe0\ndump sfr 0xf0 0xf0\ndump sfr 0x82 0x83\ndump sfr 0x81 0x81\ndump sfr 0xd0 0xd0\npc\nquit\n" | $UCSIM -t STC12 "$HEXFILE" 2>/dev/null)
 
 # Extract register values
-PC_VAL=$(echo "$OUT" | grep "^0x" | tail -1 | grep -oP '0x[0-9a-fA-F]+' | head -1)
-ACC=$(echo "$OUT" | grep "ACC:" | grep -oP '0x[0-9a-fA-F]+' | head -2 | tail -1)
-B_REG=$(echo "$OUT" | grep " B:" | grep -oP '0x[0-9a-fA-F]+' | head -2 | tail -1)
-SP_VAL=$(echo "$OUT" | grep "SP:" | grep -oP '0x[0-9a-fA-F]+' | head -2 | tail -1)
+PC_VAL=$(echo "$OUT" | grep "^0x" | tail -1 | grep -Eo '0x[0-9a-fA-F]+' | head -1)
+ACC=$(echo "$OUT" | grep "ACC:" | grep -Eo '0x[0-9a-fA-F]+' | head -2 | tail -1)
+B_REG=$(echo "$OUT" | grep " B:" | grep -Eo '0x[0-9a-fA-F]+' | head -2 | tail -1)
+SP_VAL=$(echo "$OUT" | grep "SP:" | grep -Eo '0x[0-9a-fA-F]+' | head -2 | tail -1)
 
 echo "  PC=$PC_VAL ACC=$ACC B=$B_REG SP=$SP_VAL"
 

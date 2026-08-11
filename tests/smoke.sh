@@ -30,13 +30,13 @@ echo "$OUT" | grep -q "STC12C5A60S2" && pass "conf shows STC12C5A60S2" || fail "
 # 3. Timer 12T mode
 echo "[3] Timer 12T mode (AUXR.7=0)"
 OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\ntick 12\ndump sfr 0x8a 0x8a\nquit\n' | $UCSIM -t STC12 2>&1)
-TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$TL0" = "0x01" ] && pass "12 ticks -> TL0=1" || fail "expected TL0=0x01, got $TL0"
 
 # 4. Timer 1T mode
 echo "[4] Timer 1T mode (AUXR.7=1)"
 OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\nset mem sfr 0x8e 0x80\ntick 12\ndump sfr 0x8a 0x8a\nquit\n' | $UCSIM -t STC12 2>&1)
-TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$TL0" = "0x0c" ] && pass "12 ticks -> TL0=12 (1T)" || fail "expected TL0=0x0c, got $TL0"
 
 # 5. Timer overflow at correct tick count
@@ -55,14 +55,14 @@ echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -q "0x80" && pass "ADC_RES=0x80 (
 # 7. PCA prescaler (FOSC/12)
 echo "[7] PCA FOSC/12 prescaler"
 OUT=$(printf 'set mem sfr 0xd9 0x00\nset mem sfr 0xd8 0x40\ntick 12\ndump sfr 0xe9 0xe9\nquit\n' | $UCSIM -t STC12 2>&1)
-CL=$(echo "$OUT" | grep "CL:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+CL=$(echo "$OUT" | grep "CL:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$CL" = "0x01" ] && pass "12 ticks -> CL=1" || fail "expected CL=0x01, got $CL"
 
 # 8. ADC ADRJ=1 (result left-justified per STC12-PERIPHERAL-MODEL.md §4)
 echo "[8] ADC ADRJ=1 alignment"
 OUT=$(printf 'set mem sfr 0xa2 0x04\nset mem sfr 0x9d 0x08\nset mem sfr 0xbc 0x8b\ntick 500\ndump sfr 0xbd 0xbe\nquit\n' | $UCSIM -t STC12 2>&1)
 # Mid-scale 0x200: ADRJ=1 -> ADC_RES=0x02, ADC_RESL=0x00
-ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$ADCR" = "0x02" ] && pass "ADRJ=1: ADC_RES=0x02 (high 2 bits)" || fail "expected ADC_RES=0x02, got $ADCR"
 
 # 9. SFR names resolve
@@ -79,13 +79,13 @@ echo "$OUT" | grep -q "STC15F2K60S2" && pass "STC15F2K60S2 selectable" || fail "
 # 11. STC15 ADRJ at CLK_DIV.5 (not AUXR1.2)
 echo "[11] STC15 ADRJ at CLK_DIV.5"
 OUT=$(printf 'set mem sfr 0x97 0x20\nset mem sfr 0x9d 0x08\nset mem sfr 0xbc 0x8b\ntick 500\ndump sfr 0xbd 0xbe\nquit\n' | $UCSIM -t STC15 2>&1)
-ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+ADCR=$(echo "$OUT" | grep "ADC_RES:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$ADCR" = "0x02" ] && pass "STC15 ADRJ via CLK_DIV.5" || fail "expected ADC_RES=0x02, got $ADCR"
 
 # 12. STC15 Timer 2 counts at 12T
 echo "[12] STC15 Timer 2 at 12T"
 OUT=$(printf 'set mem sfr 0x8e 0x10\nset mem sfr 0xd7 0x00\nset mem sfr 0xd6 0x00\ntick 24\ndump sfr 0xd6 0xd7\nquit\n' | $UCSIM -t STC15 2>&1)
-T2L=$(echo "$OUT" | grep "T2L:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+T2L=$(echo "$OUT" | grep "T2L:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$T2L" = "0x02" ] && pass "24 ticks -> T2L=2 (12T)" || fail "expected T2L=0x02, got $T2L"
 
 # 13. STC15 has Timer 2 hw element
@@ -114,7 +114,7 @@ echo "[17] STC89 timer 12T only"
 # On a 12T core, 1 tick = 1 machine cycle = 1 timer increment.
 # (The 12T factor is in time-per-cycle, not in the count rate.)
 OUT=$(printf 'set mem sfr 0x89 0x01\nset mem sfr 0x88 0x10\ntick 1\ndump sfr 0x8a 0x8a\nquit\n' | $UCSIM -t STC89 2>&1)
-TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -oP '0x\S+' | head -2 | tail -1)
+TL0=$(echo "$OUT" | grep "TL0:" | tail -1 | grep -Eo '0x[^[:space:]]+' | head -2 | tail -1)
 [ "$TL0" = "0x01" ] && pass "STC89 12T: 1 tick -> TL0=1" || fail "expected TL0=0x01, got $TL0"
 
 # 18. STC89 no port modes (no PxM0/PxM1 hw)

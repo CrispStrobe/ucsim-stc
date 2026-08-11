@@ -139,7 +139,7 @@ if [ -x "$UCSIM" ] && [ -f tests/fixtures/baud_stc12.ihx ] && \
     # STC15: AUXR should be 0x15 (T2R=1, T2x12=1, S1ST2=1)
     AUXR_VAL=$(printf 'step 600\ndump sfr 0x8E 0x8E\nquit\n' | \
         timeout 5 "$UCSIM" -t STC15 -b tests/fixtures/baud_stc15.ihx 2>&1 | \
-        grep "^0x8e" | grep -oP '0x[0-9a-f]{2}' | tail -1)
+        grep "^0x8e" | grep -Eo '0x[0-9a-f]{2}' | tail -1)
     echo "    STC15 AUXR = $AUXR_VAL (expect 0x15)"
     if [ "$AUXR_VAL" = "0x15" ]; then
         echo "    PASS: AUXR correctly set for Timer 2 baud"
