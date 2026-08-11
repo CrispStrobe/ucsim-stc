@@ -46,7 +46,15 @@ echo "Rung 3: step('insn') x $STEPS, interrupts masked"
 # Filter out any non-PC trace lines (PIN/SFR events may leak through)
 "$EMU_TRACE" -fosc $FOSC -step-pcs $((STEPS + 1)) "$HEXFILE" 2>/dev/null \
     | grep -v '	' | tail -n +2 | head -$STEPS \
-    | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_pcs.txt"
+    | awk 'function hex2dec(s, i, c, n, d) {
+             s=tolower(s); n=0
+             for (i=1; i<=length(s); i++) {
+               c=substr(s,i,1); d=index("0123456789abcdef",c)-1
+               n=(n*16)+d
+             }
+             return n
+           }
+           {printf "%04X\n", hex2dec($0)}' > "$TMP/emu_pcs.txt"
 
 # ucsim: step one at a time, extract PC, normalize to 4-digit uppercase
 python3 -c "
@@ -56,7 +64,15 @@ print('quit')
 " | $UCSIM -t STC12 "$HEXFILE" 2>/dev/null \
     | grep 'Stop at 0x' \
     | sed 's/.*Stop at 0x\([0-9a-fA-F]*\).*/\1/' \
-    | awk '{printf "%04X\n", strtonum("0x" $0)}' \
+    | awk 'function hex2dec(s, i, c, n, d) {
+             s=tolower(s); n=0
+             for (i=1; i<=length(s); i++) {
+               c=substr(s,i,1); d=index("0123456789abcdef",c)-1
+               n=(n*16)+d
+             }
+             return n
+           }
+           {printf "%04X\n", hex2dec($0)}' \
     | head -$STEPS > "$TMP/ucsim_pcs.txt"
 
 EN=$(wc -l < "$TMP/emu_pcs.txt")

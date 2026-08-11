@@ -68,14 +68,30 @@ echo ""
 echo "[Rung 3] step('insn') x 1000, interrupts masked"
 "$EMU_TRACE" -fosc $FOSC -step-pcs 1001 "$BLINK" 2>/dev/null \
     | grep -v '	' | tail -n +2 | head -1000 \
-    | awk '{printf "%04X\n", strtonum("0x" $0)}' > "$TMP/emu_r3.txt"
+    | awk 'function hex2dec(s, i, c, n, d) {
+             s=tolower(s); n=0
+             for (i=1; i<=length(s); i++) {
+               c=substr(s,i,1); d=index("0123456789abcdef",c)-1
+               n=(n*16)+d
+             }
+             return n
+           }
+           {printf "%04X\n", hex2dec($0)}' > "$TMP/emu_r3.txt"
 
 python3 -c "
 for i in range(1000): print('step')
 print('quit')
 " | $UCSIM -t STC12 "$BLINK" 2>/dev/null \
     | grep 'Stop at 0x' | sed 's/.*Stop at 0x0*\([0-9a-fA-F]*\).*/\1/' \
-    | awk '{printf "%04X\n", strtonum("0x" $0)}' | head -1000 > "$TMP/ucsim_r3.txt"
+    | awk 'function hex2dec(s, i, c, n, d) {
+             s=tolower(s); n=0
+             for (i=1; i<=length(s); i++) {
+               c=substr(s,i,1); d=index("0123456789abcdef",c)-1
+               n=(n*16)+d
+             }
+             return n
+           }
+           {printf "%04X\n", hex2dec($0)}' | head -1000 > "$TMP/ucsim_r3.txt"
 
 EN=$(wc -l < "$TMP/emu_r3.txt"); UN=$(wc -l < "$TMP/ucsim_r3.txt")
 if diff "$TMP/emu_r3.txt" "$TMP/ucsim_r3.txt" > /dev/null 2>&1; then
@@ -191,14 +207,15 @@ echo ""
 echo "[Rung 7] peripheral-event differential on blink (10 ms)"
 "$EMU_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu_r7.ev"
-timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
+timeout 60 "$STC12_TRACE" -t STC12 -fosc $FOSC -until-ns 10000000 "$BLINK" 2>/dev/null \
     | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim_r7.ev"
 
 EN=$(wc -l < "$TMP/emu_r7.ev"); UN=$(wc -l < "$TMP/ucsim_r7.ev")
+N=$((EN<UN?EN:UN))
 if [ "$EN" -eq "$UN" ] && diff "$TMP/emu_r7.ev" "$TMP/ucsim_r7.ev" > /dev/null 2>&1; then
     pass "$EN/$UN events strictly identical (10 ms)"
-elif diff <(head -$((EN<UN?EN:UN)) "$TMP/emu_r7.ev") <(head -$((EN<UN?EN:UN)) "$TMP/ucsim_r7.ev") > /dev/null 2>&1; then
-    pass "first $((EN<UN?EN:UN)) events identical (emu=$EN ucsim=$UN)"
+elif [ "$N" -gt 0 ] && diff <(head -n "$N" "$TMP/emu_r7.ev") <(head -n "$N" "$TMP/ucsim_r7.ev") > /dev/null 2>&1; then
+    pass "first $N events identical (emu=$EN ucsim=$UN)"
 else
     fail "event divergence (emu=$EN ucsim=$UN)"
 fi
