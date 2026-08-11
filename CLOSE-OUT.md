@@ -86,3 +86,15 @@ serial DebugTarget e2e test. Idle-timeout resync IS reachable.
 - **SDCC's stc12.h is the independent check** for any IE/IP bit claim.
   The campaign found one shared-contract error (IE.EC) that three
   implementations agreed on — and all were wrong.
+
+## Spec-update convention (adopted from bw-parts a6f9240)
+
+Scan sibling repos' spec-updates/ at session start. Producer names
+the consumer in the direct message (standing rule). Not polled at
+every task boundary — traffic is too low to justify it.
+
+Highest acted on per repo:
+- emu8051-stc: 008 (stc12-interrupt-vectors)
+- bw-board: resync-inconclusive (resolved by 017)
+- Own: 017 (-inject requires -until-ns)
+
