@@ -22,7 +22,7 @@ source independent of every document."*
 | AUXR.7=1 Timer 0 → FOSC | 84 µs (STC12) vs 1013 µs (STC89, ignored) | — |
 | PWM duty 33/50/75% | 32.83% / 50.05% / 75.07%, period 277,561 ns | `BENCH-PWM` |
 | PCA 7.2K edges/sec | 277,561 ns period = 3602.8 Hz = 7206 edges/sec, agrees with bw-board | `BENCH-PWM` |
-| Servo 90° pulse | **1499.6 µs**, frame 20,000.0 µs = 50.0 Hz, 0.03% error | `BENCH-PWM` |
+| Servo 0°/90°/180° | 499.1 / 1499.6 / 2500.0 µs, frame 20,000.0 µs = 50.0 Hz | `BENCH-PWM` |
 | Motor duty 33/50/75% | 32.83% / 50.05% / 75.07% at P1.4 (CCP1) | `BENCH-PWM` |
 | UART TX bit period | **86.8 µs** exact (320 BRT overflows × 271.27 ns) | `BENCH-UART` |
 | Baud reload table | Divisor 3 → 115200 at 11.0592 MHz, 0.000% error | `BENCH-UART` |
@@ -56,6 +56,26 @@ source independent of every document."*
 | "278 µs ISR overhead" was CL-wrap bug, not hardware | ucsim-stc self-retracted | f531860 | ~1 hour |
 | stc ROADMAP.md "proven on real hardware" — nothing ran on silicon | coordinator | stc 4eaa84f | Unknown |
 | stc PERIPHERAL-MODEL "IE.EC enables PCA" — no EC exists | coordinator f7d36f7 | stc 02dd84e | Since document was written |
+
+### Servo measurement: category and limits
+
+**Category 3** (single-implementation). emu8051 has no PCA compare/match
+model to cross-check against. Moves to 2b if emu8051 adds 16-bit
+compare/match and agrees; to 1 with a scope on the real CEX0 pin.
+
+**What the measurement verifies:** the driver's constants reach the pin
+correctly through the PCA 16-bit compare/match path and the ISR dispatch
+at vector 0x3B. The predictions were derived from the driver's own
+arithmetic, and exact agreement confirms the code does what it intends.
+
+**What it does not verify:**
+- That the PCA timing model matches silicon (same-datasheet, category 2b
+  at best even with a cross-check)
+- That 500–2500 µs suits any particular servo (that is a property of the
+  servo, not the driver)
+- That the driver works on 12T: **STC89 produces 0 edges** — no PCA.
+  A `servo` block on STC89 silently does nothing. This should be refused
+  at compile time, the same way WS2812 is refused on 12T.
 
 ## What is open (bench IDs)
 
