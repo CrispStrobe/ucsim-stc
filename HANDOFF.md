@@ -83,7 +83,7 @@ SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measu
 - `spec-updates/017-inject-requires-until-ns.md` — the `-inject` / `-e` incompatibility
 - `spec-updates/018-simavr-uart-phantom-parity.md` — simavr UART frame overcounts by 1 bit in 8N1
 - `spec-updates/019-bench-procedures.md` — BENCH-NEO, BENCH-I2C, BENCH-AVR procedures
-- `tests/rung_avr_oracle.sh` — simavr vs avr8js differential oracle (13 pass, 2 known)
+- `tests/rung_avr_oracle.sh` — simavr vs avr8js differential oracle (22 pass, 2 known)
 - `tests/simavr_harness.c` — C harness for simavr (pin edges + UART bytes with cycle timestamps)
 - `tests/avr8js_harness.mjs` — JS harness for avr8js (same output format for diff)
 - `tests/fixtures/avr_uart_test.ihx` — UART TX "Hello AVR\n" at 9600 baud
