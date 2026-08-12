@@ -40,14 +40,14 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 
 2. **AT90S vs ATmega328P IO register map.** ucsim_avr hardcodes AT90S-era addresses (PORTB at IRAM 0x38 = IO 0x18) but ATmega328P code targets IO 0x05. Cosmetic only — cycle counting works.
 
-### Bench procedures (spec-update draft)
+### Bench procedures — DONE
 
-Coordinator requested (`/tmp/three-instruments-no-procedure.md`) procedures for three instruments the ledger names but no bench question covers:
-- **WS2812B strip** — NeoPixel timing (cat 1 prediction: T0H=362, T1H=814, T0L=814, T1L=452 ns)
-- **Logic analyser on SCL** — I2C timing (cat 2b prediction: t_HIGH=5.61 µs, t_LOW=7.26 µs)
-- **Ammeter on Nano** — AVR LED brightness (avr8js prediction: 0.5882 duty)
+Written as `spec-updates/019-bench-procedures.md`. Three procedures:
+- **BENCH-NEO** (WS2812B strip): cat 1, predictions T0H=362/T1H=814/T0L=814/T1L=452 ns, wiring to PDIP-40 pin 6 (P1.5). Confirms existing cross-emu agreement.
+- **BENCH-I2C** (logic analyser on SCL): cat 3, predictions t_HIGH=5.61/t_LOW=7.26 µs, wiring to PDIP-40 pin 23 (P2.2). **Highest marginal value** — first independent check, only path to promotion.
+- **BENCH-AVR** (ammeter on Nano D13): cat 1, prediction I_avg=6.92 mA (duty 0.5882). Weakest return but first AVR-on-silicon. Scope on D13 recommended over ammeter if available.
 
-To be written as a spec-update in this repo (not editing `BENCH-RUNBOOK.md`). Each needs: pre-registered prediction, inconclusive band, what it cannot settle, wiring by chip pin number. Not started.
+Each includes: pre-registered prediction, inconclusive band, what it cannot settle, wiring by chip pin number.
 
 ### LCD I2C full protocol
 
@@ -82,6 +82,7 @@ SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measu
 - `tests/classify_divergences.sh` — 347-image corpus classifier
 - `spec-updates/017-inject-requires-until-ns.md` — the `-inject` / `-e` incompatibility
 - `spec-updates/018-simavr-uart-phantom-parity.md` — simavr UART frame overcounts by 1 bit in 8N1
+- `spec-updates/019-bench-procedures.md` — BENCH-NEO, BENCH-I2C, BENCH-AVR procedures
 - `tests/rung_avr_oracle.sh` — simavr vs avr8js differential oracle (13 pass, 2 known)
 - `tests/simavr_harness.c` — C harness for simavr (pin edges + UART bytes with cycle timestamps)
 - `tests/avr8js_harness.mjs` — JS harness for avr8js (same output format for diff)
