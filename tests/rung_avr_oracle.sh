@@ -339,6 +339,59 @@ else
     fi
 fi
 
+# ── Test 9: Cooperative scheduler — multi-peripheral integration ──
+echo ""
+echo "=== Test 9: Cooperative scheduler (Timer0+GPIO+UART) ==="
+HEX="tests/fixtures/avr_scheduler.ihx"
+if [ ! -f "$HEX" ]; then
+    echo "SKIP: $HEX not found"
+else
+    timeout 30 "$SIMAVR" "$HEX" 1000000 16000000 > "$TMP_S" 2>/dev/null
+    timeout 30 node "$AVR8JS" "$HEX" 1000000 16000000 > "$TMP_A" 2>/dev/null
+
+    # Same event count
+    S_ALL=$(grep -c '^[PU]' "$TMP_S")
+    A_ALL=$(grep -c '^[PU]' "$TMP_A")
+    if [ "$S_ALL" = "$A_ALL" ]; then
+        pass "Scheduler: same event count ($S_ALL)"
+    else
+        fail "Scheduler: event count differs (simavr=$S_ALL avr8js=$A_ALL)"
+    fi
+
+    # UART byte values match
+    S_BYTES=$(grep '^UART_TX' "$TMP_S" | grep -Eo 'byte=0x[0-9a-f]+' | tr '\n' ' ')
+    A_BYTES=$(grep '^UART_TX' "$TMP_A" | grep -Eo 'byte=0x[0-9a-f]+' | tr '\n' ' ')
+    if [ "$S_BYTES" = "$A_BYTES" ]; then
+        pass "Scheduler: UART values match (both report same tick count)"
+    else
+        fail "Scheduler: UART values differ"
+    fi
+
+    # Pin edge order matches (both PB5 and PB4 events)
+    S_ORDER=$(grep '^PIN_EDGE' "$TMP_S" | grep -Eo 'portb\.[0-9]=[0-9]' | tr '\n' ' ')
+    A_ORDER=$(grep '^PIN_EDGE' "$TMP_A" | grep -Eo 'portb\.[0-9]=[0-9]' | tr '\n' ' ')
+    if [ "$S_ORDER" = "$A_ORDER" ]; then
+        pass "Scheduler: pin edge order matches"
+    else
+        fail "Scheduler: pin edge order differs"
+    fi
+
+    # Max cycle offset between corresponding edges should be small
+    S_CY=($(grep '^PIN_EDGE' "$TMP_S" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+'))
+    A_CY=($(grep '^PIN_EDGE' "$TMP_A" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+'))
+    MAX_DIFF=0
+    for i in $(seq 0 $((${#S_CY[@]} - 1))); do
+        D=$(( ${S_CY[$i]} - ${A_CY[$i]} ))
+        AD=${D#-}
+        if [ "$AD" -gt "$MAX_DIFF" ]; then MAX_DIFF=$AD; fi
+    done
+    if [ "$MAX_DIFF" -le 20 ]; then
+        pass "Scheduler: max pin-edge offset = $MAX_DIFF cy (ISR dispatch jitter)"
+    else
+        fail "Scheduler: max pin-edge offset = $MAX_DIFF cy (expected ≤ 20)"
+    fi
+fi
+
 # ── Summary ──
 echo ""
 echo "================================"

@@ -25,7 +25,8 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
   - **ADC completion timing matches** (cy 3262 for first ADC read).
   - **UART byte values match**; first byte cycle matches. **KNOWN BUG in simavr 1.6**: UART frame duration overcounts by 1 bit per byte (phantom parity bit — `avr_uart.c` adds `+1 parity` unconditionally, even for 8N1). Drifts 1664 cy/byte cumulative. Adjudicated: datasheet says 10 bits for 8N1, avr8js correct. spec-updates/018.
   - **OC1A pin visibility**: simavr fires PORTB IRQ on hardware COMnx toggles; avr8js (correctly) doesn't modify PORT register. Harness difference, not a bug.
-  - Test: `tests/rung_avr_oracle.sh` (13 pass, 0 fail, 2 known).
+  - **Scheduler integration**: cooperative scheduler (Timer0 OVF ISR as 1ms tick, PB5/PB4 toggles at 5/10ms, UART tick report) — same event count, same edge order, same UART values, max pin-edge offset 14 cy (ISR dispatch jitter).
+  - Test: `tests/rung_avr_oracle.sh` (22 pass, 0 fail, 2 known). 9 test programs across all major peripherals.
 
 ## In flight
 
