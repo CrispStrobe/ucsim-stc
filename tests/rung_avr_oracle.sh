@@ -206,6 +206,59 @@ else
     fi
 fi
 
+# ── Test 6: Timer0 overflow — ISR-driven toggle period ──
+echo ""
+echo "=== Test 6: Timer0 overflow (ISR-driven toggle) ==="
+HEX="tests/fixtures/avr_timer0_ovf.ihx"
+if [ ! -f "$HEX" ]; then
+    echo "SKIP: $HEX not found"
+else
+    timeout 15 "$SIMAVR" "$HEX" 500000 16000000 > "$TMP_S" 2>/dev/null
+    timeout 15 node "$AVR8JS" "$HEX" 500000 16000000 > "$TMP_A" 2>/dev/null
+
+    S_COUNT=$(grep '^PIN_EDGE' "$TMP_S" | wc -l)
+    A_COUNT=$(grep '^PIN_EDGE' "$TMP_A" | wc -l)
+
+    if [ "$S_COUNT" = "$A_COUNT" ]; then
+        pass "Timer0 OVF: same edge count ($S_COUNT)"
+    else
+        fail "Timer0 OVF: edge count differs (simavr=$S_COUNT avr8js=$A_COUNT)"
+    fi
+
+    # Check average period matches expected: 2 * 256 * 64 = 32768 cy
+    S_P1=$(grep '^PIN_EDGE' "$TMP_S" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+' | head -2 | \
+           awk 'NR==1{a=$1} NR==2{print $1-a}')
+    A_P1=$(grep '^PIN_EDGE' "$TMP_A" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+' | head -2 | \
+           awk 'NR==1{a=$1} NR==2{print $1-a}')
+
+    # Average of first two periods should be 32768
+    S_P2=$(grep '^PIN_EDGE' "$TMP_S" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+' | head -3 | \
+           awk 'NR==1{a=$1} NR==2{b=$1} NR==3{print $1-b}')
+    A_P2=$(grep '^PIN_EDGE' "$TMP_A" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+' | head -3 | \
+           awk 'NR==1{a=$1} NR==2{b=$1} NR==3{print $1-b}')
+
+    S_AVG=$(( (S_P1 + S_P2) / 2 ))
+    A_AVG=$(( (A_P1 + A_P2) / 2 ))
+
+    if [ "$S_AVG" -eq 32768 ] && [ "$A_AVG" -eq 32768 ]; then
+        pass "Timer0 OVF: avg period = 32768 cy (both, = 2×256×64)"
+    else
+        fail "Timer0 OVF: avg period simavr=$S_AVG avr8js=$A_AVG (expected 32768)"
+    fi
+
+    # Constant offset between simulators should be small (≤ 4 cy)
+    S_FIRST=$(grep '^PIN_EDGE' "$TMP_S" | head -1 | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    A_FIRST=$(grep '^PIN_EDGE' "$TMP_A" | head -1 | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    T0_OFFSET=$((A_FIRST - S_FIRST))
+    ABS_OFFSET=${T0_OFFSET#-}
+
+    if [ "$ABS_OFFSET" -le 4 ]; then
+        pass "Timer0 OVF: first-edge offset = $T0_OFFSET cy (ISR dispatch timing)"
+    else
+        fail "Timer0 OVF: first-edge offset = $T0_OFFSET cy (expected ≤ 4)"
+    fi
+fi
+
 # ── Summary ──
 echo ""
 echo "================================"

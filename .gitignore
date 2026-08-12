@@ -25,5 +25,8 @@ corpus/
 *.rst
 *.sym
 
+# Built test harness binaries
+tests/simavr_harness
+
 # Agent working notes: local context, not documentation.
 CLAUDE.md

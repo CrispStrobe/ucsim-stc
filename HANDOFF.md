@@ -20,18 +20,24 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 - **README rewritten**: 4 parts, 8 suites, measurements with categories, what is NOT done.
 - **Spec-update convention adopted** (session start scan, not every task).
 - **AVR oracle — hand-assembled blink** (`1b4c257`): ucsim_avr executes the 6-word blink from `bw-board/test/avr8js-adapter.test.js`. All instruction cycle costs match avr8js exactly: SBI=2, DEC=1, BRNE-taken=2, LDI=1, RJMP=2. Toggle period = 769 cycles = 48062.5 ns at 16 MHz, confirmed 1540 ticks for 2 complete toggles. Test: `tests/rung_avr_blink.sh` (8/8 pass, portable grep per `6356b3b`).
+- **AVR oracle — simavr vs avr8js differential** (`297961b`): libsimavr harness + avr8js harness, same hex files, compared pin edges / UART / ADC / timer timing. 13/13 pass, 2 known divergences:
+  - **Pin edges agree exactly** on hand-assembled blink (769 cy), compiled blink (19015 cy), Timer1 CTC (±1 cy over 40k), Timer0 OVF (32768 cy avg, ±1 jitter).
+  - **ADC completion timing matches** (cy 3262 for first ADC read).
+  - **UART byte values match**; first byte cycle matches. **KNOWN BUG in simavr 1.6**: UART frame duration overcounts by 1 bit per byte (phantom parity bit — `avr_uart.c` adds `+1 parity` unconditionally, even for 8N1). Drifts 1664 cy/byte cumulative. Adjudicated: datasheet says 10 bits for 8N1, avr8js correct. spec-updates/018.
+  - **OC1A pin visibility**: simavr fires PORTB IRQ on hardware COMnx toggles; avr8js (correctly) doesn't modify PORT register. Harness difference, not a bug.
+  - Test: `tests/rung_avr_oracle.sh` (13 pass, 0 fail, 2 known).
 
 ## In flight
 
-### AVR oracle track — next concrete steps
+### AVR oracle track — status
 
-The hand-assembled blink proves cycle-count agreement. Three things remain before the AVR oracle is useful for differential execution:
+**Completed:** simavr vs avr8js differential oracle is operational. Compiled blink, UART TX, ADC read, Timer0 OVF, Timer1 CTC — all tested. Pin edges agree exactly; UART has a known simavr bug (spec-updates/018). The oracle is usable for all non-UART-timing comparisons.
 
-1. **Compiled blink cycle-count comparison.** `tests/fixtures/avr_blink_compiled.ihx` (from `stc-compiler.vercel.app/compile`, target `atmega328p`) loads and toggles PORTB correctly (confirmed: IRAM[0x25] flips 0x85↔0xA5 via IN/EOR/OUT at IO 0x05). Next step: step ~10,000 instructions per toggle (the `for (volatile uint16_t i=0; i<1000; i++)` delay loop), measure the toggle period, compare with avr8js running the same hex.
+**Remaining ucsim_avr issues** (lower priority now that simavr oracle exists):
 
-2. **Word-0 clobber workaround.** ROM[0] reads 0x0000 after hex load despite `read_input_files()` calling `read_file()` which calls `reset()` — the reset may be clearing word 0. Workaround: `set mem rom 0 <first-word>`. Root cause is in `cl_uc::read_file` at `uc.cc:138` calling `reset()` after load. Needs either a fix in the AVR reset or a wrapper script. The `rung_avr_blink.sh` test already works around it.
+1. **Word-0 clobber workaround.** ROM[0] reads 0x0000 after hex load despite `read_input_files()` calling `read_file()` which calls `reset()` — the reset may be clearing word 0. Workaround: `set mem rom 0 <first-word>`. Root cause is in `cl_uc::read_file` at `uc.cc:138` calling `reset()` after load.
 
-3. **AT90S vs ATmega328P IO register map.** ucsim_avr hardcodes AT90S-era addresses (PORTB at IRAM 0x38 = IO 0x18) but ATmega328P code targets IO 0x05. The opcodes execute correctly at the right IO address — the map is cosmetic (names and disassembly), not behavioral. For the oracle role: cycle counting works now; full PORTB trace would require either remapping the SFR name table in `avr.cc:52-114` or writing an ATmega328P model. The disassembler also shows wrong register names (r24 as r0) — display bug in the `disass()` function, not an execution bug.
+2. **AT90S vs ATmega328P IO register map.** ucsim_avr hardcodes AT90S-era addresses (PORTB at IRAM 0x38 = IO 0x18) but ATmega328P code targets IO 0x05. Cosmetic only — cycle counting works.
 
 ### Bench procedures (spec-update draft)
 
@@ -74,5 +80,13 @@ SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measu
 - `tests/fixtures/avr_blink_compiled.ihx` — compiled AVR blink from stc-compiler
 - `tests/classify_divergences.sh` — 347-image corpus classifier
 - `spec-updates/017-inject-requires-until-ns.md` — the `-inject` / `-e` incompatibility
+- `spec-updates/018-simavr-uart-phantom-parity.md` — simavr UART frame overcounts by 1 bit in 8N1
+- `tests/rung_avr_oracle.sh` — simavr vs avr8js differential oracle (13 pass, 2 known)
+- `tests/simavr_harness.c` — C harness for simavr (pin edges + UART bytes with cycle timestamps)
+- `tests/avr8js_harness.mjs` — JS harness for avr8js (same output format for diff)
+- `tests/fixtures/avr_uart_test.ihx` — UART TX "Hello AVR\n" at 9600 baud
+- `tests/fixtures/avr_adc_test.ihx` — ADC read channel 0 + UART print
+- `tests/fixtures/avr_timer_test.ihx` — Timer1 CTC toggle OC1A every 10000 cy
+- `tests/fixtures/avr_timer0_ovf.ihx` — Timer0 OVF ISR toggle every 2 overflows
 - `ucsim/src/sims/avr.src/ucsim_avr` — built AVR simulator binary
 - `ucsim/src/sims/avr.src/avr.cc:52-114` — AT90S SFR name table (needs ATmega update for full oracle)
