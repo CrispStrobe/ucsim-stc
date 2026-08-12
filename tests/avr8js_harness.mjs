@@ -86,6 +86,7 @@ const usart = new AVRUSART(cpu, usart0Config, freq);
 // Event recording
 const events = [];
 let lastPortB = 0;
+let lastPortD = 0;
 
 portB.addListener(() => {
   const val = cpu.data[0x25]; // PORTB
@@ -101,6 +102,22 @@ portB.addListener(() => {
     }
   }
   lastPortB = output;
+});
+
+portD.addListener(() => {
+  const val = cpu.data[0x2B]; // PORTD
+  const ddr = cpu.data[0x2A]; // DDRD
+  const output = val & ddr;
+  const changed = output ^ lastPortD;
+  for (let i = 0; i < 8; i++) {
+    if (changed & (1 << i)) {
+      events.push({
+        type: 'D', cycle: cpu.cycles, pin: i,
+        value: (output >> i) & 1
+      });
+    }
+  }
+  lastPortD = output;
 });
 
 // Hook UART TX
@@ -126,6 +143,8 @@ for (const ev of events) {
   const ns = BigInt(ev.cycle) * 1000000000n / BigInt(freq);
   if (ev.type === 'P') {
     console.log(`PIN_EDGE cy=${ev.cycle} ns=${ns} portb.${ev.pin}=${ev.value}`);
+  } else if (ev.type === 'D') {
+    console.log(`PIN_EDGE cy=${ev.cycle} ns=${ns} portd.${ev.pin}=${ev.value}`);
   } else {
     const ch = (ev.value >= 0x20 && ev.value < 0x7f)
       ? String.fromCharCode(ev.value) : '.';

@@ -38,6 +38,7 @@ typedef struct {
 static event_t events[MAX_EVENTS];
 static int     event_count = 0;
 static uint8_t last_portb = 0;
+static uint8_t last_portd = 0;
 
 static avr_t *g_avr = NULL;
 
@@ -60,6 +61,18 @@ static void portb_hook(avr_irq_t *irq, uint32_t value, void *param) {
         }
     }
     last_portb = portb;
+}
+
+/* Called when PORTD output changes */
+static void portd_hook(avr_irq_t *irq, uint32_t value, void *param) {
+    uint8_t portd = (uint8_t)(value & 0xFF);
+    uint8_t changed = portd ^ last_portd;
+    for (int i = 0; i < 8; i++) {
+        if (changed & (1 << i)) {
+            record_event('D', i, (portd >> i) & 1);
+        }
+    }
+    last_portd = portd;
 }
 
 /* Called when UART sends a byte */
@@ -114,6 +127,13 @@ int main(int argc, char **argv) {
         fprintf(stderr, "WARNING: could not hook PORTB\n");
     }
 
+    /* Hook PORTD output */
+    avr_irq_t *portd_irq = avr_io_getirq(avr,
+        AVR_IOCTL_IOPORT_GETIRQ('D'), IOPORT_IRQ_REG_PORT);
+    if (portd_irq) {
+        avr_irq_register_notify(portd_irq, portd_hook, NULL);
+    }
+
     /* Hook UART0 output */
     avr_irq_t *uart_irq = avr_io_getirq(avr,
         AVR_IOCTL_UART_GETIRQ('0'), UART_IRQ_OUTPUT);
@@ -141,13 +161,16 @@ int main(int argc, char **argv) {
     printf("SIMAVR_EVENTS=%d\n", event_count);
 
     for (int i = 0; i < event_count; i++) {
+        uint64_t ns = (uint64_t)((double)events[i].cycle * 1e9 / freq);
         if (events[i].type == 'P') {
-            uint64_t ns = (uint64_t)((double)events[i].cycle * 1e9 / freq);
             printf("PIN_EDGE cy=%lu ns=%lu portb.%d=%d\n",
                 (unsigned long)events[i].cycle, (unsigned long)ns,
                 events[i].pin, events[i].value);
+        } else if (events[i].type == 'D') {
+            printf("PIN_EDGE cy=%lu ns=%lu portd.%d=%d\n",
+                (unsigned long)events[i].cycle, (unsigned long)ns,
+                events[i].pin, events[i].value);
         } else {
-            uint64_t ns = (uint64_t)((double)events[i].cycle * 1e9 / freq);
             printf("UART_TX cy=%lu ns=%lu byte=0x%02x '%c'\n",
                 (unsigned long)events[i].cycle, (unsigned long)ns,
                 events[i].value,

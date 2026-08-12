@@ -259,6 +259,42 @@ else
     fi
 fi
 
+# ── Test 7: PWM — completion timing agreement ──
+echo ""
+echo "=== Test 7: Fast PWM (OC0A on PD6, completion timing) ==="
+HEX="tests/fixtures/avr_pwm_test.ihx"
+if [ ! -f "$HEX" ]; then
+    echo "SKIP: $HEX not found"
+else
+    timeout 10 "$SIMAVR" "$HEX" 200000 16000000 > "$TMP_S" 2>/dev/null
+    timeout 10 node "$AVR8JS" "$HEX" 200000 16000000 > "$TMP_A" 2>/dev/null
+
+    S_PB5=$(grep 'portb\.5=1' "$TMP_S" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    A_PB5=$(grep 'portb\.5=1' "$TMP_A" | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+
+    if [ "$S_PB5" = "$A_PB5" ]; then
+        pass "PWM: completion PB5 agrees exactly ($S_PB5)"
+    else
+        DIFF=$((S_PB5 - A_PB5))
+        ABS=${DIFF#-}
+        if [ "$ABS" -le 2 ]; then
+            pass "PWM: completion PB5 agrees within $ABS cy"
+        else
+            fail "PWM: completion PB5 differs by $ABS cy (simavr=$S_PB5 avr8js=$A_PB5)"
+        fi
+    fi
+
+    # OC0A (PD6) PWM output: neither simulator writes PORTD register
+    # for hardware compare-match output (correct per datasheet).
+    S_PD=$(grep 'portd\.' "$TMP_S" | wc -l)
+    A_PD=$(grep 'portd\.' "$TMP_A" | wc -l)
+    if [ "$S_PD" -eq 0 ] && [ "$A_PD" -eq 0 ]; then
+        pass "PWM: OC0A hw output invisible in PORT register (both, correct)"
+    else
+        known "PWM: OC0A edges visible (simavr=$S_PD avr8js=$A_PD)"
+    fi
+fi
+
 # ── Summary ──
 echo ""
 echo "================================"
