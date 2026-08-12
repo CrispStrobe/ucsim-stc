@@ -295,6 +295,50 @@ else
     fi
 fi
 
+# ── Test 8: ISR latency — Timer2 CTC interrupt dispatch ──
+echo ""
+echo "=== Test 8: ISR latency (Timer2 CTC, 100 cy period) ==="
+HEX="tests/fixtures/avr_isr_latency.ihx"
+if [ ! -f "$HEX" ]; then
+    echo "SKIP: $HEX not found"
+else
+    timeout 10 "$SIMAVR" "$HEX" 10000 16000000 > "$TMP_S" 2>/dev/null
+    timeout 10 node "$AVR8JS" "$HEX" 10000 16000000 > "$TMP_A" 2>/dev/null
+
+    S_COUNT=$(grep '^PIN_EDGE' "$TMP_S" | wc -l)
+    A_COUNT=$(grep '^PIN_EDGE' "$TMP_A" | wc -l)
+
+    if [ "$S_COUNT" = "$A_COUNT" ]; then
+        pass "ISR latency: same edge count ($S_COUNT)"
+    else
+        fail "ISR latency: edge count differs (simavr=$S_COUNT avr8js=$A_COUNT)"
+    fi
+
+    # Completion timing (last PB5 edge)
+    S_LAST=$(grep 'portb\.5' "$TMP_S" | tail -1 | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    A_LAST=$(grep 'portb\.5' "$TMP_A" | tail -1 | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    DIFF=$((S_LAST - A_LAST))
+    ABS=${DIFF#-}
+
+    if [ "$ABS" -le 5 ]; then
+        pass "ISR latency: completion agrees within $ABS cy (simavr=$S_LAST avr8js=$A_LAST)"
+    else
+        fail "ISR latency: completion differs by $ABS cy"
+    fi
+
+    # Average ISR-to-ISR period (from edges 1-4)
+    S_PERIODS=$(grep '^PIN_EDGE.*portb' "$TMP_S" | head -4 | grep -Eo 'cy=[0-9]+' | grep -Eo '[0-9]+')
+    S_FIRST=$(echo "$S_PERIODS" | head -1)
+    S_FOURTH=$(echo "$S_PERIODS" | tail -1)
+    S_AVG_PERIOD=$(( (S_FOURTH - S_FIRST) / 3 ))
+
+    if [ "$S_AVG_PERIOD" -eq 100 ]; then
+        pass "ISR latency: simavr avg period = 100 cy (correct for OCR2A=99)"
+    else
+        fail "ISR latency: simavr avg period = $S_AVG_PERIOD (expected 100)"
+    fi
+fi
+
 # ── Summary ──
 echo ""
 echo "================================"
