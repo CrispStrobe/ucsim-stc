@@ -65,7 +65,7 @@ Decoder: `tests/decode_i2c_trace.py`.
 - **stc12_trace build rule**: `Makefile.in` has the `stc12_trace` target but `./configure`'s generated `Makefile` does not propagate it. Must append the rule manually or use `make -f Makefile.in stc12_trace`. This has bitten three people.
 - **Bit-write trace visibility**: bit-addressable SFR writes (SETB/CLR on port pins) DO change the byte-level SFR value and ARE visible in the trace shadow comparison — but only if `trace_check_sfr()` runs after the write. The trace sees them fine; the earlier "zero output" on the LCD was SDCC init time, not a trace bug.
 - **`-inject` and `-e` are incompatible**: `-e 'run ...'` runs ucsim's internal command loop; `-inject` fires in stc12_trace's own `for(;;) { do_inst(); }` loop controlled by `-until-ns`. spec-updates/017 documents this.
-- **ucsim_avr word-0 clobber**: `cl_uc::read_file()` calls `reset()` after loading the hex file (`uc.cc:138`), which appears to zero ROM[0]. All other words load correctly. Workaround: `set mem rom 0 <value>` before execution.
+- **ucsim_avr word-0 clobber** (investigated 2026-08-13): NOT in `reset()` — `reset()` preserves ROM. `set_rom(0, 0x9A25)` during hex parsing succeeds (immediate readback = 0x9A25 via `d()`), but `rom->read(0)` returns 0 afterward. The cell's `download()` writes via `dl()` to `*data`, and `d()` confirms it, but a later `read()` or `get()` returns 0. Suspect: the cell's `data` pointer (set by `decode()` to point into `rom_chip` storage) is remapped or the chip-level storage is zeroed by something between `read_hex_file()` and the next access. Not in `reset()`, not in `analyze_init()` (only clears CELL_INST flags). Upstream ucsim bug, affects only AVR (16-bit ROM); 8-bit MCS-51 ROM is unaffected. Workaround: `set mem rom 0 <value>` before execution.
 - **ucsim_avr disassembler register bug**: LDI/OUT/IN/EOR show wrong register names. Encoding `1110 KKKK dddd KKKK` has d=0..15 mapping to r16..r31, but `disass()` appears to decode d as r0..r15. Execution is correct — only the display is wrong.
 - **ucsim_avr IO map is AT90S, not ATmega**: SFR table in `avr.cc` places PORTB at IRAM 0x38 (IO 0x18). ATmega328P has PORTB at IRAM 0x25 (IO 0x05). The SBI/IN/OUT opcodes address IO space directly, so ATmega code runs at the correct IO addresses — the name table is just wrong for ATmega targets.
 - **Portability**: `grep -oP` (GNU Perl regex) fails on macOS. Owner fixed existing tests in `6356b3b` using `grep -Eo` (POSIX ERE). New scripts follow this pattern.
@@ -74,7 +74,7 @@ Decoder: `tests/decode_i2c_trace.py`.
 
 - **Resync e2e**: bw-board owns the test. Unblocked by spec-updates/017 (use `-until-ns` not `-e`). They have the corrected invocation.
 - **LCD I2C protocol edges**: DONE — spec-updates/020, tests/rung_lcd_i2c.sh (14/14).
-- **JBC cycle count**: 1 MC in ucsim, should be 2 per MCS-51 spec. No driver uses JBC. Fix is one `tick(1)` call in `jmp.cc instruction_10`.
+- **JBC cycle count**: verified 2026-08-13 as already correct (2 MC). `tickt(0x10)` adds 1 via default path (no tick table), `instruction_10` at `jmp.cc:91` adds `tick(1)`. Total = 2, matching MCS-51 spec. No fix needed.
 
 ## Key files
 
