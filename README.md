@@ -87,7 +87,7 @@ baud mismatch is not modelled.
 ## Test
 
 ```
-./tests/run_all.sh          # 8 suites, all must pass
+./tests/run_all.sh          # 13 suites, all must pass
 ```
 
 Individual suites:
