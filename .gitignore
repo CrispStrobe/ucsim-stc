@@ -33,3 +33,6 @@ labwired-core/
 
 # Agent working notes: local context, not documentation.
 CLAUDE.md
+tests/fixtures/picobb/*.uf2
+tests/fixtures/picobb/*.elf
+tests/fixtures/picobb/*.bin
