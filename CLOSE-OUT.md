@@ -115,7 +115,7 @@ the consumer in the direct message (standing rule). Not polled at
 every task boundary — traffic is too low to justify it.
 
 Highest acted on per repo:
-- emu8051-stc: 008 (stc12-interrupt-vectors)
-- bw-board: resync-inconclusive (resolved by 017)
-- Own: 017 (-inject requires -until-ns)
+- emu8051-stc: 010 (sdld-eval-ub; 009/010 are toolchain, informational only)
+- bw-board: i2c-ack-policy (confirms observe-only, matches spec-updates/020)
+- Own: 020 (lcd-i2c-protocol-edges)
 
