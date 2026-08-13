@@ -25,6 +25,9 @@ run_suite "Multi-part differential" ./tests/multipart_diff.sh
 run_suite "Cross-part examples" ./tests/crosspart_examples.sh
 run_suite "Model difference (STC12 vs STC89)" ./tests/rung_model_diff.sh
 run_suite "Baud divergence (BRT vs T2)" ./tests/rung_baud.sh
+run_suite "NeoPixel WS2812 spec windows" ./tests/rung_neopixel.sh
+run_suite "LCD I2C protocol edges" ./tests/rung_lcd_i2c.sh
+run_suite "AVR blink cycle counts" ./tests/rung_avr_blink.sh
 
 # Cross-emulator tests (require emu_trace)
 EMU_TRACE="${EMU_TRACE:-../emu8051-stc/emu_trace}"
@@ -35,6 +38,20 @@ else
     echo ""
     echo "=============== Cross-emulator tests ==============="
     echo "SKIP: emu_trace not found at $EMU_TRACE"
+fi
+
+# simavr tests (require libsimavr harness)
+if [ -x tests/simavr_harness ]; then
+    run_suite "AVR oracle (simavr vs avr8js)" ./tests/rung_avr_oracle.sh
+else
+    echo ""
+    echo "=============== AVR oracle ==============="
+    echo "SKIP: simavr_harness not found (build with 'make -C tests simavr_harness')"
+fi
+
+# NeoPixel cross-emu (require both emu_trace and stc12_trace)
+if [ -x "$EMU_TRACE" ]; then
+    run_suite "NeoPixel cross-emu (cat 1)" ./tests/rung_neopixel_cross.sh
 fi
 
 echo ""
