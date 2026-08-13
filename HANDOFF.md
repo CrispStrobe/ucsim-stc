@@ -14,6 +14,32 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
   - Banner: `BBC BASIC for Pico Console v0.50`, prompt `>`, `PRINT 2+2` → `4`
   - 250M cycles, 3.1s simulated, 20s wall on this VPS
   - Test: `tests/picobb_boot_rp2040js.mjs`, binaries gitignored
+  - **Reproduction recipe:**
+    ```bash
+    # 1. Bootrom — B1 revision, extracted from wokwi/rp2040js demo/bootrom.ts
+    #    Source: https://github.com/raspberrypi/pico-bootrom commit 00a4a19114195e20fb817bdfbca1165e157eef37
+    #    rp2040js bundles it as Uint32Array (4096 words = 16384 bytes)
+    curl -sL https://raw.githubusercontent.com/wokwi/rp2040js/main/demo/bootrom.ts -o /tmp/bootrom.ts
+    python3 -c "import re,struct; t=open('/tmp/bootrom.ts').read(); \
+      vs=re.findall(r'0x([0-9a-fA-F]+)',t); \
+      open('tests/fixtures/picobb/rp2040_bootrom_b1.bin','wb').write( \
+        b''.join(struct.pack('<I',int(v,16)) for v in vs))"
+    # Verify: sha256 should start with the B1 revision fingerprint
+    # Vectors: SP=0x20041f00 PC=0x000000ef, magic at 0x10 = 4d750102
+
+    # 2. Build PicoBB from source (requires pico-sdk + arm-none-eabi-gcc)
+    git clone --depth 1 --recurse-submodules https://github.com/Memotech-Bill/PicoBB.git /tmp/PicoBB
+    git clone --depth 1 https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
+    cd /tmp/pico-sdk && git submodule update --init --depth 1 lib/tinyusb
+    cd /tmp/PicoBB/console/pico
+    PICO_SDK_PATH=/tmp/pico-sdk make TYPE=pico STDIO=UART SOUND=NONE BOARD=pico bbcbasic
+    cp bbcbasic_console_pico.uf2 <project>/tests/fixtures/picobb/
+
+    # 3. Run
+    node tests/picobb_boot_rp2040js.mjs 60 --send "PRINT 2+2"
+    # Expect: banner, ">", "PRINT 2+2", "         4", ">"
+    ```
+  - **Forward note (no action now):** the FIFO_ST gap (SIO offset 0x50 returning 0xFFFFFFFF) affects any rp2040js firmware that touches the multicore FIFO. bw-board's adapter should eventually stub SIO 0x50/0x54/0x58 the same way. The monkey-patch in `picobb_boot_rp2040js.mjs` is the reference implementation
 
 - **nRF52840 + ESP32-C3 validation report** (`e625ad2`): spec-updates/020 complete. nRF52840 = deep behavioural (11 suites, temporal fidelity, boots Zephyr). ESP32-C3 = reset-state only (84/84 register values, cross-board, no runtime behavioural).
 
