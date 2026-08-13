@@ -2,7 +2,15 @@
 
 For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta.
 
-## Completed since the close-out
+## Completed since last handoff (2026-08-13 session)
+
+- **LCD I2C full protocol** (`fcdba07`): full I2C START/address/data/STOP decode on P2.1 (SDA) and P2.2 (SCL). Address 0x4E on all transactions, HD44780 init byte-identical across v1/v2/12T. SCL timing: v2 5606/7415 ns in spec, v1 3255 ns below spec (known). 14/14 pass. Cat 3. spec-updates/020, `tests/rung_lcd_i2c.sh`, `tests/decode_i2c_trace.py`.
+- **AVR word-0 clobber investigated** (`8c092de`): NOT in `reset()`. `set_rom(0)` succeeds during hex parsing (immediate readback correct), but `rom->read(0)` returns 0 afterward. Cell data pointer remapping suspected. Upstream ucsim bug, affects only 16-bit ROM. Workaround unchanged.
+- **JBC cycle count verified** (`8c092de`): already 2 MC (correct). `tickt()` default 1 + `instruction_10` `tick(1)` = 2. No fix needed.
+- **run_all.sh expanded** (`4753346`): 13 suites (was 8). Added NeoPixel, LCD I2C, AVR blink, AVR oracle (simavr), NeoPixel cross-emu.
+- **NeoPixel promoted** to cat 1 in README (was listed as 2b; cross-emu agreement was already in CLOSE-OUT).
+
+## Completed in prior sessions
 
 - **Servo 0°/90°/180°** measured: 499.1 / 1499.6 / 2500.0 µs, frame 20.0 ms exact. Category 3. STC89 produces 0 edges (no PCA) — bw-blocks added compile-time refusal (sb3-creator `6b0e6f6`).
 - **I2C SCL timing** measured: v1 (loop=13) HIGH=3.25 µs — **below 4.0 µs spec**. v2 (loop=26) HIGH=5.61 µs, LOW=7.26 µs — both in spec. bw-blocks fixed in `222b2ab`.
