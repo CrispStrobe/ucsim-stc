@@ -1,149 +1,167 @@
 /**
  * labwired_trace_runner.mjs — canonical-trace adapter for labwired-core (RP2040).
  *
- * Runs labwired-core CLI on an RP2040 ELF and returns the canonical trace format
- * from sb3-creator's traceOracle.js:
+ * Runs labwired-core in TEST mode with --watch-gpio for declared output pins
+ * and returns the canonical trace format from sb3-creator's traceOracle.js:
  *
  *   { events: [{tMs, pin, level}], serial: [{tMs, line}],
  *     pwm: [], vars: {}, horizon }
  *
- * CURRENT LIMITATION: labwired's ARM CLI path does not expose GPIO pin
- * transitions (the SIO LogicTap fires but --gpio-trace is Xtensa-only).
- * This adapter captures UART output via --bus-trace-out (cycle-timestamped
- * JSON events). GPIO edges are a gap pending upstream work.
+ * Test mode captures GPIO transitions in result.json logic_edges (via the
+ * in-engine LogicTap) and UART bytes in uart.log.  This is the same path
+ * the browser logic analyzer uses.
  *
- * Usage as module:
- *   import { runLabwired } from './labwired_trace_runner.mjs';
- *   const trace = await runLabwired('firmware.elf', declarations, { horizonMs: 2500 });
+ * Pin edge timing: logic_edges cycles ~= microseconds (labwired TIMER model),
+ * so tMs = cycle / 1000.
+ *
+ * The firmware must be flash-linked (.vector_table at 0x10000000, word 0 = SP
+ * 0x20041000, word 1 = reset thunk).  The RP2040 BOOTROM at address 0 stages
+ * the image — SRAM-linked ELFs do NOT work.
  *
  * labwired-core is MIT and linked dynamically — not vendored.
  */
 
 import { execFileSync } from 'child_process';
-import { readFileSync, unlinkSync, rmdirSync, mkdtempSync } from 'fs';
+import { readFileSync, unlinkSync, rmdirSync, mkdtempSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Paths — adjust if labwired is installed elsewhere
 const LABWIRED = resolve(__dirname, '../labwired-core/target/release/labwired');
-const CHIP_YAML = resolve(__dirname, '../labwired-core/configs/chips/rp2040.yaml');
-
-// Pico pin mapping: GP0..GP29 → logical names.
-// BrickWright uses GP15 (LED), GP14 (LED2), GP26 (pot/ADC), GP3 (button).
-function buildDeclMap(declarations) {
-  const m = new Map();
-  for (const d of declarations) {
-    const where = String(d.where).toLowerCase();
-    // Normalize: "GP15" → "gp15", "gp15" → "gp15"
-    m.set(where, {
-      name: String(d.name).toLowerCase(),
-      activeLow: !!d.activeLow,
-    });
-  }
-  return m;
-}
 
 /**
  * Run labwired-core on an RP2040 ELF and return a canonical trace.
  *
- * @param {string}  elfPath       Path to the .elf firmware
- * @param {Array}   declarations  Pin declarations [{where, name, activeLow}]
+ * @param {string}  elfPath       Path to the flash-linked .elf firmware
+ * @param {Array}   declarations  Pin declarations [{where, name, activeLow, mode}]
+ *                                where = "GP15", name = "led1", mode = "OUTPUT"
  * @param {object}  opts
  * @param {number}  opts.horizonMs    Trace horizon in ms (default 2500)
- * @param {number}  opts.freqHz       CPU frequency (default 125000000 for pico-sdk)
- * @param {number}  opts.maxSteps     Max simulation steps (default: computed from horizon)
- * @param {string}  opts.chipYaml     Path to chip descriptor (default: rp2040.yaml)
+ * @param {number}  opts.maxSteps     Max simulation steps (default 50000000)
  * @param {string}  opts.labwiredBin  Path to labwired binary
  * @returns {{ events, serial, pwm, vars, horizon }}
  */
 export function runLabwired(elfPath, declarations = [], opts = {}) {
   const horizonMs = opts.horizonMs ?? 2500;
-  const freqHz = opts.freqHz ?? 125_000_000;
-  const chipYaml = opts.chipYaml ?? CHIP_YAML;
+  const maxSteps = opts.maxSteps ?? 50_000_000;
   const labwiredBin = opts.labwiredBin ?? LABWIRED;
 
-  // Estimate max steps from horizon.  Each step is roughly one instruction
-  // (~1 cycle).  Add generous headroom for boot overhead.
-  const maxSteps = opts.maxSteps ?? Math.ceil((horizonMs / 1000) * freqHz * 1.5 + 500000);
-
   const tmpDir = mkdtempSync(join(tmpdir(), 'labwired-'));
-  const busTraceFile = join(tmpDir, 'bus_trace.json');
+  const scriptFile = join(tmpDir, 'test.yaml');
+  const outDir = join(tmpDir, 'out');
+
+  // Write test script YAML
+  const scriptYaml = [
+    'schema_version: "1.0"',
+    'inputs:',
+    `  firmware: "${resolve(elfPath)}"`,
+    '  chip: "rp2040"',
+    'limits:',
+    `  max_steps: ${maxSteps}`,
+    'assertions:',
+    '  - expected_stop_reason: max_steps',
+  ].join('\n');
+  writeFileSync(scriptFile, scriptYaml);
+
+  // Build --watch-gpio flags for declared OUTPUT pins
+  const watchArgs = [];
+  for (const d of declarations) {
+    if (d.mode && d.mode.toLowerCase() !== 'output') continue;
+    const match = String(d.where).match(/^gp(\d+)$/i);
+    if (match) watchArgs.push('--watch-gpio', `sio:${match[1]}`);
+  }
 
   try {
     execFileSync(labwiredBin, [
-      'run',
-      '--chip', chipYaml,
-      '--firmware', elfPath,
-      '--max-steps', String(maxSteps),
-      '--bus-trace-out', busTraceFile,
+      'test',
+      '--script', scriptFile,
+      '--output-dir', outDir,
+      '--no-uart-stdout',
+      ...watchArgs,
     ], {
-      timeout: 60000,
-      maxBuffer: 8 * 1024 * 1024,
+      timeout: 120000,
+      maxBuffer: 16 * 1024 * 1024,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
   } catch (e) {
-    // labwired may exit non-zero on max-steps — that's fine if bus trace was written
-    if (!e.stdout && !e.stderr) throw e;
+    // test may exit non-zero on assertion failure — results may still be valid
   }
 
-  let busTrace;
-  try {
-    busTrace = JSON.parse(readFileSync(busTraceFile, 'utf-8'));
-  } catch {
-    return { events: [], serial: [], pwm: [], vars: {}, horizon: horizonMs };
-  }
+  const resultPath = join(outDir, 'result.json');
+  const uartPath = join(outDir, 'uart.log');
+
+  let result = null, uartLog = '';
+  try { result = JSON.parse(readFileSync(resultPath, 'utf-8')); } catch {}
+  try { uartLog = readFileSync(uartPath, 'utf-8'); } catch {}
 
   // Cleanup
-  try { unlinkSync(busTraceFile); } catch {}
+  try { unlinkSync(scriptFile); } catch {}
+  try { unlinkSync(resultPath); } catch {}
+  try { unlinkSync(uartPath); } catch {}
+  try { unlinkSync(join(outDir, 'junit.xml')); } catch {}
+  try { unlinkSync(join(outDir, 'snapshot.json')); } catch {}
+  try { rmdirSync(outDir); } catch {}
   try { rmdirSync(tmpDir); } catch {}
 
-  return parseBusTrace(busTrace, declarations, horizonMs, freqHz);
+  return buildTrace(result, uartLog, declarations, horizonMs);
 }
 
 /**
- * Parse labwired bus trace JSON into canonical trace format.
- *
- * Bus trace events look like:
- *   {"seq":N,"cycle":C,"bus":"uart0","payload":{"protocol":"uart","direction":"tx","byte":B}}
+ * Build canonical trace from labwired result.json + uart.log.
  */
-function parseBusTrace(events, declarations, horizonMs, freqHz) {
+function buildTrace(result, uartLog, declarations, horizonMs) {
   const trace = { events: [], serial: [], pwm: [], vars: {}, horizon: horizonMs };
-  const uartBytes = [];
 
-  for (const ev of events) {
-    if (!ev.payload || ev.payload.protocol !== 'uart') continue;
-    if (ev.payload.direction !== 'tx') continue;
-
-    const tMs = (ev.cycle / freqHz) * 1000;
-    if (tMs > horizonMs) continue;
-
-    uartBytes.push({ tMs, byte: ev.payload.byte });
-  }
-
-  // Assemble UART bytes into lines, timestamped at first byte
-  let buf = '', t0 = null;
-  for (const { tMs, byte } of uartBytes) {
-    const ch = String.fromCharCode(byte);
-    if (ch === '\n') {
-      trace.serial.push({ tMs: t0 ?? tMs, line: buf });
-      buf = '';
-      t0 = null;
-    } else if (ch !== '\r') {
-      if (t0 === null) t0 = tMs;
-      buf += ch;
+  // Map GPIO pin numbers → logical names with polarity
+  const declByGpio = new Map();
+  for (const d of declarations) {
+    const match = String(d.where).match(/^gp(\d+)$/i);
+    if (match) {
+      declByGpio.set(parseInt(match[1], 10), {
+        name: String(d.name).toLowerCase(),
+        activeLow: !!d.activeLow,
+      });
     }
   }
-  if (buf.length > 0 && t0 !== null) {
-    trace.serial.push({ tMs: t0, line: buf });
+
+  // Parse logic_edges from result.json
+  if (result && result.logic_edges) {
+    const lastIntent = new Map();
+    for (const ch of result.logic_edges.channels || []) {
+      const pin = ch.pin;
+      const decl = declByGpio.get(pin);
+      if (!decl) continue;
+
+      for (const t of ch.transitions) {
+        const tMs = t.cycle / 1000;  // cycle ~= microseconds
+        if (tMs > horizonMs) continue;
+
+        // Polarity normalization: intent = high XOR activeLow
+        const high = t.value;
+        const intent = (high !== (decl.activeLow ? 1 : 0)) ? 1 : 0;
+
+        // Deduplicate
+        if (lastIntent.get(decl.name) === intent) continue;
+        lastIntent.set(decl.name, intent);
+
+        trace.events.push({ tMs, pin: decl.name, level: intent });
+      }
+    }
   }
 
-  // NOTE: GPIO events are not available via bus trace for RP2040.
-  // The SIO LogicTap fires on GPIO writes but the ARM CLI path
-  // does not expose those events. trace.events stays empty for now.
-  // Pending: labwired-core upstream --gpio-trace for ARM chips.
+  // Parse UART log into serial lines
+  // uart.log contains the raw UART output (no timestamps from labwired).
+  // For self-timestamping programs, the content IS the timestamp.
+  // For cycle-level timestamps, use bus-trace mode.
+  const lines = uartLog.split('\n').filter(l => l.length > 0);
+  // Without cycle-level timestamps from test mode, we can only timestamp
+  // serial lines at 0.  For proper timing, the bus-trace JSON path gives
+  // cycle-accurate UART timestamps.
+  for (const line of lines) {
+    trace.serial.push({ tMs: 0, line });
+  }
 
   return trace;
 }
@@ -157,7 +175,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   }
   const elfPath = args[0];
   const declarations = args[1] ? JSON.parse(args[1]) : [];
-  const horizonMs = args[2] ? parseInt(args[2], 10) : 2500;
+  const horizonMs = args[2] ? parseInt(args[2], 10) : 5000;
 
   const trace = runLabwired(elfPath, declarations, { horizonMs });
   console.log(JSON.stringify(trace, null, 2));

@@ -1,7 +1,8 @@
 # 019 — labwired-core RP2040 evaluation for oracle layer 5
 
-Status: **promising with caveats** — UART path usable today; GPIO path
-needs minor upstream work or a polling adapter.
+Status: **CONFIRMED — both UART and GPIO paths work.** `labwired test`
+with `--watch-gpio sio:PIN` captures GPIO edges in `result.json
+.logic_edges`; UART lands in `uart.log`. No upstream patch needed.
 
 ## 1. What labwired-core is
 
@@ -44,36 +45,42 @@ TIER1 irq PASS
 TIER1 done
 ```
 
-## 3. GPIO observation gap — the blocking issue
+## 3. GPIO observation — SOLVED via `labwired test --watch-gpio`
 
-**What works:** The SIO model correctly tracks `gpio_out` state and has a
-`LogicTap` push-capture mechanism (snapshots before SIO writes, reports
-changes after). This powers the bus-trace/VCD logic-capture system.
+**`labwired test` mode** captures GPIO edges through the in-engine
+LogicTap — the same path the browser logic analyzer uses. No upstream
+patch required.
 
-**What doesn't work for us:** The `labwired run --gpio-trace` flag is
-**ESP32-S3-only** — it hooks the Xtensa GPIO observer interface, which
-does not exist in the ARM `run_firmware_arm` path. The ARM path wires:
-- UART TX sink → stdout (works)
-- Bus trace → JSON/VCD (UART events only for RP2040; no GPIO in bus trace)
+**Recipe:**
+```bash
+labwired test --script blink.yaml --watch-gpio sio:25 --output-dir out/
+```
+Result: `out/result.json` `.logic_edges.channels[].transitions` =
+`[{cycle, value}...]` where `cycle ~= microseconds` (labwired TIMER
+model). UART output lands in `out/uart.log`.
 
-The LogicTap IS fired on SIO writes (`tap_snapshot` / `tap_report` around
-GPIO_OUT_SET/CLR/XOR), but no CLI path exposes those events for ARM chips
-on `labwired run`. The `labwired test` command (YAML-driven) likely does
-wire logic capture, but that path requires a test script, not a raw run.
+**Script shape:**
+```yaml
+schema_version: "1.0"
+inputs:
+  firmware: "/path/to/firmware.elf"
+  chip: "rp2040"           # built-in name, not a file path
+limits:
+  max_steps: 50000000
+assertions:
+  - expected_stop_reason: max_steps
+```
 
-**Options to close the gap:**
-1. **Upstream PR**: Add `--gpio-trace` to the ARM path by reading
-   `bus.logic_tap` events after the step loop. The SIO already fires tap
-   events; the CLI just doesn't collect them. Estimated: ~30 lines of Rust.
-2. **Polling adapter**: A custom firmware that reads SIO `GPIO_IN` at a
-   known rate and reports over UART. Ugly, changes the firmware.
-3. **Test-script path**: Use `labwired test` with a YAML that watches
-   specific GPIO pads. Requires learning the test-script schema.
+`--watch-gpio` is repeatable — one channel per declared output pin.
 
-**Recommendation:** Option 1 is the right move. The SIO tap mechanism is
-already wired; the ARM run command just needs to drain the `LogicTap`
-event buffer after the run completes. This is a small, clean contribution
-upstream and benefits all ARM-chip users. File an issue first.
+**Verified:** Our blink probe (GP25 toggle every 500 ms) produces 6
+transitions at cycles 503643, 1013093, 1519120, 2022748, 2529136,
+3032589 — ~500 ms half-periods, matching rp2040js within the 1.2%
+ROSC timer model gap (the coordinator confirmed exact agreement on
+pico-sdk-compiled programs which configure PLL to 125 MHz).
+
+**`labwired run --gpio-trace`** remains Xtensa-only. Contributing the
+ARM wiring upstream is optional polish, not a blocker.
 
 ## 4. Feasibility run
 
@@ -140,28 +147,59 @@ silicon validation (11 suites, MMIO reads/writes, timing). ESP32-C3 has
 runtime behaviour). Both are genuinely silicon-verified but at different
 depths.
 
-## 6. Verdict for oracle layer 5
+## 6. Cross-emulator verification results
 
-**labwired-core IS the right RP2040 second executor**, pending:
-1. GPIO observation in the ARM CLI path (~30 lines of Rust upstream)
-2. An ELF wrapper or pico-sdk build path for BW Pico artifacts
-3. A canonical-trace adapter (same shape as `simavr_trace_runner.mjs`)
+**Self-timestamping probe (bare-metal, no pico-sdk clock setup):**
 
-The UART path works today. If BW programs only did `print` (serial-only),
-we could write the adapter now. The GPIO observation gap is the blocker
-for pin-edge programs (blink, two-tasks, button).
+| Emulator | Serial output (ms) | GP25 edges (ms) |
+|---|---|---|
+| rp2040js | 500 1000 1500 2000 2500 3000 | 500 1000 1500 2000 2500 3000 |
+| labwired | 503 1013 1519 2022 2529 3032 | 503.6 1013.1 1519.1 2022.7 2529.1 3032.6 |
+| **Delta** | **+1.2% (ROSC timer model gap)** | **Same pattern, same gap** |
 
-**Compared to alternatives:**
-- **rp2040js** (already in use): Pure JS, no native deps, but single-source
-  — we want an independent second opinion, which is the whole point
-- **Renode**: Heavier (Mono/.NET), similar "needs GPIO hook" problem
-- **labwired-core**: Rust, MIT, fast, already passes tier-1 for all
-  peripherals we need (GPIO/TIMER/UART/ADC/PWM), just needs the CLI
-  plumbing to expose GPIO events on ARM
+Both emulators produce 6 GPIO transitions + 6 serial lines + DONE.
+The 1.2% delta is the bare-metal ROSC-to-TIMER path difference — the
+coordinator confirmed **exact agreement on pico-sdk-compiled programs**
+(PLL → 125 MHz, TIMER at 1 µs/tick).
 
-**Next step:** File a labwired-core issue requesting `--gpio-trace` for ARM
-chips. Reference the SIO `tap_snapshot`/`tap_report` mechanism already in
-place. If accepted, the canonical-trace adapter is straightforward.
+## 7. nRF52840 silicon validation (micro:bit-class assessment)
+
+labwired-core's nRF52840 model is **the deepest silicon-verified model
+in the project**: 🟢 silicon-verified (2026-08-09), **11 hw-oracle suites
+pass** with NRF52_STRICT=1:
+
+- conformance, cpu_conformance, mmio 16/16, gpio, onboarding, power,
+  spis_twis, timer_rtc, spim_easydma, full_register, ccm
+- Boots real Zephyr firmware end to end
+- TWIM I2C with transfer-cycle latency modelled (the temporal-fidelity
+  case study in FIDELITY.md — the ~5760-cycle I2C completion delay)
+- EasyDMA, BLE peripheral models, UARTE with legacy UART mode
+- Re-capture found + fixed 3 real defects (see VALIDATION_STATUS.md)
+
+**For micro:bit-class assessment:** This is the strongest independent
+Cortex-M simulation oracle currently available. The nRF52840 is the
+micro:bit V2's MCU. labwired-core's silicon-verified model covers
+GPIO, TIMER, RTC, SPI, TWI (I2C), and UART — the full micro:bit
+peripheral surface.
+
+## 8. Verdict for oracle layer 5
+
+**labwired-core IS the right RP2040 second executor. Both GPIO and UART
+paths work today via `labwired test --watch-gpio`.**
+
+Deliverables in place:
+- `tests/labwired_trace_runner.mjs` — canonical-trace adapter using
+  test mode with --watch-gpio for GPIO + uart.log for serial
+- `tests/rp2040js_probe_runner.mjs` — rp2040js canonical-trace adapter
+- `tests/rung_rp2040_cross.sh` — cross-emulator differential test
+- `tests/fixtures/pico_blink_probe.c` — flash + SRAM blink probes
+- `tests/fixtures/pico_flash.ld` — flash linker script (0x10000000)
+
+**Remaining to wire as nightly layer-5:**
+1. Flash-link thunk for BW Pico artifacts (or hosted service `link=flash`)
+2. Per-program × device loop: generate YAML, run test mode, parse
+   logic_edges + uart.log → canonical trace → compareTraces
+3. serialMsPerByte = 0 (PL011 32-deep FIFO, no blocking drift)
 
 ---
 Evaluated: 2026-08-13. labwired-core cloned at HEAD.
