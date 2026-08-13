@@ -28,5 +28,8 @@ corpus/
 # Built test harness binaries
 tests/simavr_harness
 
+# External evaluations (cloned locally, never vendored)
+labwired-core/
+
 # Agent working notes: local context, not documentation.
 CLAUDE.md
