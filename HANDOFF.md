@@ -49,9 +49,16 @@ Written as `spec-updates/019-bench-procedures.md`. Three procedures:
 
 Each includes: pre-registered prediction, inconclusive band, what it cannot settle, wiring by chip pin number.
 
-### LCD I2C full protocol
+### LCD I2C full protocol — DONE
 
-SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measurement was blocked by SDCC init taking >100ms. Next step: use `-until-ns 500000000` or longer, or set a breakpoint past init.
+Full I2C protocol decode completed. The "SDCC init >100ms" blocker was
+overstated — `lcd_i2c.ihx` starts I2C at ~78 µs; the other fixtures
+are similar. Used `-until-ns 500000000` as planned.
+
+Results: 14/14 pass (`tests/rung_lcd_i2c.sh`). Address 0x4E (PCF8574
+at 0x27) on all transactions, HD44780 init byte-identical across all
+fixtures, SCL timing matches prior measurement. spec-updates/020.
+Decoder: `tests/decode_i2c_trace.py`.
 
 ## Learned but not in a spec-update
 
@@ -66,7 +73,7 @@ SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measu
 ## Blocked
 
 - **Resync e2e**: bw-board owns the test. Unblocked by spec-updates/017 (use `-until-ns` not `-e`). They have the corrected invocation.
-- **LCD I2C protocol edges**: needs longer `-until-ns` to get past SDCC init (~100ms). Not architecturally blocked.
+- **LCD I2C protocol edges**: DONE — spec-updates/020, tests/rung_lcd_i2c.sh (14/14).
 - **JBC cycle count**: 1 MC in ucsim, should be 2 per MCS-51 spec. No driver uses JBC. Fix is one `tick(1)` call in `jmp.cc instruction_10`.
 
 ## Key files
@@ -92,3 +99,6 @@ SCL timing is done (v2 in spec). The full I2C START/address/data/STOP edge measu
 - `tests/fixtures/avr_timer0_ovf.ihx` — Timer0 OVF ISR toggle every 2 overflows
 - `ucsim/src/sims/avr.src/ucsim_avr` — built AVR simulator binary
 - `ucsim/src/sims/avr.src/avr.cc:52-114` — AT90S SFR name table (needs ATmega update for full oracle)
+- `tests/rung_lcd_i2c.sh` — LCD I2C protocol edge test (14 pass)
+- `tests/decode_i2c_trace.py` — I2C protocol decoder from PIN trace events
+- `spec-updates/020-lcd-i2c-protocol-edges.md` — LCD I2C protocol measurement

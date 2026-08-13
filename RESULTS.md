@@ -950,6 +950,29 @@ re-deriving the number in an emulator checks transcription, not
 hardware behaviour. What would move it to category 1: a photodiode
 or high-speed camera on a real cube.
 
+### LCD I2C protocol edges
+
+Full I2C protocol decode on P2.1 (SDA) and P2.2 (SCL) for the LCD
+driver.  Test: `tests/rung_lcd_i2c.sh` (14 pass, 0 fail).
+Spec-update: `spec-updates/020-lcd-i2c-protocol-edges.md`.
+
+Protocol structure verified on all three firmware variants:
+- Address byte: 0x4E (PCF8574 at 0x27, write) — 100% on all txns
+- HD44780 4-bit init: 0x30×3, 0x20, then 0x28/0x0C/0x06/0x01
+- Init sequence byte-identical across v1, v2, and 12T fixtures
+
+SCL data-clock timing (excluding START/STOP setup edges):
+
+| Fixture | t_HIGH (dom) | t_LOW (dom) | Spec t_HIGH≥4000 | t_LOW≥4700 |
+|---|---|---|---|---|
+| v1 1T (loop=13) | **3255 ns** | 5064 ns | **FAIL** | OK |
+| v2 1T (loop=26) | 5606 ns | 7415 ns | OK | OK |
+| 12T (loop=3) | 15191 ns | 36893 ns | OK | OK |
+
+Category 3 (single-implementation): no slave-aware I2C model exists
+in emu8051 to cross-check against.  ACK bits are NACK (no simulated
+slave), which does not affect timing or structure measurement.
+
 ### NOT confirmed on silicon
 
 **Everything.** See `stc/docs/EVIDENCE-CATEGORIES.md`:
