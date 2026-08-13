@@ -34,8 +34,9 @@ Evidence categories per [`stc/docs/EVIDENCE-CATEGORIES.md`](https://github.com/C
 | STC89 12T core rate | 1085 ns/NOP, ratio 12.0× vs STC12 | **1** |
 | PCA 8-bit PWM duty 33/50/75% | 32.83% / 50.05% / 75.07%, period 277,561 ns | 2b |
 | PCA 16-bit compare/match (servo 90°) | 1499.6 µs pulse, 20,000.0 µs frame = 50.0 Hz | 2b |
-| WS2812 NeoPixel 4 pulse widths | T0H=362, T1H=814, T0L=814, T1L=452 — all in spec | 2b |
+| WS2812 NeoPixel 4 pulse widths | T0H=362, T1H=814, T0L=814, T1L=452 — all in spec | **1** |
 | UART TX bit period | 86.8 µs exact (BRT at 115200) | 2b |
+| LCD I2C protocol (14 tests) | START/addr/data/STOP, HD44780 init, SCL timing v2 in spec | 3 |
 | Cube refresh | 124.1 Hz, 8.059 ms frame | 2b |
 | Motor duty 33/50/75% | 32.83% / 50.05% / 75.07% at P1.4 | 2b |
 
@@ -101,6 +102,10 @@ Individual suites:
 | Multi-part diff (9 tests) | `./tests/multipart_diff.sh` | Cross-emu STC89, cross-part STC12=STC15=STC15W |
 | Cross-part examples (9 tests) | `./tests/crosspart_examples.sh` | 9 example bundles identical on 3 parts |
 | Example diff (9 tests) | `./tests/examples_diff.sh` | Cross-emu STC12, requires `EMU_TRACE` |
+| LCD I2C (14 tests) | `./tests/rung_lcd_i2c.sh` | I2C protocol edges, HD44780 init, SCL timing |
+| AVR blink (8 tests) | `./tests/rung_avr_blink.sh` | Hand-assembled AVR cycle counts vs avr8js |
+| AVR oracle (22 tests) | `./tests/rung_avr_oracle.sh` | simavr vs avr8js: blink, UART, ADC, timers, scheduler |
+| NeoPixel cross-emu (cat 1) | `./tests/rung_neopixel_cross.sh` | ucsim vs emu8051, 144 edges, max diff 1 ns |
 
 Cross-emulator tests need `emu_trace` from emu8051-stc (set `EMU_TRACE`).
 
