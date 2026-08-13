@@ -43,6 +43,7 @@ fi
 # simavr tests (require libsimavr harness)
 if [ -x tests/simavr_harness ]; then
     run_suite "AVR oracle (simavr vs avr8js)" ./tests/rung_avr_oracle.sh
+    run_suite "Simavr canonical-trace differential" ./tests/rung_simavr_canonical.sh
 else
     echo ""
     echo "=============== AVR oracle ==============="
