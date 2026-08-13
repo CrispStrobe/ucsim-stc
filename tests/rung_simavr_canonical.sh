@@ -79,6 +79,17 @@ else
     fail "Timer1 CTC"
 fi
 
+# ── Test 6: Self-timestamping probe (GPIO + serial) ──
+echo "--- Test 6: Timestamp probe ---"
+DECL_LED_PROBE='[{"where":"D13","name":"led","activeLow":false}]'
+OUT=$($DIFF_CMD tests/fixtures/avr_timestamp_probe.ihx "$DECL_LED_PROBE" 3500 1.05 2>&1) && RC=0 || RC=$?
+echo "  $OUT"
+if [ "$RC" -eq 0 ]; then
+    pass "Timestamp probe"
+else
+    fail "Timestamp probe"
+fi
+
 # ── Summary ──
 echo ""
 echo "================================"
