@@ -2,7 +2,22 @@
 
 For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta.
 
-## Completed since last handoff (2026-08-13 session)
+## Completed since last handoff (2026-08-13 evening session)
+
+- **PicoBB boots under rp2040js** (`6a33d2c`): BBC BASIC for Raspberry Pi Pico (Memotech-Bill/PicoBB, zlib) boots under rp2040js emulation with UART console. Built from source with `TYPE=pico STDIO=UART SOUND=NONE BOARD=pico`. Three patches required:
+  1. Real RP2040 B1 bootrom (from rp2040js/pico-bootrom, 16KB Uint32Array)
+  2. SIO FIFO stub — rp2040js returns 0xFFFFFFFF for unknown SIO offsets, making FIFO_ST.VLD=1 (data available) permanently; firmware spins. Fix: FIFO_ST=0x02 (RDY=1, VLD=0), FIFO_RD=0
+  3. ANSI terminal emulation — PicoBB sends ESC[6n cursor position queries for terminal detection; respond with ESC[24;80R
+  - **SOUND=NONE required**: default SDL sound module calls `multicore_launch_core1()`, rp2040js is single-core, FIFO handshake deadlocks
+  - **Prebuilt V23_03 `bbcbasic_pkc.uf2` fails**: includes CYW43 driver that blocks without wireless hardware
+  - **labwired path investigated**: ELF loads, no crash with B1 bootrom, but no UART output after 120s/500M steps (root cause: labwired's SIO model likely has same FIFO gap)
+  - Banner: `BBC BASIC for Pico Console v0.50`, prompt `>`, `PRINT 2+2` → `4`
+  - 250M cycles, 3.1s simulated, 20s wall on this VPS
+  - Test: `tests/picobb_boot_rp2040js.mjs`, binaries gitignored
+
+- **nRF52840 + ESP32-C3 validation report** (`e625ad2`): spec-updates/020 complete. nRF52840 = deep behavioural (11 suites, temporal fidelity, boots Zephyr). ESP32-C3 = reset-state only (84/84 register values, cross-board, no runtime behavioural).
+
+## Completed in prior sub-session
 
 - **LCD I2C full protocol** (`fcdba07`): full I2C START/address/data/STOP decode on P2.1 (SDA) and P2.2 (SCL). Address 0x4E on all transactions, HD44780 init byte-identical across v1/v2/12T. SCL timing: v2 5606/7415 ns in spec, v1 3255 ns below spec (known). 14/14 pass. Cat 3. spec-updates/020, `tests/rung_lcd_i2c.sh`, `tests/decode_i2c_trace.py`.
 - **AVR word-0 clobber investigated** (`8c092de`): NOT in `reset()`. `set_rom(0)` succeeds during hex parsing (immediate readback correct), but `rom->read(0)` returns 0 afterward. Cell data pointer remapping suspected. Upstream ucsim bug, affects only 16-bit ROM. Workaround unchanged.
@@ -110,3 +125,6 @@ Decoder: `tests/decode_i2c_trace.py`.
 - `tests/rung_lcd_i2c.sh` — LCD I2C protocol edge test (14 pass)
 - `tests/decode_i2c_trace.py` — I2C protocol decoder from PIN trace events
 - `spec-updates/020-lcd-i2c-protocol-edges.md` — LCD I2C protocol measurement
+- `spec-updates/020-labwired-nrf52840-esp32c3-adjudication.md` — nRF52840/ESP32-C3 silicon validation summary
+- `tests/picobb_boot_rp2040js.mjs` — PicoBB boot harness (rp2040js + SIO FIFO stub + terminal emulation)
+- `tests/fixtures/picobb/` — PicoBB binaries (gitignored: .uf2, .elf, .bin)
