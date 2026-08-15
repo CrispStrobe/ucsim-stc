@@ -7,7 +7,17 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 - **nRF52840 bare-metal execution proven** (`9d8e8f5`): two clean-room ARM Thumb-2 programs run correctly under labwired's nRF52840 model. UART TX (ENABLE/STARTTX/TXD/TXDRDY) and GPIO (DIRSET/OUTSET/OUTCLR at standard Nordic addresses) both work. Test: `tests/rung_nrf52840_bare.sh` (5/5 pass).
 - **nRF52833 vs 52840 delta report** (`spec-updates/021`): peripherals are register-compatible at identical addresses for everything course programs need (GPIO, UART, TIMER, TWI, PWM, SAADC). A 52833 chip YAML is a 20-line delta (flash/RAM size, FICR PART override, QSPI omit, P1 pin count). **Verdict: labwired-now, not blocked-on-upstream.**
   - One gap: `--gpio-trace` does not emit events for the nRF GPIO model (declarative register storage); GPIO edges verified via UART-reported state transitions instead.
+- **nRF52833 chip config created** (`512d52f`): standalone at `tests/fixtures/nrf52840/nrf52833_chip.yaml`. Both bare-metal programs run identically under it. The micro:bit V2 execution path is unblocked.
 - **generateBASIC: full Scratch surface** (sb3-creator `fad322c`→`0c15f47`): 35/35 gallery examples emit ok:true (was 0/35). say/think→PRINT, ask→INPUT, operators→BBC math/string, lists→DIM arrays, pen→VDU MOVE/DRAW, motion→tracked vars, timer→TIME/100. Multi-WHEN serializes, non-w65c02 stubs. Reader inverses for INPUT/CLG/GCOL/MID$/LEN/INSTR/TIME. 379 tests pass, eslint clean.
+
+### micro:bit V2 execution path — READY (task #18 unblocked)
+
+The run path is proven end-to-end:
+1. `tests/fixtures/nrf52840/nrf52833_chip.yaml` — chip config (or copy into labwired-core/configs/chips/)
+2. `arm-none-eabi-as -mcpu=cortex-m4 -mthumb` + `arm-none-eabi-ld -T gpio_toggle.ld` — assemble bare-metal programs
+3. `labwired run --chip nrf52833.yaml --firmware X.elf --max-steps N` — run; UART output on stdout
+4. GPIO verified via UART-reported edges (--gpio-trace not yet wired for nRF GPIO model)
+5. Peripheral delta documented in `spec-updates/021`: register-compatible at identical addresses for GPIO, UART, TIMER, TWI, PWM, SAADC. Not independently silicon-verified — the 52840 capture is the oracle.
 
 ## Completed since prior handoff (2026-08-13 evening session)
 
