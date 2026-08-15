@@ -55,6 +55,12 @@ if [ -x "$EMU_TRACE" ]; then
     run_suite "NeoPixel cross-emu (cat 1)" ./tests/rung_neopixel_cross.sh
 fi
 
+# nRF52840 bare-metal execution (requires labwired-core)
+run_suite "nRF52840 bare-metal" ./tests/rung_nrf52840_bare.sh
+
+# System ROM boots (require bw-board + TaliForth2 + ehBASIC ROM)
+run_suite "System ROM boots" ./tests/rung_system_rom_boots.sh
+
 echo ""
 echo "========================================="
 echo "Suites: $SUITES_PASS passed, $SUITES_FAIL failed"
