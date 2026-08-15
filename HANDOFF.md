@@ -144,35 +144,27 @@ Decoder: `tests/decode_i2c_trace.py`.
 ## Blocked
 
 - **Resync e2e**: bw-board owns the test. Unblocked by spec-updates/017 (use `-until-ns` not `-e`). They have the corrected invocation.
-- **LCD I2C protocol edges**: DONE — spec-updates/020, tests/rung_lcd_i2c.sh (14/14).
-- **JBC cycle count**: verified 2026-08-13 as already correct (2 MC). `tickt(0x10)` adds 1 via default path (no tick table), `instruction_10` at `jmp.cc:91` adds `tick(1)`. Total = 2, matching MCS-51 spec. No fix needed.
+- **Bench procedures**: waiting on physical instruments (BENCH-NEO, BENCH-I2C, BENCH-AVR written in spec-updates/019).
 
 ## Key files
 
-- `CLOSE-OUT.md` — full campaign results, defects, bench IDs
-- `PARITY-GAPS.md` — emitter vs model matrix (11/13 modelled, 31 BW_STUB)
-- `RESULTS.md` — detailed methodology and numbers
-- `tests/rung_neopixel.sh` — runnable WS2812 spec-window test (single emulator)
+- `tests/run_all.sh` — master test runner (16 suites)
+- `tests/rung_system_rom_boots.sh` — Tali Forth 2 + ehBASIC + CP/M smoke (11/11)
+- `tests/rung_nrf52840_bare.sh` — nRF52840 bare-metal execution (5/5)
+- `tests/rung_emu8051_bp_write.sh` — emu8051 write-watchpoint audit (15/15)
+- `tests/picobb_boot_rp2040js.mjs` — PicoBB boot harness (rp2040js + FIFO stub)
+- `tests/rung_neopixel.sh` — WS2812 spec-window test (single emulator)
 - `tests/rung_neopixel_cross.sh` — cross-emulator WS2812 test (cat 1)
-- `tests/rung_avr_blink.sh` — AVR oracle cycle-count test (8/8 pass)
-- `tests/fixtures/avr_blink_hand.ihx` — 6-word hand-assembled AVR blink
-- `tests/fixtures/avr_blink_compiled.ihx` — compiled AVR blink from stc-compiler
-- `tests/classify_divergences.sh` — 347-image corpus classifier
-- `spec-updates/017-inject-requires-until-ns.md` — the `-inject` / `-e` incompatibility
-- `spec-updates/018-simavr-uart-phantom-parity.md` — simavr UART frame overcounts by 1 bit in 8N1
-- `spec-updates/019-bench-procedures.md` — BENCH-NEO, BENCH-I2C, BENCH-AVR procedures
-- `tests/rung_avr_oracle.sh` — simavr vs avr8js differential oracle (22 pass, 2 known)
-- `tests/simavr_harness.c` — C harness for simavr (pin edges + UART bytes with cycle timestamps)
-- `tests/avr8js_harness.mjs` — JS harness for avr8js (same output format for diff)
-- `tests/fixtures/avr_uart_test.ihx` — UART TX "Hello AVR\n" at 9600 baud
-- `tests/fixtures/avr_adc_test.ihx` — ADC read channel 0 + UART print
-- `tests/fixtures/avr_timer_test.ihx` — Timer1 CTC toggle OC1A every 10000 cy
-- `tests/fixtures/avr_timer0_ovf.ihx` — Timer0 OVF ISR toggle every 2 overflows
-- `ucsim/src/sims/avr.src/ucsim_avr` — built AVR simulator binary
-- `ucsim/src/sims/avr.src/avr.cc:52-114` — AT90S SFR name table (needs ATmega update for full oracle)
-- `tests/rung_lcd_i2c.sh` — LCD I2C protocol edge test (14 pass)
-- `tests/decode_i2c_trace.py` — I2C protocol decoder from PIN trace events
-- `spec-updates/020-lcd-i2c-protocol-edges.md` — LCD I2C protocol measurement
-- `spec-updates/020-labwired-nrf52840-esp32c3-adjudication.md` — nRF52840/ESP32-C3 silicon validation summary
-- `tests/picobb_boot_rp2040js.mjs` — PicoBB boot harness (rp2040js + SIO FIFO stub + terminal emulation)
-- `tests/fixtures/picobb/` — PicoBB binaries (gitignored: .uf2, .elf, .bin)
+- `tests/rung_avr_blink.sh` — AVR oracle cycle-count test (8/8)
+- `tests/rung_avr_oracle.sh` — simavr vs avr8js differential (22 pass, 2 known)
+- `tests/rung_lcd_i2c.sh` — LCD I2C protocol edge test (14/14)
+- `spec-updates/021-nrf52833-vs-52840-microbit-v2.md` — task-18 decision report
+- `spec-updates/020-labwired-nrf52840-esp32c3-adjudication.md` — nRF52840/ESP32-C3 validation
+- `spec-updates/019-bench-procedures.md` — BENCH-NEO, BENCH-I2C, BENCH-AVR
+- `spec-updates/018-simavr-uart-phantom-parity.md` — simavr UART 8N1 bug
+- `spec-updates/017-inject-requires-until-ns.md` — `-inject` / `-e` incompatibility
+- `tests/fixtures/nrf52840/` — bare-metal ARM Thumb-2 programs + nRF52833 chip config
+- `tests/fixtures/picobb/` — PicoBB binaries (gitignored)
+- `CLOSE-OUT.md` — full campaign results, defects, bench IDs
+- `PARITY-GAPS.md` — emitter vs model matrix
+- `RESULTS.md` — detailed methodology and numbers
