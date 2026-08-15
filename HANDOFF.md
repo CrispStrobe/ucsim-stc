@@ -2,7 +2,14 @@
 
 For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta.
 
-## Completed since last handoff (2026-08-13 evening session)
+## Completed since last handoff (2026-08-15 session)
+
+- **nRF52840 bare-metal execution proven** (`9d8e8f5`): two clean-room ARM Thumb-2 programs run correctly under labwired's nRF52840 model. UART TX (ENABLE/STARTTX/TXD/TXDRDY) and GPIO (DIRSET/OUTSET/OUTCLR at standard Nordic addresses) both work. Test: `tests/rung_nrf52840_bare.sh` (5/5 pass).
+- **nRF52833 vs 52840 delta report** (`spec-updates/021`): peripherals are register-compatible at identical addresses for everything course programs need (GPIO, UART, TIMER, TWI, PWM, SAADC). A 52833 chip YAML is a 20-line delta (flash/RAM size, FICR PART override, QSPI omit, P1 pin count). **Verdict: labwired-now, not blocked-on-upstream.**
+  - One gap: `--gpio-trace` does not emit events for the nRF GPIO model (declarative register storage); GPIO edges verified via UART-reported state transitions instead.
+- **generateBASIC: full Scratch surface** (sb3-creator `fad322c`→`0c15f47`): 35/35 gallery examples emit ok:true (was 0/35). say/think→PRINT, ask→INPUT, operators→BBC math/string, lists→DIM arrays, pen→VDU MOVE/DRAW, motion→tracked vars, timer→TIME/100. Multi-WHEN serializes, non-w65c02 stubs. Reader inverses for INPUT/CLG/GCOL/MID$/LEN/INSTR/TIME. 379 tests pass, eslint clean.
+
+## Completed since prior handoff (2026-08-13 evening session)
 
 - **PicoBB boots under rp2040js** (`6a33d2c`): BBC BASIC for Raspberry Pi Pico (Memotech-Bill/PicoBB, zlib) boots under rp2040js emulation with UART console. Built from source with `TYPE=pico STDIO=UART SOUND=NONE BOARD=pico`. Three patches required:
   1. Real RP2040 B1 bootrom (from rp2040js/pico-bootrom, 16KB Uint32Array)
