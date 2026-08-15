@@ -1,13 +1,13 @@
 # ucsim-stc handoff
 
-Written 2026-08-15 at session end. Read CLOSE-OUT.md for the full STC campaign;
+Updated 2026-08-15. Read CLOSE-OUT.md for the full STC campaign;
 this covers everything a fresh session needs.
 
 ## Lane state: what is DONE
 
-### Test harness — 16 suites, all green (verified 2026-08-15)
+### Test harness — 17 suites, all green (verified 2026-08-15)
 
-`tests/run_all.sh` runs everything. Last full pass: 16/16, 0 fail.
+`tests/run_all.sh` runs everything. Last full pass: 17/17, 0 fail.
 
 | Suite | Runner | Result |
 |---|---|---|
@@ -25,6 +25,7 @@ this covers everything a fresh session needs.
 | AVR oracle (simavr vs avr8js) | `tests/rung_avr_oracle.sh` | 22 pass, 2 known |
 | Simavr canonical-trace | `tests/rung_simavr_canonical.sh` | 6 pass |
 | NeoPixel cross-emu (cat 1) | `tests/rung_neopixel_cross.sh` | green |
+| **Part-kind differential (114-kind)** | `tests/rung_partkind_diff.sh` | **20 pass** |
 | nRF52840 bare-metal | `tests/rung_nrf52840_bare.sh` | 5 pass |
 | System ROM boots | `tests/rung_system_rom_boots.sh` | 11 pass |
 
@@ -117,7 +118,9 @@ Test: `test/basic-sweep.test.mjs` (188 assertions). 379 total tests pass, eslint
 
 | File | What |
 |---|---|
-| `tests/run_all.sh` | Master test runner (16 suites) |
+| `tests/run_all.sh` | Master test runner (17 suites) |
+| `tests/rung_partkind_diff.sh` | Part-kind differential (20/20, 114-kind subset) |
+| `tests/PARTKIND-LEDGER.md` | Part-kind → test-program → agreement ledger |
 | `tests/rung_system_rom_boots.sh` | Tali Forth 2 + ehBASIC + CP/M (11/11) |
 | `tests/rung_nrf52840_bare.sh` | nRF52840 bare-metal execution (5/5) |
 | `tests/rung_emu8051_bp_write.sh` | emu8051 write-watchpoint audit (15/15) |
