@@ -1,18 +1,19 @@
 #!/bin/bash
 # rung_system_rom_boots.sh — system ROM boot verification.
 #
-# Continuously verifies that two free-licensed system ROMs boot correctly
-# under the W65C02 / M6502 engine:
+# Continuously verifies that three system ROMs boot correctly
+# under the W65C02 / M6502 / Z80 engines:
 #
 # 1. Tali Forth 2 (public domain, SamCoVT/TaliForth2):
 #    Boots to banner, computes 2 3 + . → 5, compiles : sq dup * ; 7 sq . → 49.
 #
-# 2. ehBASIC on HB6502 preset (NC-licensed ROM — never vendored):
-#    Cold start → "Memory size ?" → auto-detect → Ready prompt → PRINT 2+3 → 5.
+# 2. ehBASIC / MS BASIC V1.1 (NC-licensed ROM — never vendored):
+#    MEMORY SIZE? → auto-detect → WIDTH? → OK → PRINT 2+3 → 5.
 #
-# Both use bw-board's W65C02 engine (read-only reference at /mnt/volume1/code/bw-board).
-# TaliForth2 cloned at /mnt/volume1/code/TaliForth2.
-# ehBASIC ROM at /mnt/volume1/code/basic-m6502-bw/basic.bin (NC, local only).
+# 3. CP/M 2.2 + BBC BASIC (Z80) (Caldera-licensed CP/M, zlib BBC BASIC):
+#    Cold boot → A> → DIR lists BBCBASIC.COM → launch → PRINT 2+2 → 4.
+#
+# All use bw-board engines (read-only reference at /mnt/volume1/code/bw-board).
 #
 # Usage: ./tests/rung_system_rom_boots.sh
 set -e
@@ -164,6 +165,47 @@ console.log('CYCLES: ' + m.cycles);
         else
             skip "ehBASIC: PRINT not attempted (prompt not reached)"
         fi
+    fi
+fi
+
+# ── Test 3: CP/M 2.2 + BBC BASIC (Z80) ──
+CPM_BIN="$BW_BOARD/roms/cpm/cpm22-64k.bin"
+BIOS_BIN="$BW_BOARD/roms/cpm/bios.bin"
+BBCZ80_COM="${BBCZ80_COM:-$HOME/code/BBCZ80/bin/cpm/BBCBASIC.COM}"
+if [ ! -f "$CPM_BIN" ] || [ ! -f "$BIOS_BIN" ]; then
+    skip "CP/M: binaries not found in bw-board/roms/cpm/"
+elif [ ! -f "$BBCZ80_COM" ]; then
+    skip "CP/M: BBCBASIC.COM not found (clone rtrussell/BBCZ80)"
+elif [ ! -f "$BW_BOARD/src/z80-machine.js" ]; then
+    skip "CP/M: Z80 machine not found in bw-board"
+else
+    echo ""
+    echo "--- CP/M 2.2 + BBC BASIC (Z80) ---"
+    OUT=$(cd "$BW_BOARD" && BBCZ80_COM="$BBCZ80_COM" node scripts/cpm-smoke.mjs 2>&1)
+    echo "$OUT"
+
+    if echo "$OUT" | grep -q "^ok.*cold boot"; then
+        pass "CP/M: cold boot to A>"
+    else
+        fail "CP/M: cold boot"
+    fi
+
+    if echo "$OUT" | grep -q "^ok.*DIR lists"; then
+        pass "CP/M: DIR lists BBCBASIC.COM"
+    else
+        fail "CP/M: DIR"
+    fi
+
+    if echo "$OUT" | grep -q "^ok.*BBC BASIC launches"; then
+        pass "CP/M: BBC BASIC launches"
+    else
+        fail "CP/M: BBC BASIC launch"
+    fi
+
+    if echo "$OUT" | grep -q "^ok.*PRINT 2+2 produces 4"; then
+        pass "CP/M: PRINT 2+2 → 4"
+    else
+        fail "CP/M: PRINT 2+2"
     fi
 fi
 

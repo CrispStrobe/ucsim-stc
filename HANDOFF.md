@@ -8,7 +8,11 @@ For the next session. Read CLOSE-OUT.md for the full campaign; this is the delta
 - **nRF52833 vs 52840 delta report** (`spec-updates/021`): peripherals are register-compatible at identical addresses for everything course programs need (GPIO, UART, TIMER, TWI, PWM, SAADC). A 52833 chip YAML is a 20-line delta (flash/RAM size, FICR PART override, QSPI omit, P1 pin count). **Verdict: labwired-now, not blocked-on-upstream.**
   - One gap: `--gpio-trace` does not emit events for the nRF GPIO model (declarative register storage); GPIO edges verified via UART-reported state transitions instead.
 - **nRF52833 chip config created** (`512d52f`): standalone at `tests/fixtures/nrf52840/nrf52833_chip.yaml`. Both bare-metal programs run identically under it. The micro:bit V2 execution path is unblocked.
-- **System ROM boot CI oracle** (`014d1d8`): Tali Forth 2 (public domain) and ehBASIC/MS BASIC V1.1 (NC, local only) both verified on today's engine. Tali: banner + arithmetic (2 3 + . → 5) + compiling (7 sq . → 49) + dictionary. ehBASIC: MEMORY SIZE? → WIDTH? → 15871 BYTES FREE → OK → PRINT 2+3 → 5. Runner: `tests/rung_system_rom_boots.sh` (7/7). Added to `run_all.sh`.
+- **System ROM boot CI oracle** — three system ROMs, all re-verified 2026-08-15:
+  - **Tali Forth 2** (W65C02, public domain): banner + 2 3 + . → 5 + : sq dup * ; 7 sq . → 49 + WORDS. 4/4.
+  - **ehBASIC / MS BASIC V1.1** (M6502, NC local only): MEMORY SIZE? → WIDTH? → 15871 BYTES FREE → OK → PRINT 2+3 → 5. 3/3.
+  - **CP/M 2.2 + BBC BASIC (Z80)** (Caldera CP/M + zlib BBCBASIC.COM): cold boot → A> → DIR BBCBASIC.COM → launch → PRINT 2+2 → 4. 4/4.
+  - Runner: `tests/rung_system_rom_boots.sh` (11/11). All in `run_all.sh`.
 - **generateBASIC: full Scratch surface** (sb3-creator `fad322c`→`0c15f47`): 35/35 gallery examples emit ok:true (was 0/35). say/think→PRINT, ask→INPUT, operators→BBC math/string, lists→DIM arrays, pen→VDU MOVE/DRAW, motion→tracked vars, timer→TIME/100. Multi-WHEN serializes, non-w65c02 stubs. Reader inverses for INPUT/CLG/GCOL/MID$/LEN/INSTR/TIME. 379 tests pass, eslint clean.
 
 ### micro:bit V2 execution path — READY (task #18 unblocked)
