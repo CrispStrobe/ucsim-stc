@@ -10,9 +10,10 @@
  * and must be cleared by software.
  * Result is in ADC_RES (high 8) and ADC_RESL (low 2, bits 1:0).
  *
- * NOTE: This model returns synthetic ADC values (mid-scale by default).
- * It has NOT been validated on silicon.  It verifies the register
- * sequence is self-consistent, which is useful for software testing.
+ * NOTE: This model returns synthetic ADC values.  Without external
+ * stimulus the result is 0, matching the STC12C5A60S2 datasheet
+ * (ADC_RES and ADC_RESL reset to 0x00; an undriven analog pin
+ * floats near ground).
  *
  * Copyright (C) 2026 CrispStrobe
  *
@@ -90,11 +91,10 @@ cl_stc12_adc::tick(int cycles)
 	  conversion_delay= 0;
 
 	  /* Conversion complete.  Generate a synthetic result.
-	     Use mid-scale (0x200 = 512) as default.
-	     A more sophisticated model could read from a config or
-	     respond to external stimulus. */
+	     Without external stimulus, return 0 — matches the datasheet
+	     reset value and an undriven analog input near ground. */
 	  t_mem p1asf= cell_p1asf->get();
-	  u16_t result= 0x200; /* mid-scale default */
+	  u16_t result= 0; /* no stimulus → 0 (datasheet: ADC_RES/RESL reset to 0x00) */
 
 	  if (!(p1asf & (1 << adc_channel)))
 	    {
