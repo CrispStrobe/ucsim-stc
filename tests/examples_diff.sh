@@ -45,7 +45,7 @@ for dir in "$EXAMPLES"/*/; do
     "$EMU_TRACE" -fosc $FOSC -until-ns $UNTIL_NS $adc_flag "$hex" 2>/dev/null \
         | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
 
-    timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$hex" 2>/dev/null \
+    timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns $UNTIL_NS $adc_flag "$hex" 2>/dev/null \
         | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.ev"
 
     EN=$(wc -l < "$TMP/emu.ev")

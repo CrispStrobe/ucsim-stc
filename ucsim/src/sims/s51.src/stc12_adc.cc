@@ -33,6 +33,8 @@ cl_stc12_adc::cl_stc12_adc(class cl_uc *auc, int part):
   adc_powered= false;
   stc_part= part;
   cell_clk_div= NULL;
+  for (int i= 0; i < 8; i++)
+    adc_input[i]= 0; /* datasheet: ADC_RES/RESL reset to 0x00 */
 }
 
 int
@@ -90,11 +92,11 @@ cl_stc12_adc::tick(int cycles)
 	{
 	  conversion_delay= 0;
 
-	  /* Conversion complete.  Generate a synthetic result.
-	     Without external stimulus, return 0 — matches the datasheet
+	  /* Conversion complete.  Return the stimulus value for this channel,
+	     or 0 if no external stimulus was provided — matches the datasheet
 	     reset value and an undriven analog input near ground. */
 	  t_mem p1asf= cell_p1asf->get();
-	  u16_t result= 0; /* no stimulus → 0 (datasheet: ADC_RES/RESL reset to 0x00) */
+	  u16_t result= adc_input[adc_channel & 7];
 
 	  if (!(p1asf & (1 << adc_channel)))
 	    {
@@ -127,6 +129,13 @@ cl_stc12_adc::tick(int cycles)
 	}
     }
   return resGO;
+}
+
+void
+cl_stc12_adc::set_input(int channel, u16_t value)
+{
+  if (channel >= 0 && channel < 8)
+    adc_input[channel]= value > 1023 ? 1023 : value;
 }
 
 void

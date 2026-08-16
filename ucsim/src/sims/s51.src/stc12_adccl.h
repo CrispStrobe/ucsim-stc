@@ -27,11 +27,13 @@ protected:
   int adc_channel;
   bool adc_powered;
   int stc_part; /* STC_PART_STC12 or STC_PART_STC15 */
+  u16_t adc_input[8];   /* external analog values, 0-1023 (10-bit) */
 public:
   cl_stc12_adc(class cl_uc *auc, int part);
   virtual int init(void);
   virtual void write(class cl_memory_cell *cell, t_mem *val);
   virtual int tick(int cycles);
+  virtual void set_input(int channel, u16_t value);
   virtual void print_info(class cl_console_base *con);
 };
 

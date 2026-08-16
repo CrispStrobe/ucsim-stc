@@ -4,7 +4,7 @@
  * Same init sequence as s51.cc, but instead of the interactive command
  * loop, runs a trace loop that emits per-instruction SFR/TF/ADC events.
  *
- * Usage: stc12_trace [-t STC12] [-fosc Hz] [-until-ns N] firmware.hex
+ * Usage: stc12_trace [-t STC12] [-fosc Hz] [-until-ns N] [-adc CH,VAL] firmware.hex
  *
  * Copyright (C) 2026 CrispStrobe
  * GPL-2.0-or-later
@@ -16,6 +16,8 @@
 #include "ucstc12cl.h"
 #include "serialcl.h"
 #include "portcl.h"
+
+#include "stc12_adccl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +59,11 @@ main(int argc, char *argv[])
   int n_inject= 0;
   int inject_next= 0;
 
+  /* -adc CH,VALUE — set ADC channel input (matches emu_trace's flag) */
+#define MAX_ADC_CH 8
+  struct { int ch; unsigned int value; } adc_ch[MAX_ADC_CH];
+  int n_adc= 0;
+
   /* Scan for our flags before passing to ucsim's init.
      ucsim ignores unknown flags gracefully. */
   for (int i= 1; i < argc; i++)
@@ -76,6 +83,17 @@ main(int argc, char *argv[])
 	      n_inject++;
 	    }
 	}
+      else if (strcmp(argv[i], "-adc") == 0 && i + 1 < argc)
+	{
+	  int ch;
+	  unsigned int val;
+	  if (sscanf(argv[++i], "%d,%u", &ch, &val) == 2 && n_adc < MAX_ADC_CH)
+	    {
+	      adc_ch[n_adc].ch= ch;
+	      adc_ch[n_adc].value= val;
+	      n_adc++;
+	    }
+	}
     }
 
   /* Strip our flags from argv so ucsim doesn't choke on them */
@@ -85,7 +103,8 @@ main(int argc, char *argv[])
     {
       if ((strcmp(argv[i], "-fosc") == 0 ||
 	   strcmp(argv[i], "-until-ns") == 0 ||
-	   strcmp(argv[i], "-inject") == 0) && i + 1 < argc)
+	   strcmp(argv[i], "-inject") == 0 ||
+	   strcmp(argv[i], "-adc") == 0) && i + 1 < argc)
 	{ i++; continue; } /* skip flag and its value */
       new_argv[new_argc++]= argv[i];
     }
@@ -157,6 +176,20 @@ main(int argc, char *argv[])
   /* Disable stop-on-selfjump — cooperative schedulers loop
      repeatedly without PC changing. */
   uc->stop_selfjump= false;
+
+  /* Apply ADC channel inputs (matches emu_trace's -adc flag) */
+  if (n_adc > 0)
+    {
+      class cl_hw *hw= uc->get_hw(HW_TIMER, 10, 0);
+      cl_stc12_adc *adc_hw= dynamic_cast<cl_stc12_adc *>(hw);
+      if (adc_hw)
+	{
+	  for (int i= 0; i < n_adc; i++)
+	    adc_hw->set_input(adc_ch[i].ch, adc_ch[i].value);
+	}
+      else
+	fprintf(stderr, "Warning: -adc requires ADC hw (not found)\n");
+    }
 
   /* Find the serial hw for byte injection */
   class cl_serial *serial_hw= NULL;

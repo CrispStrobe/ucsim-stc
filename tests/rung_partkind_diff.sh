@@ -30,7 +30,7 @@ run_diff() {
 
     "$EMU_TRACE" -fosc $FOSC -until-ns "$until" $adc_flag "$ihx" 2>/dev/null \
         | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
-    timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns "$until" "$ihx" 2>/dev/null \
+    timeout 60 "$STC12_TRACE" -fosc $FOSC -until-ns "$until" $adc_flag "$ihx" 2>/dev/null \
         | awk '$2 == "SFR" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.ev"
 
     local EN UN
@@ -147,7 +147,7 @@ echo "--- P5 port (STC15 only: buzzer pin P5.5) ---"
 run_diff_p5() {
     local label="$1" ihx="$2" until="$3"
 
-    "$EMU_TRACE" -fosc $FOSC -until-ns "$until" "$ihx" 2>/dev/null \
+    "$EMU_TRACE" -fosc $FOSC -part stc15 -until-ns "$until" "$ihx" 2>/dev/null \
         | awk '$2 == "PIN" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
     timeout 60 "$STC12_TRACE" -t STC15 -fosc $FOSC -until-ns "$until" "$ihx" 2>/dev/null \
         | awk '$2 == "PIN" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.ev"
