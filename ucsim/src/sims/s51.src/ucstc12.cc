@@ -215,7 +215,7 @@ static void init_sfr_defined(void)
     0xB8, 0xB9, 0xBB, 0xBC, 0xBD, 0xBE,   /* IP, SADEN, P4SW, ADC_CONTR/RES/RESL */
     0xC1,                                    /* WDT_CONTR */
     0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,   /* IAP: DATA, ADDRH, ADDRL, CMD, TRIG, CONTR */
-    0xC0, 0xC8, 0xC9, 0xCA,                /* P4, P5, P5M1, P5M0 */
+    0xC0,                                    /* P4 (P5 is STC15 only) */
     0xD0, 0xD8, 0xD9, 0xDA, 0xDB,          /* PSW, CCON, CMOD, CCAPM0, CCAPM1 */
     0xE0, 0xE9, 0xEA, 0xEB,                  /* ACC, CL, CCAP0L, CCAP1L */
     0xF0, 0xF2, 0xF3, 0xF9, 0xFA, 0xFB,   /* B, PCA_PWM0/1, CH, CCAP0H, CCAP1H */
@@ -235,6 +235,9 @@ static void init_sfr_defined_stc15(void)
     0xAA,   /* WKTCL (wake-up timer low) */
     0xAB,   /* WKTCH (wake-up timer high) */
     0xBA,   /* P_SW2 */
+    0xC8,   /* P5 (STC15 only — on STC12 this is refused) */
+    0xC9,   /* P5M1 */
+    0xCA,   /* P5M0 */
     0xCD,   /* SPSTAT */
     0xCE,   /* SPCTL */
     0xCF,   /* SPDAT */
@@ -311,6 +314,9 @@ static const t_addr stc12_watch_addrs[STC12_TRACE_NWATCH] = {
   0xB2, /* P3M0 */
   0xBC, /* ADC_CONTR */
   0xC0, /* P4 */
+  0xC8, /* P5 */
+  0xC9, /* P5M1 */
+  0xCA, /* P5M0 */
   0xD8, /* CCON */
   0xD9, /* CMOD */
   0xDA, /* CCAPM0 */
@@ -398,8 +404,9 @@ cl_uc_stc12::mk_hw_elements(void)
   bool has_adc= !is_stc89;
   bool has_pca= !is_stc89;
   bool has_timer2= (stc_part == STC_PART_STC15 || stc_part == STC_PART_STC15W);
-  bool has_p4p5= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
-  int port_mode_count= has_p4p5 ? 6 : 4; /* P0-P5 or P0-P3 */
+  bool has_p4= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
+  bool has_p5= (stc_part == STC_PART_STC15); /* P5 is STC15 only — refused on STC12 */
+  int port_mode_count= has_p5 ? 6 : (has_p4 ? 5 : 4); /* P0-P5, P0-P4, or P0-P3 */
 
   if (is_stc89)
     {
@@ -588,7 +595,8 @@ cl_uc_stc12::clear_sfr(void)
      (which writes T2CON etc. — on STC12, 0xC8 is P5, not T2CON). */
   cl_51core::clear_sfr();
 
-  bool has_p4p5= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
+  bool has_p4= (stc_part == STC_PART_STC12 || stc_part == STC_PART_STC15);
+  bool has_p5= (stc_part == STC_PART_STC15);
 
   /* AUXR: 12T mode for timers */
   sfr->write(AUXR,  0x00);
@@ -602,10 +610,13 @@ cl_uc_stc12::clear_sfr(void)
   sfr->write(STC12_P2M0, 0x00);
   sfr->write(STC12_P3M1, 0x00);
   sfr->write(STC12_P3M0, 0x00);
-  if (has_p4p5)
+  if (has_p4)
     {
       sfr->write(STC12_P4M1, 0x00);
       sfr->write(STC12_P4M0, 0x00);
+    }
+  if (has_p5)
+    {
       sfr->write(STC12_P5M1, 0x00);
       sfr->write(STC12_P5M0, 0x00);
     }
@@ -621,11 +632,10 @@ cl_uc_stc12::clear_sfr(void)
   sfr->write(STC12_ADC_RESL, 0x00);
 
   /* Extra ports */
-  if (has_p4p5)
-    {
-      sfr->write(STC12_P4, 0xff);  /* ports reset high */
-      sfr->write(STC12_P5, 0xff);
-    }
+  if (has_p4)
+    sfr->write(STC12_P4, 0xff);  /* ports reset high */
+  if (has_p5)
+    sfr->write(STC12_P5, 0xff);
 
   /* PCA registers */
   sfr->write(CCON,  0x00);
@@ -686,7 +696,7 @@ cl_uc_stc12::trace_check_sfr(void)
 		  (unsigned long long)t_ns,
 		  (unsigned)trace_sfr_addrs[i], (unsigned)val);
 
-	  /* PIN events: per-bit for port SFR changes */
+	  /* PIN events: per-bit for port data or mode register changes */
 	  {
 	    static const struct { t_addr port; int id; t_addr m1; t_addr m0; }
 	      port_map[] = {
@@ -695,11 +705,14 @@ cl_uc_stc12::trace_check_sfr(void)
 		{0xA0, 2, 0x95, 0x96}, /* P2 */
 		{0xB0, 3, 0xB1, 0xB2}, /* P3 */
 		{0xC0, 4, 0xB3, 0xB4}, /* P4 */
+		{0xC8, 5, 0xC9, 0xCA}, /* P5 */
 	    };
-	    for (unsigned p= 0; p < 5; p++)
+	    for (unsigned p= 0; p < 6; p++)
 	      {
-		if (trace_sfr_addrs[i] == port_map[p].port)
+		t_addr addr= trace_sfr_addrs[i];
+		if (addr == port_map[p].port)
 		  {
+		    /* Port data register changed — emit for changed bits */
 		    t_mem old= trace_sfr_shadow[i];
 		    t_mem m1= sfr->get(port_map[p].m1);
 		    t_mem m0= sfr->get(port_map[p].m0);
@@ -713,6 +726,31 @@ cl_uc_stc12::trace_check_sfr(void)
 				    (unsigned long long)t_ns,
 				    port_map[p].id, bit, modes[mode],
 				    (val & (1 << bit)) ? 'H' : 'L');
+			  }
+		      }
+		    break;
+		  }
+		if (port_map[p].id == 5 &&
+		    (addr == port_map[p].m1 || addr == port_map[p].m0))
+		  {
+		    /* P5 mode register changed — re-emit for bits whose mode
+		       changed.  Only P5 does this; P0-P4 mode-change PIN events
+		       are not emitted (matches emu8051 behavior and avoids
+		       spurious edges in existing WS2812/pin-timing tests). */
+		    t_mem old_mr= trace_sfr_shadow[i];
+		    t_mem pdata= sfr->get(port_map[p].port);
+		    t_mem m1= sfr->get(port_map[p].m1);
+		    t_mem m0= sfr->get(port_map[p].m0);
+		    for (int bit= 0; bit < 8; bit++)
+		      {
+			if ((val ^ old_mr) & (1 << bit))
+			  {
+			    int mode= ((m1 >> bit) & 1) << 1 | ((m0 >> bit) & 1);
+			    static const char *modes[] = {"Q","PP","IN","OD"};
+			    fprintf(trace_file, "%llu\tPIN\t%d.%d %s %c\n",
+				    (unsigned long long)t_ns,
+				    port_map[p].id, bit, modes[mode],
+				    (pdata & (1 << bit)) ? 'H' : 'L');
 			  }
 		      }
 		    break;

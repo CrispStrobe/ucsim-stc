@@ -140,6 +140,50 @@ run_diff "timer1_test" tests/fixtures/timer1_test.ihx $UNTIL_NS
 run_diff "uart_tx_test" tests/fixtures/uart_tx_test.ihx $UNTIL_NS
 
 echo ""
+echo "--- P5 port (STC15 only: buzzer pin P5.5) ---"
+
+# P5 differential uses STC15 mode and compares PIN+TF events (emu8051
+# does not emit SFR events for P5/P5M0/P5M1, but PIN events agree).
+run_diff_p5() {
+    local label="$1" ihx="$2" until="$3"
+
+    "$EMU_TRACE" -fosc $FOSC -until-ns "$until" "$ihx" 2>/dev/null \
+        | awk '$2 == "PIN" || $2 == "TF"' | cut -f2- > "$TMP/emu.ev"
+    timeout 60 "$STC12_TRACE" -t STC15 -fosc $FOSC -until-ns "$until" "$ihx" 2>/dev/null \
+        | awk '$2 == "PIN" || $2 == "TF"' | cut -f2- > "$TMP/ucsim.ev"
+
+    local EN UN
+    EN=$(wc -l < "$TMP/emu.ev")
+    UN=$(wc -l < "$TMP/ucsim.ev")
+
+    if [ "$EN" -eq 0 ] && [ "$UN" -eq 0 ]; then
+        echo "  EMPTY  $label"
+        return 1
+    fi
+
+    if [ "$EN" -eq "$UN" ] && diff "$TMP/emu.ev" "$TMP/ucsim.ev" > /dev/null 2>&1; then
+        echo "  PASS   $label ($EN events)"
+        PASS=$((PASS+1))
+        return 0
+    fi
+
+    local MIN=$EN; [ "$UN" -lt "$MIN" ] && MIN=$UN
+    if [ "$MIN" -gt 0 ] && head -n "$MIN" "$TMP/emu.ev" \
+         | diff - <(head -n "$MIN" "$TMP/ucsim.ev") > /dev/null 2>&1; then
+        echo "  PASS   $label ($MIN/$EN prefix match)"
+        PASS=$((PASS+1))
+        return 0
+    fi
+
+    echo "  FAIL   $label (emu=$EN ucsim=$UN)"
+    FAIL=$((FAIL+1))
+    return 1
+}
+
+run_diff_p5 "p5_mode (P5.5 all 4 modes, STC15)" \
+    tests/fixtures/partkind/p5_mode.ihx $UNTIL_NS
+
+echo ""
 echo "================================"
 echo "Part-kind differential: $PASS pass, $FAIL fail, $KNOWN known"
 echo "================================"

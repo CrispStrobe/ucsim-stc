@@ -25,11 +25,24 @@ this covers everything a fresh session needs.
 | AVR oracle (simavr vs avr8js) | `tests/rung_avr_oracle.sh` | 22 pass, 2 known |
 | Simavr canonical-trace | `tests/rung_simavr_canonical.sh` | 6 pass |
 | NeoPixel cross-emu (cat 1) | `tests/rung_neopixel_cross.sh` | green |
-| **Part-kind differential (114-kind)** | `tests/rung_partkind_diff.sh` | **20 pass** |
+| **Part-kind differential (114-kind + P5)** | `tests/rung_partkind_diff.sh` | **21 pass** |
 | nRF52840 bare-metal | `tests/rung_nrf52840_bare.sh` | 5 pass |
 | System ROM boots | `tests/rung_system_rom_boots.sh` | 11 pass |
 
 Additional audit: `tests/rung_emu8051_bp_write.sh` — 15/15 (all 7 wasm builds export `emu_dbg_set_bp_write`, capabilities() reports `"write"` everywhere).
+
+### P5 port model (STC15 only)
+
+P5 at 0xC8 (bit-addressable), P5M1 0xC9, P5M0 0xCA — modeled on STC15F2K60S2 only. On STC12, P5/P5M1/P5M0 are **refused** (flagged UNMODELLED in trace). On STC15W, P5 was already refused (inherited from the P4/P5 removal).
+
+Implementation:
+- SFR gating: P5/P5M1/P5M0 moved from STC12 base to STC15 delta in `init_sfr_defined_stc15()`
+- Port mode: `cl_stc12_port_mode(this, 5)` instantiated for STC15 only (port_mode_count=6 for STC15, 5 for STC12, 4 for STC15W/STC89)
+- Trace watch: P5 (0xC8), P5M1 (0xC9), P5M0 (0xCA) in the SFR watch list; NWATCH=24
+- PIN events: P5 added to port_map; mode-register-triggered PIN events emitted for P5 only (not P0-P4, to avoid spurious edges in WS2812 timing tests)
+- Reset: P5 cleared to 0xFF, P5M1/P5M0 cleared to 0x00 on STC15 only
+
+Conformance: `tests/fixtures/partkind/p5_mode.c` exercises P5.5 through all 4 modes (quasi-bidir → push-pull → input → open-drain). Differential runs under STC15 mode comparing PIN+TF events. 17 events, exact match with emu8051.
 
 ### WASM / LITE boundary
 

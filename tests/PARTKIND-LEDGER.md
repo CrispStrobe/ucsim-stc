@@ -65,6 +65,8 @@ trace must match exactly (or prefix-match if one emulator runs further).
 | char_lcd_i2c | I2C bit-bang | rung_lcd_i2c (v1/v2/12T) | 309/195/50 txns | single-emu |
 | **Ultrasonic** | | | | |
 | ultrasonic | trigger pulse (GPIO timed) | ultrasonic_fixed | 12 | AGREE |
+| **P5 port (STC15 only)** | | | | |
+| buzzer (P5.5) | P5M1/P5M0 all 4 modes | p5_mode (STC15, PIN+TF) | 17 | AGREE |
 | **Timer/UART** | | | | |
 | (timer1) | Timer 1 overflow | timer1_test | 11 | AGREE |
 | (uart) | UART TX bit period | uart_tx_test | 3 | AGREE |

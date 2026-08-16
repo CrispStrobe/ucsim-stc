@@ -38,7 +38,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #define STC_PART_STC15W 3
 
 /* SFR watch list for differential trace (matches spec) */
-#define STC12_TRACE_NWATCH 21
+#define STC12_TRACE_NWATCH 24
 
 /* Debug target: yield breakpoint */
 #define STC12_MAX_TASKS 8
