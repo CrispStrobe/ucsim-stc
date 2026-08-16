@@ -121,6 +121,16 @@ node tests/census_gen_hex.mjs /tmp/census-hex
 ./tests/boot_census_crosscheck.sh 2000000000 /tmp/census-hex
 ```
 
+## ADC default value — RESOLVED
+
+**Finding:** ucsim returned ADC=512 (mid-scale), emu8051 returned ADC=0.
+**Silicon truth:** STC12C5A60S2 datasheet SFR table — ADC_RES and ADC_RESL
+reset to 0x00. emu8051 was correct.
+**Fix:** ucsim-stc `a41cee0` changes synthetic ADC result from 0x200 to 0.
+**Conformance test:** `rung_adc_default.sh` — passes on both emulators.
+**emu8051 action:** none needed (zero-init is already correct).
+
 ## Red list
 
 None. Zero unexplained wedges, zero core-emulation divergences.
+ADC default divergence resolved in `a41cee0`.
