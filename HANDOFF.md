@@ -31,6 +31,10 @@ this covers everything a fresh session needs.
 
 Additional audit: `tests/rung_emu8051_bp_write.sh` — 15/15 (all 7 wasm builds export `emu_dbg_set_bp_write`, capabilities() reports `"write"` everywhere).
 
+### WASM / LITE boundary
+
+ucsim is GPL-2-or-later (SDCC fork). It must NOT be compiled to WASM and bundled into brickwright-lite. The in-browser 8051 emulator for LITE is **emu8051** (Komppa, MIT), owned by the emu8051-stc lane. All 7 shipped wasm builds are verified identical (`d44df13d`), with write-watchpoint support exported and confirmed (15/15 audit). ucsim-stc's role is the **CI/dev oracle** — it runs natively on the build server for differential execution, regression suites (17 suites, 20-pass part-kind rung), and corpus sweeps. It is never shipped to end users.
+
 ### Task-18: micro:bit V2 register-level run path — DECIDED
 
 **Verdict: labwired-now, not blocked-on-upstream.**
