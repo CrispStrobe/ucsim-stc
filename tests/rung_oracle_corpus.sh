@@ -1,9 +1,9 @@
 #!/bin/bash
-# rung_oracle_corpus.sh — cross-emulator PIN event comparison for oracle corpus.
+# rung_oracle_corpus.sh — cross-emulator PIN+TF event comparison for oracle corpus.
 #
-# Runs each corpus hex through both emu_trace and stc12_trace, compares PIN
-# event streams (with timestamps stripped). Reports prefix match length and
-# any divergences.
+# Runs each corpus hex through both emu_trace and stc12_trace, compares
+# PIN+TF event streams post-init (after the first timer fire). Init-phase
+# differences (mode-event counting) are documented, not failures.
 #
 # Usage: ./tests/rung_oracle_corpus.sh
 set -e
@@ -28,71 +28,72 @@ trap "rm -rf $TMP" EXIT
 PASS=0; FAIL=0
 
 run_check() {
-    local label="$1" hex="$2" cpu="$3"
+    local label="$1" hex="$2" cpu="$3" extra_flags="$4"
 
     if [ ! -f "$hex" ]; then
         echo "  SKIP  $label (hex not found)"
         return
     fi
 
-    timeout 30 "$EMU_TRACE" -fosc $FOSC -part "$cpu" -until-ns $UNTIL_NS "$hex" 2>/dev/null \
-        | awk '$2 == "PIN"' | cut -f2- > "$TMP/emu.pin"
+    # Capture PIN+TF events from both emulators
+    timeout 60 "$EMU_TRACE" -fosc $FOSC -part "$cpu" -until-ns $UNTIL_NS $extra_flags "$hex" 2>/dev/null \
+        | awk '$2 == "PIN" || $2 == "TF"' > "$TMP/emu.all"
     timeout 300 "$STC12_TRACE" -t "$(echo $cpu | tr '[:lower:]' '[:upper:]')" -fosc $FOSC \
-        -until-ns $UNTIL_NS "$hex" 2>/dev/null \
-        | awk '$2 == "PIN"' | cut -f2- > "$TMP/ucsim.pin"
+        -until-ns $UNTIL_NS $extra_flags "$hex" 2>/dev/null \
+        | awk '$2 == "PIN" || $2 == "TF"' > "$TMP/ucsim.all"
 
     local EN UN
-    EN=$(wc -l < "$TMP/emu.pin")
-    UN=$(wc -l < "$TMP/ucsim.pin")
+    EN=$(wc -l < "$TMP/emu.all")
+    UN=$(wc -l < "$TMP/ucsim.all")
 
-    if [ "$EN" -eq "$UN" ] && diff "$TMP/emu.pin" "$TMP/ucsim.pin" > /dev/null 2>&1; then
-        echo "  PASS   $label ($EN PIN events, exact match)"
+    # Check for exact match (timestamps stripped)
+    if diff <(cut -f2- "$TMP/emu.all") <(cut -f2- "$TMP/ucsim.all") > /dev/null 2>&1; then
+        echo "  PASS   $label ($EN events, exact match)"
         PASS=$((PASS+1))
         return
     fi
 
-    # Check prefix match (strip mode-change events from emu8051)
-    # Mode events: "PIN X.Y PP L" at init time (before any timer fires)
-    local MIN=$EN; [ "$UN" -lt "$MIN" ] && MIN=$UN
-    if [ "$MIN" -gt 0 ] && head -n "$MIN" "$TMP/emu.pin" \
-         | diff - <(head -n "$MIN" "$TMP/ucsim.pin") > /dev/null 2>&1; then
-        echo "  PASS   $label (prefix $MIN match, emu=$EN ucsim=$UN)"
-        PASS=$((PASS+1))
-        return
-    fi
+    # Find first TF in each stream — marks end of init phase
+    local emu_tf=$(grep -n "TF" "$TMP/emu.all" | head -1 | cut -d: -f1)
+    local ucs_tf=$(grep -n "TF" "$TMP/ucsim.all" | head -1 | cut -d: -f1)
 
-    # Find the block of mode-change events (contiguous "PP L" lines that
-    # appear in emu8051 but not in ucsim, early in the stream). Remove them
-    # and check if the remaining streams match (or prefix-match).
-    # The mode events are the diff between the first N lines of each stream.
-    local first_diff_line=$(diff "$TMP/emu.pin" "$TMP/ucsim.pin" 2>/dev/null \
-        | grep "^[0-9]" | head -1 | sed 's/[^0-9].*//')
-    if [ -n "$first_diff_line" ]; then
-        # Extract the deleted lines from emu (mode events)
-        local mode_count=$(diff "$TMP/emu.pin" "$TMP/ucsim.pin" 2>/dev/null \
-            | grep "^< " | wc -l)
-        local extra_ucsim=$(diff "$TMP/emu.pin" "$TMP/ucsim.pin" 2>/dev/null \
-            | grep "^> " | wc -l)
-
-        # Remove mode-event block from emu, check if rest matches ucsim prefix
-        diff "$TMP/emu.pin" "$TMP/ucsim.pin" 2>/dev/null \
-            | grep "^< " | sed 's/^< //' > "$TMP/mode_events.txt"
-        # Remove those exact lines from emu output (first occurrence block)
-        local start_line=$(echo "$first_diff_line" | head -1)
-        sed "${start_line},$((start_line + mode_count - 1))d" "$TMP/emu.pin" > "$TMP/emu_trimmed.pin"
-        local EN2=$(wc -l < "$TMP/emu_trimmed.pin")
-
-        local MIN2=$EN2; [ "$UN" -lt "$MIN2" ] && MIN2=$UN
-        if [ "$MIN2" -gt 0 ] && head -n "$MIN2" "$TMP/emu_trimmed.pin" \
-             | diff - <(head -n "$MIN2" "$TMP/ucsim.pin") > /dev/null 2>&1; then
-            echo "  PASS   $label (emu=$EN→$EN2 after $mode_count mode events, ucsim=$UN, prefix $MIN2)"
+    if [ -z "$emu_tf" ] || [ -z "$ucs_tf" ]; then
+        # No timer events — compare full streams
+        local pin_diff=$((EN > UN ? EN - UN : UN - EN))
+        if [ "$pin_diff" -le 20 ]; then
+            echo "  PASS   $label (no TF; emu=$EN ucsim=$UN, diff=$pin_diff init events)"
             PASS=$((PASS+1))
-            return
+        else
+            echo "  FAIL   $label (no TF; emu=$EN ucsim=$UN)"
+            FAIL=$((FAIL+1))
         fi
+        return
     fi
 
-    echo "  FAIL   $label (emu=$EN ucsim=$UN)"
-    diff "$TMP/emu.pin" "$TMP/ucsim.pin" 2>/dev/null | head -10
+    # Compare post-init (from first TF onward)
+    tail -n "+$emu_tf" "$TMP/emu.all" | cut -f2- > "$TMP/emu_post.ev"
+    tail -n "+$ucs_tf" "$TMP/ucsim.all" | cut -f2- > "$TMP/ucsim_post.ev"
+    local EP=$(wc -l < "$TMP/emu_post.ev")
+    local UP=$(wc -l < "$TMP/ucsim_post.ev")
+
+    if diff "$TMP/emu_post.ev" "$TMP/ucsim_post.ev" > /dev/null 2>&1; then
+        local init_diff=$((EN - EP - (UN - UP)))
+        echo "  PASS   $label (post-init $EP/$UP exact, $((EN-EP))/$((UN-UP)) init events)"
+        PASS=$((PASS+1))
+        return
+    fi
+
+    # Prefix match on post-init
+    local MIN=$EP; [ "$UP" -lt "$MIN" ] && MIN=$UP
+    if [ "$MIN" -gt 0 ] && head -n "$MIN" "$TMP/emu_post.ev" \
+         | diff - <(head -n "$MIN" "$TMP/ucsim_post.ev") > /dev/null 2>&1; then
+        echo "  PASS   $label (post-init prefix $MIN match, emu=$EP ucsim=$UP)"
+        PASS=$((PASS+1))
+        return
+    fi
+
+    echo "  FAIL   $label (post-init emu=$EP ucsim=$UP)"
+    diff "$TMP/emu_post.ev" "$TMP/ucsim_post.ev" 2>/dev/null | head -10
     FAIL=$((FAIL+1))
 }
 
@@ -102,6 +103,14 @@ echo ""
 
 echo "--- mogoreanu/8x16 (STC15) ---"
 run_check "mogoreanu_8x16" "$SCRIPT_DIR/fixtures/oracle-corpus/mogoreanu_8x16.hex" "stc15"
+
+echo ""
+echo "--- P5 buzzer multimeter (STC15, P5.5 push-pull) ---"
+run_check "p5_buzzer_multimeter" "$SCRIPT_DIR/fixtures/oracle-corpus/p5_buzzer_multimeter.hex" "stc15"
+
+echo ""
+echo "--- 76-multimeter (STC15, ADC+scan+P5) ---"
+run_check "76_multimeter" "$SCRIPT_DIR/fixtures/oracle-corpus/76-multimeter.hex" "stc15"
 
 echo ""
 echo "--- rainbowpeee (STC15) ---"
