@@ -83,6 +83,10 @@ convention (documented in BOOT-CENSUS-CROSSCHECK.md) and boundary timing.
 
 ## Open investigation
 
-- **TCON IE1/IT1 init**: ucsim initializes TCON with IE1+IT1 bits set (0x0A),
-  emu8051 does not. These are external interrupt edge flags. Does not affect
-  PIN behavior but shows in SFR trace. Root cause TBD.
+- **TCON IE1/IT1 on P3 write**: when the mogoreanu program writes `P3 = 0x20`
+  (setting buttons to input-high), ucsim reports TCON changing to 0x0A
+  (IE1 + IT1 set). P3.3 = INT1 goes LOW → falling edge → IE1 flag is
+  arguably correct. But IT1 (edge-trigger config bit) should not change
+  without an explicit TCON write. Likely a base ucsim 8051 core quirk in
+  the P3 alternate-function model. Does not affect PIN behavior.
+  **SFR-only issue, not a conformance failure.**

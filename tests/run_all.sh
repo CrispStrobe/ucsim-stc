@@ -54,6 +54,7 @@ fi
 if [ -x "$EMU_TRACE" ]; then
     run_suite "NeoPixel cross-emu (cat 1)" ./tests/rung_neopixel_cross.sh
     run_suite "Part-kind differential (114-kind subset)" ./tests/rung_partkind_diff.sh
+    run_suite "Oracle corpus (real-world firmware)" ./tests/rung_oracle_corpus.sh
 fi
 
 # nRF52840 bare-metal execution (requires labwired-core)
