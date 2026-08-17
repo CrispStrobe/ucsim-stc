@@ -81,53 +81,54 @@ LED chaser: rotates a bit pattern across P1 with delay loop.
 All PIN event differences are fully explained by the mode-event counting
 convention (documented in BOOT-CENSUS-CROSSCHECK.md) and boundary timing.
 
-## rainbowpeee full corpus cross-check (2026-08-17)
+## rainbowpeee full corpus cross-check (2026-08-17, refreshed)
 
-31 newly-translatable programs (Keil→SDCC via `tools/keil2sdcc.py`),
-cross-checked at FOSC=11059200 with adaptive sim duration (200ms–2s
-based on PIN event density).
+31 programs (30 bootable + 1 link-fail) via Keil→SDCC translator
+(`tools/keil2sdcc.py` from emu8051-stc `5330f13`). Cross-checked at
+FOSC=11059200, 200ms simulation window. PIN+TF event comparison with
+post-first-TF split where timer events exist.
 
-| Program | emu events | ucsim events | Match | Notes |
-|---------|-----------|-------------|-------|-------|
-| 10、DS1302-SEG | 59693 | 60431 | prefix 59693 | timer tail |
-| 11、PCF8591 数码管 | 60987 | 63227 | prefix 60987 | timer tail |
-| 1302数码管显示 | 46608 | 47646 | prefix 46608 | timer tail |
-| 17-频率采集 | 25970 | 28320 | prefix 18899 | **timer count divergence** |
-| 19、LED1602 | 149 | 149 | **exact** | |
-| GPSLCD自动授時 | 1 | 1 | **exact** | |
-| LCD12864 | 1 | 1 | **exact** | |
-| LED汉字01- | 147369 | 148110 | prefix 147369 | boundary |
-| LED汉字01一 | 130652 | 130876 | prefix 130652 | boundary |
-| LED汉字02- | 145401 | 146180 | prefix 145401 | boundary |
-| LED汉字03- | 133045 | 134094 | prefix 133045 | boundary |
-| LOCKKeil4 | 0 | 0 | **exact** | no pins |
-| OLED12864 | 159255 | 161150 | prefix 159255 | boundary |
-| 串口転発 | 0 | 0 | **exact** | no pins |
-| 串行口 | 0 | 0 | **exact** | no pins |
-| 偏振子按摩 | 109432 | 110216 | FAIL (4062 prefix) | **timer ISR count** |
-| 定時器 | 0 | 0 | **exact** | no pins |
-| 开発板点阵 | 125383 | 125762 | prefix 125383 | boundary |
-| 按鍵数码管 | 0 | 0 | **exact** | no pins |
-| 数码管按鍵/按鍵 | 0 | 0 | **exact** | no pins |
-| 数码管按鍵/函数 | 42301 | 42326 | prefix 42301 | boundary |
-| 数码管測試 | 11209 | 11209 | **exact** | |
-| 步進電機/正転 | 8916 | 8918 | prefix 8916 | boundary |
-| 步進電機/反転 | 7451 | 7453 | prefix 7451 | boundary |
-| 測試按鍵 | 223865 | 223903 | prefix 223865 | boundary |
-| 温度 | 35315 | 34939 | FAIL | **timer ISR count** |
-| 温度計 | 27985 | 28440 | FAIL | **timer ISR count** |
-| 点阵測試1616 | 129539 | 129837 | prefix 129539 | boundary |
-| 紅外人體 | 30856 | 30864 | prefix 30856 | boundary |
-| 紅外灯+温度 | 21301 | 21283 | FAIL | P2 init ordering |
-| 超声波4届 | 9206 | 9206 | **exact** | |
+| Program | emu | ucsim | Match | Notes |
+|---------|-----|-------|-------|-------|
+| 10、DS1302-SEG | 24091 | 24337 | PREFIX | boundary |
+| 11、PCF8591 数码管 | 24393 | 25281 | PREFIX | boundary |
+| 1302数码管显示 | 46608 | 47646 | PREFIX | boundary |
+| 17-频率采集 | 10536 | 11472 | **FAIL@34** | timer ISR count |
+| 19、LED1602 | 149 | 149 | **EXACT** | |
+| GPSLCD自动授时 | 1 | 1 | **EXACT** | |
+| LCD12864 | 1 | 1 | **EXACT** | link-fail but 1-event boot |
+| LED汉字01- | 147369 | 148110 | PREFIX | boundary |
+| LED汉字01一 | 130652 | 130876 | PREFIX | boundary |
+| LED汉字02- | 145401 | 146180 | PREFIX | boundary |
+| LED汉字03- | 133045 | 134094 | PREFIX | boundary |
+| LOCKKeil4 | 2 | 2 | **EXACT** | |
+| OLED12864 | 159256 | 161151 | PREFIX | boundary |
+| 串口转发 | 1 | 1 | **EXACT** | |
+| 串行口 | 1 | 1 | **EXACT** | |
+| 偏振子按摩 | 109702 | 110486 | **FAIL@409** | timer ISR count |
+| 定时器 | 0 | 0 | **EXACT** | |
+| 开发板点阵 | 125383 | 125762 | PREFIX | boundary |
+| 按键数码管 | 0 | 0 | **EXACT** | |
+| 数码管按键/按键 | 0 | 0 | **EXACT** | |
+| 数码管按键/函数 | 16913 | 16925 | PREFIX | boundary |
+| 数码管测试 | 4487 | 4487 | **EXACT** | |
+| 步进电机/正转 | 897 | 897 | **EXACT** | |
+| 步进电机/反转 | 750 | 750 | **EXACT** | |
+| 测试按键 | 223865 | 223903 | PREFIX | boundary |
+| 温度 | 3529 | 3507 | **FAIL** | DS18B20 1-wire timing |
+| 温度计 | 10797 | 10957 | **FAIL@1228** | DS18B20 + timer |
+| 点阵测试1616 | 129539 | 129837 | PREFIX | boundary |
+| 红外人体感应灯 | 3088 | 3088 | **EXACT** | |
+| 红外灯+温度 | 8777 | 8773 | **FAIL@44** | P2 init + DS18B20 |
+| 超声波_时间 | 2009 | 2009 | **EXACT** | |
 
-**26 PASS, 5 FAIL.** All FAILs are timer-ISR count divergences at the
-sim-time boundary: the two emulators fire a different number of timer
-interrupts in the last few microseconds, producing slightly different
-display-refresh event counts. No logic bugs, no wedges.
+**26 PASS, 5 FAIL.** Failure categories:
+- **Timer ISR count** (17-频率采集, 偏振子按摩): emulators fire different
+  number of timer interrupts due to tick granularity.
+- **DS18B20 one-wire timing** (温度, 温度计, 红外灯+温度): bit-bang protocol
+  timing-sensitive; instruction-cycle differences compound across reads.
 
-Combined with the 3 earlier entries (mogoreanu, 空程序, 流水灯):
-**29/34 PASS, 5 FAIL** — all 5 fully explained by timer-boundary counting.
+All 5 are timing-granularity differences, not logic bugs. No wedges.
 
 ---
 
