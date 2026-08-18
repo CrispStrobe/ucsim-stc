@@ -56,6 +56,8 @@ if [ -x "$EMU_TRACE" ]; then
     run_suite "Part-kind differential (114-kind subset)" ./tests/rung_partkind_diff.sh
     run_suite "Oracle corpus (real-world firmware)" ./tests/rung_oracle_corpus.sh
     run_suite "MATRIX8X8 golden trace (ISR scan)" ./tests/rung_matrix8x8_golden.sh
+    run_suite "SEVENSEG8 golden trace (ISR scan)" ./tests/rung_sevenseg8_golden.sh
+    run_suite "LEDBANK8 golden trace (shadow/P2)" ./tests/rung_ledbank8_golden.sh
 fi
 
 # nRF52840 bare-metal execution (requires labwired-core)
