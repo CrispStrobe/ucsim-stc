@@ -55,41 +55,78 @@ display (cand/100 with decimal point). Pin voltage × 4 (resistor divider)
 = Display value. The slight rounding (1.99 vs 2.00 at 0.5V) is inherent
 in the 10-bit quantization.
 
-## Part 3: 76-multimeter amps mode (STC15, ch1)
+## Part 3: 3-channel ADC sweep (STC15, dedicated fixture)
 
-The firmware starts in voltage mode (mode 0) and reads ch0. Channel 1
-(amps) is only read after a MODE button press, which requires external
-stimulus injection not available via `-adc`. Both emulators agree on
-not reading ch1 in voltage mode — no divergence.
+Dedicated test fixture (`adc_3ch_oracle.ihx`) reads all 3 channels in
+sequence with P5.5 buzzer markers between reads. Exercises the same
+ADC register sequence as the 76-multimeter but without needing a button
+press to switch modes.
 
-| Shunt mV | ADC count | emu8051 ch1 | ucsim ch1 | Match |
-|----------|-----------|-------------|-----------|-------|
-| 0 mV | 0 | n/a | n/a | **PASS** |
-| 10 mV | 2 | n/a | n/a | **PASS** |
-| 50 mV | 10 | n/a | n/a | **PASS** |
-| 100 mV | 20 | n/a | n/a | **PASS** |
-| 250 mV | 51 | n/a | n/a | **PASS** |
-| 500 mV | 102 | n/a | n/a | **PASS** |
+### Channel 0: Voltage divider (Vin/4 through 30k/10k)
 
-**6/6 PASS** (both agree ch1 is not read in voltage mode).
+| Vin | Count | emu8051 | ucsim | mv | cand | Display | Match |
+|-----|-------|---------|-------|----|------|---------|-------|
+| 0 V | 0 | 0 | 0 | 0 | 0 | 0.00 | **PASS** |
+| 1 V | 51 | 51 | 51 | 249 | 99 | 0.99 | **PASS** |
+| 2 V | 102 | 102 | 102 | 498 | 199 | 1.99 | **PASS** |
+| 4 V | 205 | 205 | 205 | 1001 | 400 | 4.00 | **PASS** |
+| 6 V | 307 | 307 | 307 | 1500 | 600 | 6.00 | **PASS** |
+| 8 V | 409 | 409 | 409 | 1999 | 799 | 7.99 | **PASS** |
+| 10 V | 512 | 512 | 512 | 2502 | 1000 | 10.00 | **PASS** |
+| 13.2 V | 675 | 675 | 675 | 3299 | 1319 | 13.19 | **PASS** |
+| 16 V | 818 | 818 | 818 | 3998 | 1599 | 15.99 | **PASS** |
+| 20 V | 1023 | 1023 | 1023 | 5000 | 2000 | 20.00 | **PASS** |
+
+### Channel 1: LM358 shunt amplifier (amps mode)
+
+| Shunt mV | Count | emu8051 | ucsim | mv | mA (×50/47) | Match |
+|----------|-------|---------|-------|----|-------------|-------|
+| 0 mV | 0 | 0 | 0 | 0 | 0 | **PASS** |
+| 5 mV | 1 | 1 | 1 | 4 | 4 | **PASS** |
+| 25 mV | 5 | 5 | 5 | 24 | 25 | **PASS** |
+| 50 mV | 10 | 10 | 10 | 48 | 51 | **PASS** |
+| 100 mV | 20 | 20 | 20 | 97 | 103 | **PASS** |
+| 250 mV | 51 | 51 | 51 | 249 | 264 | **PASS** |
+| 500 mV | 102 | 102 | 102 | 498 | 529 | **PASS** |
+| 1 V | 205 | 205 | 205 | 1001 | 1064 | **PASS** |
+| 2.5 V | 512 | 512 | 512 | 2502 | 2661 | **PASS** |
+
+### Channel 2: NTC thermistor divider
+
+| NTC mV | Count | emu8051 | ucsim | mv | deci-°C | Match |
+|--------|-------|---------|-------|----|---------|-------|
+| 0 mV | 0 | 0 | 0 | 0 | -344 | **PASS** |
+| 433 mV | 89 | 89 | 89 | 434 | -200 | **PASS** |
+| 733 mV | 150 | 150 | 150 | 733 | -100 | **PASS** |
+| 1146 mV | 235 | 235 | 235 | 1148 | 38 | **PASS** |
+| 1657 mV | 339 | 339 | 339 | 1656 | 207 | **PASS** |
+| 2500 mV | 512 | 512 | 512 | 2502 | 489 | **PASS** |
+| 3268 mV | 669 | 669 | 669 | 3269 | 745 | **PASS** |
+| 4004 mV | 820 | 820 | 820 | 4007 | 991 | **PASS** |
+| 5 V | 1023 | 1023 | 1023 | 5000 | 1322 | **PASS** |
 
 ## Summary
 
 | Test area | Points | Pass | Fail |
 |-----------|--------|------|------|
-| Raw 10-bit ADC (STC12) | 8 | 8 | 0 |
-| Multimeter voltage mode (STC15) | 9 | 9 | 0 |
-| Multimeter amps mode (STC15) | 6 | 6 | 0 |
-| **Total** | **23** | **23** | **0** |
+| Raw 10-bit ADC (STC12, ch0) | 8 | 8 | 0 |
+| Multimeter voltage mode (STC15, ch0) | 9 | 9 | 0 |
+| 3-ch fixture ch0 (STC15) | 10 | 10 | 0 |
+| 3-ch fixture ch1 (STC15) | 9 | 9 | 0 |
+| 3-ch fixture ch2 (STC15) | 9 | 9 | 0 |
+| **Total** | **45** | **45** | **0** |
 
 ## Divergences
 
-None. The ADC model is byte-exact across all tested voltage points:
-- ADC_CONTR register protocol (power, speed, start, flag, channel)
+None. The ADC model is byte-exact across all 45 tested voltage points,
+all 3 channels, both STC12 and STC15:
+- ADC_CONTR register protocol (power, speed, start, flag, channel select)
 - ADC_RES / ADC_RESL result registers (10-bit, ADRJ=0 alignment)
-- P1ASF analog function enable
+- P1ASF analog function enable (multi-channel mask)
 - ADC conversion timing (flag set after delay countdown)
+- Channel switching (sequential ch0→ch1→ch2→ch0)
 - Default value without stimulus (0, per STC12 datasheet — fixed in a41cee0)
+- P5.5 buzzer markers between channels (STC15 P5 port model)
 
 ## Register sequence (both emulators)
 
