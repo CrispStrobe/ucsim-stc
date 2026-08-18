@@ -117,6 +117,40 @@ if [ "$emu_count" -ge 16 ]; then
     fi
 fi
 
+# --- 595 edge order: latch/data/clock sequence cross-emu ---
+echo ""
+echo "--- 595 edge order (P3.4=data, P3.5=latch, P3.6=clock) ---"
+# Extract PIN events for the 595 pins from first tick only (between TF#1 and TF#2)
+timeout 10 "$EMU_TRACE" -fosc $FOSC -until-ns $UNTIL_NS "$HEX" 2>/dev/null \
+    | awk '$2 == "TF" { tf++; next } tf == 1 && $2 == "PIN" && $3 ~ /3\.[456]/' \
+    | cut -f2- > "$TMP/emu_595.pin"
+timeout 10 "$STC12_TRACE" -t STC89 -fosc $FOSC -until-ns $UNTIL_NS "$HEX" 2>/dev/null \
+    | awk '$2 == "TF" { tf++; next } tf == 1 && $2 == "PIN" && $3 ~ /3\.[456]/' \
+    | cut -f2- > "$TMP/ucsim_595.pin"
+
+emu_595=$(wc -l < "$TMP/emu_595.pin")
+ucs_595=$(wc -l < "$TMP/ucsim_595.pin")
+
+if diff "$TMP/emu_595.pin" "$TMP/ucsim_595.pin" > /dev/null 2>&1; then
+    echo "595 edges: EXACT match ($emu_595 events)"
+    # Verify expected sequence: latch L, data, 7×(clk H, clk L), latch H, latch L
+    first_ev=$(head -1 "$TMP/emu_595.pin")
+    latch_count=$(grep -c "3.5" "$TMP/emu_595.pin")
+    clock_count=$(grep -c "3.6" "$TMP/emu_595.pin")
+    if echo "$first_ev" | grep -q "3.5.*L" && [ "$clock_count" -ge 14 ]; then
+        echo "595 protocol: latch-first, $((clock_count/2)) clock cycles per row"
+        PASS=$((PASS+1))
+    else
+        echo "595 protocol: unexpected sequence"
+        head -5 "$TMP/emu_595.pin"
+        FAIL=$((FAIL+1))
+    fi
+else
+    echo "595 edges: DIVERGENCE (emu=$emu_595 ucsim=$ucs_595)"
+    diff "$TMP/emu_595.pin" "$TMP/ucsim_595.pin" | head -10
+    FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "=== Results ==="
 echo "Pass: $PASS  Fail: $FAIL"
