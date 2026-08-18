@@ -26,7 +26,13 @@ Select with `-t STC12`, `-t STC15`, `-t STC89`, `-t STC15W`.
 ## What is verified (category 2b unless noted)
 
 Evidence categories per [`stc/docs/EVIDENCE-CATEGORIES.md`](https://github.com/CrispStrobe/stc12c5a60s2-lab/blob/main/docs/EVIDENCE-CATEGORIES.md).
-**Nothing has run on real silicon.** Every measurement is emulation-only.
+**Every measurement in this table is emulation-derived.** Since the first
+bench sessions (2026-08-17/18, [lab repo §9](https://github.com/CrispStrobe/stc12c5a60s2-lab#9-first-silicon--what-is-now-verified-on-real-hardware)),
+some of what these measurements MODEL now has silicon corroboration on
+STC89C52RC hardware: the 12T core rate (crystal-true Timer-0 blink), 12T
+Timer-0/Timer-1 arithmetic (two-way UART at 9600), and Timer 2 as a
+115200-baud generator. Still emulation-only: everything STC12-specific —
+the ADC path, PCA/PWM, and the BRT.
 
 | Measurement | Result | Category |
 |---|---|---|
