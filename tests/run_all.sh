@@ -58,6 +58,7 @@ if [ -x "$EMU_TRACE" ]; then
     run_suite "MATRIX8X8 golden trace (ISR scan)" ./tests/rung_matrix8x8_golden.sh
     run_suite "SEVENSEG8 golden trace (ISR scan)" ./tests/rung_sevenseg8_golden.sh
     run_suite "LEDBANK8 golden trace (shadow/P2)" ./tests/rung_ledbank8_golden.sh
+    run_suite "A2 sampler golden (keypad→7seg+LEDs)" ./tests/rung_a2_sampler_golden.sh
 fi
 
 # nRF52840 bare-metal execution (requires labwired-core)

@@ -5,9 +5,9 @@ this covers everything a fresh session needs.
 
 ## Lane state: what is DONE
 
-### Test harness — 21 suites, all green (verified 2026-08-18)
+### Test harness — 22 suites, all green (verified 2026-08-18)
 
-`tests/run_all.sh` runs everything. Last full pass: 21/21, 0 fail.
+`tests/run_all.sh` runs everything. Last full pass: 22/22, 0 fail.
 
 | Suite | Runner | Result |
 |---|---|---|
@@ -30,6 +30,7 @@ this covers everything a fresh session needs.
 | **MATRIX8X8 golden trace (ISR scan)** | `tests/rung_matrix8x8_golden.sh` | **11 pass** |
 | **SEVENSEG8 golden trace (ISR scan)** | `tests/rung_sevenseg8_golden.sh` | **11 pass** |
 | **LEDBANK8 golden trace (shadow/P2)** | `tests/rung_ledbank8_golden.sh` | **7 pass** |
+| **A2 sampler golden (keypad→7seg+LEDs)** | `tests/rung_a2_sampler_golden.sh` | **13 pass** |
 | nRF52840 bare-metal | `tests/rung_nrf52840_bare.sh` | 5 pass |
 | System ROM boots | `tests/rung_system_rom_boots.sh` | 11 pass |
 
