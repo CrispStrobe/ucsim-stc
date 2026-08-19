@@ -60,6 +60,7 @@ if [ -x "$EMU_TRACE" ]; then
     run_suite "LEDBANK8 golden trace (shadow/P2)" ./tests/rung_ledbank8_golden.sh
     run_suite "A2 sampler golden (keypad→7seg+LEDs)" ./tests/rung_a2_sampler_golden.sh
     run_suite "MATRIX8X8 BCM golden (4-level brightness)" ./tests/rung_matrix8x8_bcm_golden.sh
+    run_suite "Keypad+Matrix combined golden" ./tests/rung_keypad_matrix_golden.sh
 fi
 
 # nRF52840 bare-metal execution (requires labwired-core)
