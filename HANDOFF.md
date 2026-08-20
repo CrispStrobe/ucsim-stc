@@ -5,9 +5,9 @@ this covers everything a fresh session needs.
 
 ## Lane state: what is DONE
 
-### Test harness — 25 suites, all green (verified 2026-08-19)
+### Test harness — 27 suites, all green (verified 2026-08-20)
 
-`tests/run_all.sh` runs everything. Last full pass: 25/25, 0 fail.
+`tests/run_all.sh` runs everything. Last full pass: 27/27, 0 fail.
 
 | Suite | Runner | Result |
 |---|---|---|
@@ -20,6 +20,8 @@ this covers everything a fresh session needs.
 | NeoPixel WS2812 | `tests/rung_neopixel.sh` | 4 pass |
 | LCD I2C protocol | `tests/rung_lcd_i2c.sh` | 14 pass |
 | AVR blink cycles | `tests/rung_avr_blink.sh` | 8 pass |
+| **STC15 SFR delta traps** | `tests/rung_stc15_sfr_delta.sh` | **11 pass** |
+| **STC15 UART Timer 2 baud** | `tests/rung_stc15_uart_baud.sh` | **7 pass** |
 | Example differentials | `tests/examples_diff.sh` | 9 pass |
 | Boundary D ladder | `tests/run_control_diff.sh` | 6 pass |
 | AVR oracle (simavr vs avr8js) | `tests/rung_avr_oracle.sh` | 22 pass, 2 known |

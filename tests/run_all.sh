@@ -28,6 +28,8 @@ run_suite "Baud divergence (BRT vs T2)" ./tests/rung_baud.sh
 run_suite "NeoPixel WS2812 spec windows" ./tests/rung_neopixel.sh
 run_suite "LCD I2C protocol edges" ./tests/rung_lcd_i2c.sh
 run_suite "AVR blink cycle counts" ./tests/rung_avr_blink.sh
+run_suite "STC15 SFR delta traps" ./tests/rung_stc15_sfr_delta.sh
+run_suite "STC15 UART Timer 2 baud" ./tests/rung_stc15_uart_baud.sh
 
 # Cross-emulator tests (require emu_trace)
 EMU_TRACE="${EMU_TRACE:-../emu8051-stc/emu_trace}"
